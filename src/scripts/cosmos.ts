@@ -1,7 +1,8 @@
-// Draws the living cosmos on one canvas. Everything moves very slowly on purpose:
-// it should be felt rather than watched.
+// Draws the living cosmos on one canvas. Some stars twinkle brightly and the planets drift and
+// float gently, slow enough to be calm rather than distracting.
 
-interface Star { x: number; y: number; r: number; layer: number; phase: number }
+/** `spark` stars twinkle strongly, with a little cross of light at their brightest. */
+interface Star { x: number; y: number; r: number; layer: number; phase: number; spark: boolean; speed: number }
 interface Planet {
   kind: "mars" | "saturn" | "jupiter" | "neptune" | "moon";
   x: number; // 0..1 of width
@@ -29,11 +30,11 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
   let nebula: HTMLCanvasElement | null = null;
 
   const planets: Planet[] = [
-    { kind: "saturn", x: 0.82, y: 0.22, size: 34, vx: -0.004, vy: 0.001 },
-    { kind: "mars", x: 0.12, y: 0.68, size: 16, vx: 0.005, vy: -0.0015 },
-    { kind: "jupiter", x: 0.62, y: 0.86, size: 44, vx: -0.003, vy: -0.0008 },
-    { kind: "neptune", x: 0.3, y: 0.12, size: 12, vx: 0.003, vy: 0.001 },
-    { kind: "moon", x: 0.92, y: 0.62, size: 22, vx: -0.002, vy: -0.0005 },
+    { kind: "saturn", x: 0.82, y: 0.22, size: 34, vx: -0.02, vy: 0.004 },
+    { kind: "mars", x: 0.12, y: 0.68, size: 16, vx: 0.028, vy: -0.006 },
+    { kind: "jupiter", x: 0.62, y: 0.86, size: 44, vx: -0.015, vy: -0.003 },
+    { kind: "neptune", x: 0.3, y: 0.12, size: 12, vx: 0.022, vy: 0.004 },
+    { kind: "moon", x: 0.92, y: 0.62, size: 22, vx: -0.012, vy: -0.002 },
   ];
 
   function resize() {
@@ -43,7 +44,8 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     const count = Math.round((w * h) / 2600);
     stars = Array.from({ length: count }, () => {
       const layer = Math.random() < 0.6 ? 0 : Math.random() < 0.75 ? 1 : 2;
-      return { x: Math.random() * w, y: Math.random() * h, r: 0.4 + layer * 0.45 + Math.random() * 0.5, layer, phase: Math.random() * Math.PI * 2 };
+      const spark = Math.random() < 0.12;
+      return { x: Math.random() * w, y: Math.random() * h, r: 0.4 + layer * 0.45 + Math.random() * 0.5 + (spark ? 0.4 : 0), layer, phase: Math.random() * Math.PI * 2, spark, speed: 1 + Math.random() * 1.6 };
     });
     nebula = makeNebula(w, h);
   }
@@ -86,9 +88,13 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     ctx!.beginPath(); ctx!.arc(x, y, r, 0, Math.PI * 2); ctx!.fill();
   }
 
-  function drawPlanet(p: Planet) {
+  /** `t` is seconds; `i` gives each planet its own gentle float so they never move in step. */
+  function drawPlanet(p: Planet, t: number, i: number) {
     const scale = Math.max(0.6, Math.min(w, 1400) / 1000);
-    const r = p.size * scale, x = p.x * w, y = p.y * h;
+    const float = reduceMotion ? 0 : 1;
+    const r = p.size * scale;
+    const x = p.x * w + float * Math.cos(t * 0.23 + i * 1.7) * 5 * scale;
+    const y = p.y * h + float * Math.sin(t * 0.31 + i * 2.3) * 8 * scale;
     const c = ctx!;
     c.save();
     c.globalAlpha = dim ? 0.35 : 0.9;
@@ -106,9 +112,17 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
         c.fillStyle = i % 2 ? "#8a5a36" : "#f5e3c5";
         c.fillRect(x - r, y + i * r * 0.26 - r * 0.06, r * 2, r * 0.12);
       }
+      // the Great Red Spot, carried round as Jupiter spins
+      const turn = t * 0.12 + 1;
+      const face = Math.cos(turn);
+      if (face > 0) {
+        c.globalAlpha = (dim ? 0.35 : 0.9) * 0.7 * face;
+        c.fillStyle = "#b5523a";
+        c.beginPath(); c.ellipse(x + Math.sin(turn) * r * 0.8, y + r * 0.3, r * 0.22 * face, r * 0.12, 0, 0, Math.PI * 2); c.fill();
+      }
       c.restore();
     } else if (p.kind === "saturn") {
-      const tilt = -0.35;
+      const tilt = -0.35 + float * Math.sin(t * 0.18) * 0.06; // the rings rock very slightly
       const ring = (front: boolean) => {
         c.save(); c.translate(x, y); c.rotate(tilt);
         c.beginPath();
@@ -159,17 +173,31 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     for (const s of stars) {
       s.x -= LAYER_SPEED[s.layer] * dt * 0.6;
       if (s.x < -2) s.x = w + 2;
-      const twinkle = 0.55 + 0.45 * Math.sin(t * (0.6 + s.layer * 0.3) + s.phase);
-      c.globalAlpha = (dim ? 0.35 : 0.8) * twinkle;
+      const base = dim ? 0.35 : 0.8;
       c.fillStyle = s.layer === 2 ? "#fff6e0" : "#e8e4ff";
-      c.beginPath(); c.arc(s.x, s.y, s.r, 0, Math.PI * 2); c.fill();
+      if (s.spark) {
+        // a strong twinkle: mostly faint, flaring to full brightness with a small cross of light
+        const tw = 0.12 + 0.88 * Math.max(0, Math.sin(t * s.speed + s.phase)) ** 3;
+        c.globalAlpha = Math.min(1, base * 1.25) * tw;
+        c.beginPath(); c.arc(s.x, s.y, s.r, 0, Math.PI * 2); c.fill();
+        if (tw > 0.55) {
+          const len = s.r * 7 * tw;
+          c.globalAlpha *= 0.55;
+          c.fillRect(s.x - len, s.y - 0.35, len * 2, 0.7);
+          c.fillRect(s.x - 0.35, s.y - len, 0.7, len * 2);
+        }
+      } else {
+        const twinkle = 0.55 + 0.45 * Math.sin(t * (0.6 + s.layer * 0.3) + s.phase);
+        c.globalAlpha = base * twinkle;
+        c.beginPath(); c.arc(s.x, s.y, s.r, 0, Math.PI * 2); c.fill();
+      }
     }
     c.globalAlpha = 1;
-    for (const p of planets) {
+    for (const [i, p] of planets.entries()) {
       p.x += (p.vx * dt) / 60; p.y += (p.vy * dt) / 60;
       if (p.x < -0.1) p.x = 1.1; if (p.x > 1.1) p.x = -0.1;
       if (p.y < -0.1) p.y = 1.1; if (p.y > 1.1) p.y = -0.1;
-      drawPlanet(p);
+      drawPlanet(p, t, i);
     }
     if (!reduceMotion) requestAnimationFrame(frame);
   }
