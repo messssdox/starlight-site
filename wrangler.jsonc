@@ -1,9 +1,13 @@
-// Cloudflare Workers settings: serve the built site in ./dist as static files.
+// Cloudflare Workers settings. worker/index.ts answers /api/* and hands every
+// other request to the built site in ./dist.
 {
   "name": "starlight",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
   },
   // Lets Cloudflare build a preview link for each pull request.
   "previews": {}
