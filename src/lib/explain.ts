@@ -1,7 +1,7 @@
 // Plain-English working for every result in a reading, using the reader's own numbers,
 // so each reading teaches how it was calculated as it goes.
 
-import { reduce, letterValue, MASTER_NUMBERS, personalYear } from "./numerology.ts";
+import { reduce, letterValue, MASTER_NUMBERS, personalYear, challenges } from "./numerology.ts";
 import { chineseSign, friendsOf, secretFriendOf, clashOf } from "./chinese.ts";
 import { ANIMALS } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
@@ -142,6 +142,35 @@ export function nameBreakdown(name: string, kind: NameKind): Breakdown {
     letters,
     result: `Your ${info.title} number is ${value}.`,
     articles: [{ id: "numerology/your-name-numbers", label: "Your name numbers" }],
+  };
+}
+
+/** The four Challenge Numbers, worked out from the birth date by subtraction. */
+export function challengesBreakdown(date: string): Breakdown {
+  const [y, m, d] = date.split("-").map(Number);
+  const c = challenges(date);
+  const day = reduceLine("Day", d, false);
+  const month = reduceLine("Month", m, false);
+  const year = reduceLine("Year", y, false);
+  const diff = (label: string, a: number, an: string, b: number, bn: string, v: number) =>
+    `${label}: take the smaller from the larger of your ${an} (${a}) and your ${bn} (${b}). ${Math.max(a, b)} − ${Math.min(a, b)} = ${v}.`;
+  return {
+    id: "how-challenges",
+    title: "Challenge Numbers",
+    intro: "Your Challenge Numbers show the lessons you are working through. Like your Life Path, they come from your birth date, but they use subtraction instead of addition.",
+    steps: [
+      `Shrink the day, month and year of ${longDate(date)} to single digits. Master numbers are not kept here.`,
+      day.line,
+      month.line,
+      year.line,
+      diff("First Challenge (early life)", c.month, "month", c.day, "day", c.first),
+      diff("Second Challenge (middle years)", c.day, "day", c.year, "year", c.second),
+      diff("Third Challenge, the main one (all through life)", c.first, "First Challenge", c.second, "Second Challenge", c.third),
+      diff("Fourth Challenge (later life)", c.month, "month", c.year, "year", c.fourth),
+      `Because we always subtract, a challenge can only be 0 to 8. A 0 means you get to choose your lesson.`,
+    ],
+    result: `Your challenges are ${c.first}, ${c.second}, ${c.third} and ${c.fourth}. Your main challenge is ${c.third}.`,
+    articles: [{ id: "numerology/challenge-numbers", label: "Challenge Numbers" }],
   };
 }
 

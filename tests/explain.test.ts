@@ -49,3 +49,16 @@ test("Chinese working explains Lunar New Year and the count from the Rat", () =>
   assert.ok(element.steps.includes("1989 ends in 9, so your year element is Earth."));
   assert.equal(chineseBreakdowns("1984-06-01")[0].steps.at(-1), "A remainder of 0 means a full number of cycles, so you land back on the Rat.");
 });
+
+test("Challenge Numbers subtract the reduced day, month and year", async () => {
+  const { challenges } = await import("../src/lib/numerology.ts");
+  const { challengesBreakdown } = await import("../src/lib/explain.ts");
+  // 14 March 1990: day 5, month 3, year 1; first 2, second 4, third 2, fourth 2
+  assert.deepEqual(challenges("1990-03-14"), { first: 2, second: 4, third: 2, fourth: 2, day: 5, month: 3, year: 1 });
+  // 29 November 1985: day 11 -> 2, month 11 -> 2, year 1985 -> 5; first 0, second 3, third 3, fourth 3
+  const c = challenges("1985-11-29");
+  assert.deepEqual([c.first, c.second, c.third, c.fourth], [0, 3, 3, 3]);
+  const b = challengesBreakdown("1990-03-14");
+  assert.ok(b.steps.some((s) => s.startsWith("Second Challenge") && s.endsWith("5 − 1 = 4.")));
+  assert.equal(b.result, "Your challenges are 2, 4, 2 and 2. Your main challenge is 2.");
+});

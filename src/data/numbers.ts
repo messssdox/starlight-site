@@ -41,3 +41,16 @@ export const RELATIONSHIPS = {
 } as const;
 
 export type RelationshipId = keyof typeof RELATIONSHIPS;
+
+/** What each Challenge Number (0 to 8) asks you to learn. */
+export const CHALLENGE_MEANINGS: Record<number, { keyword: string; text: string }> = {
+  0: { keyword: "The Choice", text: "No single lesson is set for you, so you get to choose which ones to work on. The challenge is to notice where you hold back and pick your growth on purpose." },
+  1: { keyword: "Standing Tall", text: "Learning to trust yourself and say what you need, without being pushed around or pushing others." },
+  2: { keyword: "Sensitivity", text: "Learning not to take things too personally, and to value your own view as much as other people's." },
+  3: { keyword: "Self-Expression", text: "Learning to share your real feelings openly, instead of hiding behind jokes or scattering your energy." },
+  4: { keyword: "Discipline", text: "Learning steady habits and patience, while staying flexible enough to enjoy the journey." },
+  5: { keyword: "Freedom", text: "Learning to handle change wisely: neither running from commitment nor clinging too tightly to what is safe." },
+  6: { keyword: "Responsibility", text: "Learning to care without controlling, letting go of perfection, and letting people make their own choices." },
+  7: { keyword: "Faith", text: "Learning to trust other people and life itself, and to open up rather than retreat into yourself." },
+  8: { keyword: "Money and Power", text: "Learning a healthy, balanced relationship with money, success and control." },
+};

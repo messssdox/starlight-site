@@ -45,17 +45,19 @@ const articles = (await getCollection("library")).map((a) => a.id);
   .reading :global(.letters span small) { color: var(--gold); }
   .reading :global(.letters span.off) { opacity: 0.35; }
   .reading :global(.letters .gap) { width: 10px; border: 0; }
+  .reading :global(.challenges .medallion .n) { font-size: 2.4rem; }
+  .reading :global(.challenges .medallion.main) { border-color: var(--gold); }
   .reading :global(.medallion .see) { display: inline-block; margin-top: 10px; font-size: 0.85rem; }
   .reading :global(.pair) { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 640px) { .reading :global(.pair), .reading :global(.animal) { grid-template-columns: 1fr; } }
 </style>
 
 <script>
-  import { lifePath, expression, soulUrge, personality, personalYear, type Result } from "../lib/numerology.ts";
+  import { lifePath, expression, soulUrge, personality, personalYear, challenges, type Result } from "../lib/numerology.ts";
   import { chineseSign, relationBetween, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
   import { GROUPS } from "../data/zodiac.ts";
-  import { NUMBER_MEANINGS, NUMBER_FAMILIES, RELATIONSHIPS, type RelationshipId } from "../data/numbers.ts";
-  import { lifePathBreakdown, nameBreakdown, personalYearBreakdown, chineseBreakdowns, todayIso, type Breakdown } from "../lib/explain.ts";
+  import { NUMBER_MEANINGS, NUMBER_FAMILIES, CHALLENGE_MEANINGS, RELATIONSHIPS, type RelationshipId } from "../data/numbers.ts";
+  import { lifePathBreakdown, challengesBreakdown, nameBreakdown, personalYearBreakdown, chineseBreakdowns, todayIso, type Breakdown } from "../lib/explain.ts";
 
   const q = new URLSearchParams(location.search);
   const tier = (q.get("tier") ?? "first") as "glance" | "first" | "deep";
@@ -117,7 +119,19 @@ const articles = (await getCollection("library")).map((a) => a.id);
     const year = Number(today.slice(0, 4));
     const py = personalYear(date, year);
     const nums = [medallion("Life Path", lp, "how-life-path")];
-    const how: Breakdown[] = [lifePathBreakdown(date)];
+    const how: Breakdown[] = [lifePathBreakdown(date), challengesBreakdown(date)];
+    const ch = challenges(date);
+    const challengeCards = ([
+      ["First", "early life", ch.first],
+      ["Second", "middle years", ch.second],
+      ["Third", "your main challenge", ch.third],
+      ["Fourth", "later life", ch.fourth],
+    ] as const)
+      .map(([which, when, v]) => {
+        const c = CHALLENGE_MEANINGS[v];
+        return `<div class="medallion panel${which === "Third" ? " main" : ""}"><span class="what">${which} Challenge<br>${when}</span><span class="n">${v}</span><span class="k">${c.keyword}</span>${tier === "glance" ? "" : `<p class="muted">${c.text}</p>`}</div>`;
+      })
+      .join("");
     if (name) { nums.push(medallion("Expression", expression(name), "how-expression")); how.push(nameBreakdown(name, "expression")); }
     if (name && tier !== "glance") {
       nums.push(medallion("Soul Urge", soulUrge(name), "how-soul"), medallion("Personality", personality(name), "how-personality"));
@@ -132,6 +146,11 @@ const articles = (await getCollection("library")).map((a) => a.id);
       <h1>${esc(first)}, here is your reading</h1>
       ${tier === "first" ? `<p class="muted">Welcome! Each number below comes from your name or birth date. Tap any underlined word for a quick explanation.</p>` : ""}
       <section class="part"><h2>Your numbers</h2><div class="numbers">${nums.join("")}</div></section>
+      <section class="part">
+        <h2>Your challenges</h2>
+        <p class="muted">Where your Life Path shows the road you walk, your four Challenge Numbers show the lessons you meet along it. The third is your main challenge, with you all through life. <a href="#how-challenges" data-open-how>See how we worked them out</a></p>
+        <div class="numbers challenges">${challengeCards}</div>
+      </section>
       <section class="part panel animal">
         <img src="/animals/${cn.animal.id}.png" alt="" width="120" height="120">
         <div>
