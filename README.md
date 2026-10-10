@@ -38,5 +38,5 @@ npm run build    # builds the finished site into the dist/ folder
 
 ## Credits
 
-- Animal illustrations: [Fluent Emoji](https://github.com/microsoft/fluentui-emoji) by Microsoft, MIT licence.
+- Animal medallions (`public/animals/*.png`): gold relief medallions rendered from [Game-icons.net](https://game-icons.net) silhouettes by Lorc, Delapouite and contributors (CC BY 3.0), and the EmojiOne dragon (CC BY 4.0). To use different artwork, replace the 12 PNG files with the same names.
 - Astronomy: [Astronomy Engine](https://github.com/cosinekitty/astronomy) by Don Cross, MIT licence.
