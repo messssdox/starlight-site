@@ -38,6 +38,10 @@ const articles = (await getCollection("library")).map((a) => a.id);
   .reading :global(.how-card ol) { margin: 10px 0; padding-left: 22px; }
   .reading :global(.how-card li) { margin: 4px 0; }
   .reading :global(.how-card .result) { color: var(--gold); font-family: var(--font-display); margin: 8px 0 0; }
+  .reading :global(.how-card li .why) { display: block; font-size: 0.88rem; color: var(--mist); margin-top: 2px; }
+  .reading :global(.how-card .meaning) { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: rgba(212, 175, 90, 0.08); border: 1px solid rgba(212, 175, 90, 0.3); }
+  .reading :global(.how-card .meaning h4) { margin: 0 0 6px; font-family: var(--font-display); color: var(--gold); font-size: 1.1rem; }
+  .reading :global(.how-card .meaning p) { margin: 0; }
   .reading :global(.how-card .note) { font-size: 0.9rem; border-left: 2px solid var(--orchid); padding-left: 12px; margin-top: 12px; }
   .reading :global(.how-card .more) { font-size: 0.9rem; margin: 10px 0 0; }
   .reading :global(.letters) { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 4px; }
@@ -103,8 +107,9 @@ const articles = (await getCollection("library")).map((a) => a.id);
         <h3>${esc(b.title)}</h3>
         <p class="muted">${esc(b.intro)}</p>
         ${letters}
-        <ol>${b.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>
+        <ol>${b.steps.map((s) => `<li>${esc(s.text)}${s.why ? `<span class="why">${esc(s.why)}</span>` : ""}</li>`).join("")}</ol>
         <p class="result">${esc(b.result)}</p>
+        ${b.meaning ? `<div class="meaning"><h4>${esc(b.meaning.title)}</h4><p>${esc(b.meaning.text)}</p></div>` : ""}
         ${b.note ? `<p class="note muted">${esc(b.note)}</p>` : ""}
         ${links.length ? `<p class="more">Learn more in the Library: ${links.map((a) => `<a href="/library/${a.id}">${esc(a.label)}</a>`).join(" · ")}</p>` : ""}
       </div>`;

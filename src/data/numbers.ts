@@ -54,3 +54,16 @@ export const CHALLENGE_MEANINGS: Record<number, { keyword: string; text: string 
   7: { keyword: "Faith", text: "Learning to trust other people and life itself, and to open up rather than retreat into yourself." },
   8: { keyword: "Money and Power", text: "Learning a healthy, balanced relationship with money, success and control." },
 };
+
+/** The theme of each year in the nine-year Personal Year cycle. */
+export const PERSONAL_YEAR_THEMES: Record<number, string> = {
+  1: "A year of fresh starts. Seeds you plant now grow through the whole nine-year cycle, so be brave: begin the project, make the plan, step forward.",
+  2: "A year of patience and partnership. What you started last year is growing quietly underground. Lean on cooperation, listen closely and rest when you can.",
+  3: "A year of joy and expression. Life opens up socially and creatively, so share your ideas, say yes to invitations and let yourself have fun.",
+  4: "A year of building foundations. Hard work, routines and organisation pay off now. It may feel slow, but what you build this year lasts.",
+  5: "A year of change and freedom. Expect surprises, travel and new people. Stay flexible and welcome the shake-up rather than fighting it.",
+  6: "A year of home and heart. Family, love and responsibility take centre stage. Care for the people around you, and let them care for you too.",
+  7: "A year of reflection. A quieter, inward time for study, rest and finding answers within. Trust your intuition and make space to think.",
+  8: "A year of harvest. Effort from earlier years can bring recognition, success and money matters into focus. Step into your power with confidence.",
+  9: "A year of completion. Finish what needs finishing, forgive what you can and clear space, so you are ready for a fresh cycle that starts next year.",
+};
