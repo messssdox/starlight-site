@@ -246,11 +246,11 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
   let nebula: HTMLCanvasElement | null = null;
 
   const planets: Planet[] = [
-    { kind: "saturn", x: 0.82, y: 0.22, size: 34, vx: -0.02, vy: 0.004, spin: 70, tilt: -0.35, lean: 0.3 },
-    { kind: "mars", x: 0.12, y: 0.72, size: 16, vx: 0.028, vy: -0.006, spin: 90, tilt: 0.42, lean: 0.15 },
-    { kind: "jupiter", x: 0.62, y: 0.86, size: 44, vx: -0.015, vy: -0.003, spin: 60, tilt: 0.05, lean: 0.05 },
-    { kind: "neptune", x: 0.3, y: 0.12, size: 12, vx: 0.022, vy: 0.004, spin: 80, tilt: 0.5, lean: 0.2 },
-    { kind: "moon", x: 0.92, y: 0.62, size: 22, vx: -0.012, vy: -0.002, spin: 0, tilt: 0.1, lean: 0.1 },
+    { kind: "saturn", x: 0.82, y: 0.22, size: 34, vx: -0.09, vy: 0.012, spin: 30, tilt: -0.35, lean: 0.3 },
+    { kind: "mars", x: 0.12, y: 0.72, size: 16, vx: 0.12, vy: -0.018, spin: 36, tilt: 0.42, lean: 0.15 },
+    { kind: "jupiter", x: 0.62, y: 0.86, size: 44, vx: -0.07, vy: -0.01, spin: 24, tilt: 0.05, lean: 0.05 },
+    { kind: "neptune", x: 0.3, y: 0.12, size: 12, vx: 0.1, vy: 0.014, spin: 32, tilt: 0.5, lean: 0.2 },
+    { kind: "moon", x: 0.92, y: 0.62, size: 22, vx: -0.06, vy: -0.008, spin: 0, tilt: 0.1, lean: 0.1 },
   ];
   const textures: Partial<Record<Kind, Texture>> = {};
   const maps: Partial<Record<Kind, SphereMap>> = {};
