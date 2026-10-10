@@ -8,6 +8,7 @@ import {
   chineseSign, friendsOf, secretFriendOf, clashOf, relationBetween,
   animalOfZodiacYear, elementOfZodiacYear, yinYangOfZodiacYear,
 } from "../lib/chinese.ts";
+import { dailyForecast, weeklyForecast, monthlyForecast, yearlyForecast, luckyAnimals, animalHours, weekdayName } from "../lib/forecast.ts";
 
 const CLASH_RED = "#d8343c";
 const TURN_MS = 1300; // keep in step with the transition in ZodiacWheel.astro
@@ -42,6 +43,73 @@ const FRIEND_INSIGHT: Record<string, string> = {
   wood: "Together you bring people together. These friends share your kindness and love of peace and beauty.",
 };
 
+/** Today's date where the reader is, as YYYY-MM-DD. */
+const localToday = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+const shortDate = (iso: string) => {
+  const d = new Date(`${iso}T12:00:00Z`);
+  const part = (o: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-GB", { ...o, timeZone: "UTC" });
+  return `${part({ weekday: "short" })} ${d.getUTCDate()} ${part({ month: "short" })}`;
+};
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const stars = (n: number) =>
+  `<span class="stars" role="img" aria-label="${n} out of 5">${"★".repeat(n)}<span class="off">${"★".repeat(5 - n)}</span></span>`;
+const TOPIC_NAMES = { love: "Love", work: "Work", money: "Money", wellbeing: "Wellbeing" };
+const topicsHtml = (ts: { topic: keyof typeof TOPIC_NAMES; text: string }[]) =>
+  `<div class="topics">${ts.map((t) => `<div><span>${TOPIC_NAMES[t.topic]}</span>${t.text}</div>`).join("")}</div>`;
+type Scope = "day" | "week" | "month" | "year";
+
+/** The forecast box under the wheel, for the selected animal and the chosen period. */
+function forecastHtml(self: Animal, scope: Scope): string {
+  const today = localToday();
+  if (scope === "day") {
+    const f = dailyForecast(self.id, today);
+    return `
+      <p class="fc-when">${longDate(today)}</p>
+      <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
+      <p class="ruler">${img(f.animal, 34)}<span>${f.intro[0]}</span></p>
+      <p>${f.intro[1]}</p>
+      ${topicsHtml(f.topics)}
+      <ul class="fc-lucky"><li>Lucky colour: ${f.luckyColour}</li><li>Lucky number: ${f.luckyNumber}</li><li>Best hours: ${f.luckyHours}</li></ul>`;
+  }
+  if (scope === "week") {
+    const f = weeklyForecast(self.id, today);
+    const strip = f.days.map((d) =>
+      `<div class="s${d.stars}${d.date === today ? " today" : ""}" title="${weekdayName(d.date)}: ${d.animal.name} day, ${d.stars} out of 5">
+        <b>${weekdayName(d.date).slice(0, 3)}</b><span>${Number(d.date.slice(8))}</span>${img(d.animal, 26)}<span>${d.animal.name}</span>${"★".repeat(d.stars)}</div>`).join("");
+    return `
+      <p class="fc-when">${longDate(f.days[0].date)} to ${longDate(f.days[6].date)}</p>
+      <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
+      <div class="week">${strip}</div>
+      ${f.intro.map((t) => `<p>${t}</p>`).join("")}
+      ${topicsHtml(f.topics)}
+      <p><strong class="good">Best day:</strong> ${weekdayName(f.best)}${f.care ? `. <strong class="hard">Go gently on:</strong> ${weekdayName(f.care)}` : ""}.</p>`;
+  }
+  if (scope === "month") {
+    const f = monthlyForecast(self.id, today);
+    const days = (xs: string[]) => xs.map((d) => shortDate(d)).join(", ");
+    return `
+      <p class="fc-when">${MONTHS[f.month - 1]} ${f.year}</p>
+      <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
+      <p class="ruler">${img(f.animal, 34)}<span>${f.intro[0]}</span></p>
+      ${topicsHtml(f.topics)}
+      <p><strong class="good">Your brightest days:</strong> ${f.bestDays.length ? days(f.bestDays) : "none stand out this month, so steady effort wins"}.</p>
+      <p><strong class="hard">Days to take care:</strong> ${days(f.careDays)} (${clashOf(self.id).name} days, the ${self.name}'s clash).</p>`;
+  }
+  const f = yearlyForecast(self.id, today);
+  const end = LUNAR_NEW_YEAR[f.zodiacYear + 1];
+  const months = (xs: number[]) => list(xs.map((m) => MONTHS[m - 1]));
+  return `
+    <p class="fc-when">The ${f.element} ${f.animal.name} year: ${longDate(LUNAR_NEW_YEAR[f.zodiacYear])}${end ? ` to ${longDate(dayBefore(end))}` : ""}</p>
+    <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
+    <p class="ruler">${img(f.animal, 34)}<span>${f.intro[0]}</span></p>
+    <p><strong class="good">Your best months:</strong> ${months(f.bestMonths)}.</p>
+    <p><strong class="hard">Months to take care:</strong> ${months(f.careMonths)}.</p>
+    <p class="next">Months here are the Chinese solar months, which start around the 4th to the 8th.</p>`;
+}
+
 interface Focus { date?: string; year?: number }
 
 /** How each element feeds the next (the producing cycle) and keeps another in check (the controlling cycle), in pictures. */
@@ -74,6 +142,9 @@ export function initWheel(root: HTMLElement) {
   const texts = [...svg.querySelectorAll<SVGElement>(".tt")];
   const elems = [...svg.querySelectorAll<SVGGElement>(".elem")];
   const centreGlyph = svg.querySelector<SVGTextElement>(".centre-glyph")!;
+  const forecast = root.querySelector<HTMLElement>("[data-forecast]")!;
+  const forecastTitle = root.querySelector<HTMLElement>("[data-fc-title]")!;
+  const tabs = [...root.querySelectorAll<HTMLButtonElement>(".fc-tabs [data-scope]")];
   const box = (kind: string) => insights.querySelector<HTMLElement>(`[data-kind="${kind}"]`)!;
   const setLabels = (a: string, b: string, c: string) => {
     box("friends").querySelector(".label")!.textContent = a;
@@ -86,6 +157,7 @@ export function initWheel(root: HTMLElement) {
   let compareWith = "";
   let focus: Focus = {};
   let orientTimer = 0;
+  let scope: Scope = "day";
 
   /** Keep every label along the ring readable for the wheel's current turn: none upside down. */
   function orientText() {
@@ -156,6 +228,14 @@ export function initWheel(root: HTMLElement) {
 
     renderInsights(self, friends, secret, clash);
     renderDetails(self, friends, secret, clash, other);
+    renderForecast();
+  }
+
+  function renderForecast() {
+    const self = animalById(current);
+    forecastTitle.textContent = `Forecast for the ${self.name}`;
+    tabs.forEach((t) => t.setAttribute("aria-selected", String(t.dataset.scope === scope)));
+    forecast.innerHTML = forecastHtml(self, scope);
   }
 
   /** The three boxes under the wheel: what the friends, secret friend and clash mean for this animal. */
@@ -228,6 +308,9 @@ export function initWheel(root: HTMLElement) {
         <dt>Watch out for</dt><dd>${profile.watchOut}</dd>
         <dt>In love</dt><dd>${profile.love}</dd>
         <dt>At work</dt><dd>${profile.work}</dd>
+        <dt>Careers</dt><dd>${profile.careers}</dd>
+        <dt>Wellbeing</dt><dd>${profile.wellbeing}</dd>
+        <dt>Lucky days</dt><dd>Days and hours of the ${list(luckyAnimals(self.id).map((a) => a.name))}, especially the ${secret.name} (${list(luckyAnimals(self.id).map((a) => animalHours(a)))}). The forecast below the wheel picks them out.</dd>
         <dt>Elements</dt><dd>The ${self.name}'s own element is ${elemLink(self.element)}. It sits in ${season.season.toLowerCase()} on the outer edge, the season of ${elemLink(season.element)}, which brings ${season.meaning}.${EARTH_ANIMALS.includes(self.id) ? ` As the last animal of its season, it also carries ${elemLink("Earth")}, which links one season to the next.` : ""}</dd>
       </dl>
       <div class="lucky">
@@ -342,6 +425,11 @@ export function initWheel(root: HTMLElement) {
     const link = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-element]");
     if (link) selectElement(link.dataset.element as Element);
   });
+
+  tabs.forEach((t) => t.addEventListener("click", () => {
+    scope = t.dataset.scope as Scope;
+    renderForecast();
+  }));
 
   details.addEventListener("click", (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-compare]");
