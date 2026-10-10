@@ -89,6 +89,7 @@ import DonationBox from "../components/DonationBox.astro";
         <div>
           <p class="eyebrow">Chinese zodiac</p>
           <h2>${cn.element} ${cn.animal.name}</h2>
+          ${cn.animal.alsoKnownAs ? `<p class="muted"><em>${cn.animal.alsoKnownAs}</em></p>` : ""}
           <p>${cn.animal.summary} Born in ${cn.zodiacYear}, a ${cn.yinYang.toLowerCase()} year, you belong to the ${g.element} friend group with ${friendsOf(cn.animal.id).map((f) => f.name).join(" and ")}.</p>
           ${tier !== "glance" ? `<p>Your secret friend is the <strong>${secretFriendOf(cn.animal.id).name}</strong>, and your clash sign is the <strong>${clashOf(cn.animal.id).name}</strong>.</p>` : ""}
         </div>

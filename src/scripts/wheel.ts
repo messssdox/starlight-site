@@ -189,7 +189,8 @@ export function initWheel(root: HTMLElement) {
     details.innerHTML = `
       ${yearBox}
       <div class="head">${img(self, 84)}<div><h3>The ${self.name}</h3>
-        <p class="sub">Number ${self.index + 1} on the wheel · ${self.yinYang} · ${season.season} (${season.element})</p></div></div>
+        <p class="sub">Number ${self.index + 1} on the wheel · ${self.yinYang} · ${season.season} (${season.element})</p>
+        ${self.alsoKnownAs ? `<p class="aka">${self.alsoKnownAs}</p>` : ""}</div></div>
       <ul class="tags">${self.traits.map((t) => `<li>${t}</li>`).join("")}</ul>
       <p>${self.summary}</p>
       <dl>

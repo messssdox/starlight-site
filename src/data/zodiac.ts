@@ -19,6 +19,8 @@ export interface Animal {
   colour: string;
   traits: string[];
   summary: string;
+  /** Another name the animal goes by, shown as a small note. */
+  alsoKnownAs?: string;
 }
 
 export interface FriendGroup {
@@ -42,7 +44,7 @@ export const ANIMALS: Animal[] = [
   { id: "rat", name: "Rat", index: 0, element: "Water", yinYang: "Yang", group: "water", colour: "#5FA9A3", traits: ["Quick-witted", "Resourceful", "Charming"], summary: "The Rat is clever and adaptable, always spotting the opportunity others miss." },
   { id: "ox", name: "Ox", index: 1, element: "Earth", yinYang: "Yin", group: "metal", colour: "#EE95A2", traits: ["Dependable", "Patient", "Strong"], summary: "The Ox is steady and hard-working, building success slowly and surely." },
   { id: "tiger", name: "Tiger", index: 2, element: "Wood", yinYang: "Yang", group: "fire", colour: "#EBCF6E", traits: ["Brave", "Confident", "Passionate"], summary: "The Tiger is bold and magnetic, a natural leader who loves a challenge." },
-  { id: "rabbit", name: "Rabbit", index: 3, element: "Wood", yinYang: "Yin", group: "wood", colour: "#6585AE", traits: ["Gentle", "Elegant", "Intuitive"], summary: "The Rabbit is graceful and kind, with a gift for creating calm and beauty." },
+  { id: "rabbit", name: "Rabbit", index: 3, element: "Wood", yinYang: "Yin", group: "wood", colour: "#6585AE", traits: ["Gentle", "Elegant", "Intuitive"], summary: "The Rabbit is graceful and kind, with a gift for creating calm and beauty.", alsoKnownAs: "Known as the Cat in Vietnam." },
   { id: "dragon", name: "Dragon", index: 4, element: "Earth", yinYang: "Yang", group: "water", colour: "#5FA9A3", traits: ["Ambitious", "Energetic", "Lucky"], summary: "The Dragon is powerful and visionary, full of life and big ideas." },
   { id: "snake", name: "Snake", index: 5, element: "Fire", yinYang: "Yin", group: "metal", colour: "#EE95A2", traits: ["Wise", "Intuitive", "Refined"], summary: "The Snake is thoughtful and perceptive, trusting deep inner wisdom." },
   { id: "horse", name: "Horse", index: 6, element: "Fire", yinYang: "Yang", group: "fire", colour: "#EBCF6E", traits: ["Free-spirited", "Lively", "Warm"], summary: "The Horse is energetic and independent, happiest when moving forward." },
@@ -50,7 +52,7 @@ export const ANIMALS: Animal[] = [
   { id: "monkey", name: "Monkey", index: 8, element: "Metal", yinYang: "Yang", group: "water", colour: "#5FA9A3", traits: ["Inventive", "Playful", "Curious"], summary: "The Monkey is witty and inventive, solving puzzles with a grin." },
   { id: "rooster", name: "Rooster", index: 9, element: "Metal", yinYang: "Yin", group: "metal", colour: "#EE95A2", traits: ["Observant", "Honest", "Hard-working"], summary: "The Rooster is proud and precise, noticing every detail." },
   { id: "dog", name: "Dog", index: 10, element: "Earth", yinYang: "Yang", group: "fire", colour: "#EBCF6E", traits: ["Loyal", "Fair", "Protective"], summary: "The Dog is faithful and honest, a true friend for life." },
-  { id: "pig", name: "Pig", index: 11, element: "Water", yinYang: "Yin", group: "wood", colour: "#6585AE", traits: ["Generous", "Sincere", "Easy-going"], summary: "The Pig is warm-hearted and generous, enjoying life's simple pleasures." },
+  { id: "pig", name: "Pig", index: 11, element: "Water", yinYang: "Yin", group: "wood", colour: "#6585AE", traits: ["Generous", "Sincere", "Easy-going"], summary: "The Pig is warm-hearted and generous, enjoying life's simple pleasures.", alsoKnownAs: "Also called the Boar." },
 ];
 
 /** Secret-friend pairs, each with its own colour on the inner ring. */
