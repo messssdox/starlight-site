@@ -1,0 +1,74 @@
+/* Shared by the reading page and the numerology deep dive (reading/numbers). */
+.reading { padding-top: 48px; max-width: 900px; }
+.reading .numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 24px 0; }
+.reading .medallion { text-align: center; padding: 22px 16px; }
+.reading .medallion .n { font: 600 3rem var(--font-display); color: var(--gold); line-height: 1; display: block; text-shadow: 0 0 24px rgba(212, 175, 90, 0.35); }
+.reading .medallion .k { display: block; margin-top: 6px; font-family: var(--font-display); }
+.reading .medallion p { text-align: left; font-size: 0.92rem; }
+.reading .medallion .what { font-size: 0.8rem; color: var(--mist); text-transform: uppercase; letter-spacing: 0.12em; }
+.reading .steps { font-size: 0.85rem; color: var(--mist); text-align: left; margin: 10px 0 0; padding-left: 18px; }
+.reading .animal { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: center; }
+.reading .animal img { width: 120px; height: 120px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.6)); }
+.reading section.part { margin-top: 28px; }
+.reading .how { margin-top: 14px; }
+.reading .how > summary { cursor: pointer; font-family: var(--font-display); color: var(--gold); font-size: 1.05rem; }
+.reading .how-card { margin-top: 14px; }
+.reading .how-card h3 { margin: 0 0 4px; }
+.reading .how-card ol { margin: 10px 0; padding-left: 22px; }
+.reading .how-card li { margin: 4px 0; }
+.reading .how-card .result { color: var(--gold); font-family: var(--font-display); margin: 8px 0 0; }
+.reading .how-card li .why { display: block; font-size: 0.88rem; color: var(--mist); margin-top: 2px; }
+.reading .how-card .meaning { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: rgba(212, 175, 90, 0.08); border: 1px solid rgba(212, 175, 90, 0.3); }
+.reading .how-card .meaning h4 { margin: 0 0 6px; font-family: var(--font-display); color: var(--gold); font-size: 1.1rem; }
+.reading .how-card .meaning p { margin: 0; }
+.reading .how-card .note { font-size: 0.9rem; border-left: 2px solid var(--orchid); padding-left: 12px; margin-top: 12px; }
+.reading .how-card .more { font-size: 0.9rem; margin: 10px 0 0; }
+.reading .letters { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 4px; }
+.reading .letters span { display: inline-grid; justify-items: center; min-width: 26px; padding: 3px 4px; border-radius: 6px; border: 1px solid rgba(142, 107, 217, 0.4); font-size: 0.85rem; line-height: 1.2; }
+.reading .letters span small { color: var(--gold); }
+.reading .letters span.off { opacity: 0.35; }
+.reading .letters .gap { width: 10px; border: 0; }
+.reading .challenges .medallion .n { font-size: 2.4rem; }
+.reading .challenges .medallion.main { border-color: var(--gold); }
+.reading .medallion .see { display: inline-block; margin-top: 10px; font-size: 0.85rem; }
+.reading .lp-deep > summary { cursor: pointer; list-style: none; }
+.reading .lp-deep > summary h2 { display: inline; }
+.reading .lp-deep > summary::after { content: " ▾"; color: var(--gold); }
+.reading .lp-deep .panel, .reading .compat .panel { margin-top: 14px; }
+.reading .lp-deep .pair, .reading .compat .pair { margin-top: 0; }
+.reading .lp-deep ul, .reading .compat ul { margin: 6px 0 0; padding-left: 20px; }
+.reading .growth { border-color: var(--gold); }
+.reading .who { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; }
+.reading .who img { width: 64px; height: 64px; }
+.reading .who p { margin: 0; }
+.reading .harmony .stars { font-size: 1.8rem; color: var(--gold); margin: 4px 0; letter-spacing: 0.1em; }
+.reading .harmony .stars span { font-size: 0.95rem; letter-spacing: 0; }
+.reading .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .reading .pair, .reading .animal { grid-template-columns: 1fr; } }
+
+/* "How it's calculated": a small reveal under each section, closed by default. */
+.calc { margin-top: 10px; }
+.calc > summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; font-size: 0.8rem; color: var(--mist); border: 1px solid rgba(142, 107, 217, 0.4); border-radius: 999px; padding: 4px 12px; }
+.calc > summary::-webkit-details-marker { display: none; }
+.calc > summary::before { content: "＋"; color: var(--gold); }
+.calc[open] > summary::before { content: "－"; }
+.calc > summary:hover { color: var(--moonlight); border-color: var(--gold); }
+
+/* The Life Path strip at the top of a reading. */
+.reading .lp-strip { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; padding: 16px 20px; }
+.reading .lp-strip .n { font: 600 2.6rem var(--font-display); color: var(--gold); line-height: 1; text-shadow: 0 0 24px rgba(212, 175, 90, 0.35); }
+.reading .lp-strip .what { display: block; font-size: 0.75rem; color: var(--mist); text-transform: uppercase; letter-spacing: 0.12em; }
+.reading .lp-strip .k { font-family: var(--font-display); font-size: 1.15rem; }
+.reading .lp-strip p { margin: 4px 0 0; font-size: 0.92rem; }
+.reading .lp-strip .btn { white-space: nowrap; }
+@media (max-width: 640px) { .reading .lp-strip { grid-template-columns: auto 1fr; } .reading .lp-strip .btn { grid-column: 1 / -1; justify-self: start; } }
+
+/* The animal and element section. */
+.reading .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; padding: 0; list-style: none; }
+.reading .chips li { font-size: 0.82rem; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(212, 175, 90, 0.45); color: var(--gold); }
+.reading .el-card h3, .reading .wheel-card h3 { margin: 0 0 6px; }
+.reading .el-card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 10px 0 0; font-size: 0.92rem; }
+.reading .el-card dt { color: var(--gold); }
+.reading .el-card dd { margin: 0; }
+.reading .back { font-size: 0.9rem; }
+.reading .part > .panel + .panel, .reading .part > .panel + .pair, .reading .part > .pair + .pair, .reading .part > .pair + .panel, .reading .compat > .panel, .reading .compat > .pair { margin-top: 14px; }
