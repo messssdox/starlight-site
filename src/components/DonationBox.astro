@@ -1,6 +1,8 @@
 ---
 // The small, elegant donation box. All settings live in src/config/donations.ts.
 import { DONATIONS } from "../config/donations.ts";
+const PROVIDER_NAMES = { buymeacoffee: "Buy Me a Coffee", kofi: "Ko-fi", paypal: "PayPal", stripe: "Stripe" } as const;
+const providerName = DONATIONS.provider && DONATIONS.link ? PROVIDER_NAMES[DONATIONS.provider] : null;
 interface Props { compact?: boolean }
 const { compact = false } = Astro.props;
 ---
@@ -26,6 +28,7 @@ const { compact = false } = Astro.props;
     </div>
     <button class="btn" type="submit">Give with gratitude ✦</button>
   </form>
+  {providerName && <p class="via muted">Opens {providerName} in a new tab, where you can confirm your amount.</p>}
   <p class="thanks muted" hidden></p>
 </section>
 
@@ -41,6 +44,7 @@ const { compact = false } = Astro.props;
   .custom { width: 100%; max-width: 200px; margin: 4px auto 0; text-align: left; }
   .amounts .btn { width: 100%; max-width: 280px; justify-content: center; margin-top: 8px; }
   .thanks { margin-top: 14px; }
+  .via { font-size: 0.8rem; margin: 10px 0 0; }
   .compact h2 { font-size: 1.3rem; }
 </style>
 
@@ -62,7 +66,7 @@ const { compact = false } = Astro.props;
         thanks.hidden = false;
         return;
       }
-      // Ko-fi and PayPal let the visitor confirm the amount on their page; Stripe Payment Links can pre-fill it.
+      // Buy Me a Coffee, Ko-fi and PayPal let the visitor confirm the amount on their page; Stripe Payment Links can pre-fill it.
       const url = new URL(link);
       if (provider === "stripe" && amount) url.searchParams.set("__prefilled_amount", String(Number(amount) * 100));
       window.open(url.toString(), "_blank", "noopener");
