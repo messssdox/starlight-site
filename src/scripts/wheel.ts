@@ -443,6 +443,23 @@ export function initWheel(root: HTMLElement) {
     showReveal(true);
   });
 
+  // Enlarge: a big copy of the wheel to read up close; on phones it can be scrolled and pinched
+  const zoom = root.querySelector<HTMLDialogElement>("dialog.zoom")!;
+  const stage = zoom.querySelector<HTMLElement>("[data-zoom-stage]")!;
+  root.querySelectorAll<HTMLButtonElement>("[data-zoom]").forEach((b) => b.addEventListener("click", () => {
+    const copy = (b.dataset.zoom === "sign" ? signSvg : svg).cloneNode(true) as SVGSVGElement;
+    copy.classList.add("no-anim");
+    copy.removeAttribute("role");
+    copy.querySelectorAll("[tabindex]").forEach((el) => el.removeAttribute("tabindex"));
+    stage.replaceChildren(copy);
+    zoom.showModal();
+    stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) / 2;
+    stage.scrollTop = 0;
+  }));
+  zoom.querySelector("[data-zoom-close]")!.addEventListener("click", () => zoom.close());
+  zoom.addEventListener("click", (e) => { if (e.target === zoom) zoom.close(); });
+  zoom.addEventListener("close", () => stage.replaceChildren());
+
   // start on this year's animal and today's sign, already turned to the top; the reading waits for Show me
   const todayIso = localToday();
   const today = chineseSign(todayIso);

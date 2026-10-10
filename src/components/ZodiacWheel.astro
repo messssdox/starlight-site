@@ -55,6 +55,8 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
 const S = { centre: 54, planetOut: 246, signIn: 250, signOut: 424, dateIn: 424, dateOut: 452, rimIn: 452, rimOut: 492 };
 const RULER_GLYPH: Record<string, string> = Object.fromEntries(PLANETS.map((p) => [p.name, p.glyph]));
 const rulerName = (r: string) => r.replace(/^the /, "");
+/** Width of the cream label behind a name. */
+const tagW = (name: string) => name.length * 15.5 + 22;
 ---
 
 <section class="wheel-wrap" aria-labelledby="wheel-title">
@@ -75,6 +77,7 @@ const rulerName = (r: string) => r.replace(/^the /, "");
 
   <div class="wheels">
     <div class="wheel-col">
+      <button type="button" class="zoom-btn" data-zoom="animal" aria-label="Enlarge the Chinese zodiac wheel">⤢ Enlarge</button>
       <svg class="wheel" viewBox="-500 -520 1000 1020" role="group" aria-label="The Chinese zodiac wheel" style="--spin: 0deg">
       <defs>
         {ANIMALS.map((a) => (
@@ -133,7 +136,7 @@ const rulerName = (r: string) => r.replace(/^the /, "");
               <g transform={`translate(${ix} ${iy})`}><g class="upright">
                 <image class="render" href={`/animals/${a.id}.png`} x="-40" y="-40" width="80" height="80" filter="url(#lift)" />
               </g></g>
-              <text class="name tt" {...tt(a.index, 410)} y="8" text-anchor="middle">{a.name.toUpperCase()}</text>
+              <g class="name-tag tt" {...tt(a.index, 408)}><rect x={-tagW(a.name) / 2} y="-16" width={tagW(a.name)} height="32" rx="16" /><text class="name" y="8" text-anchor="middle">{a.name.toUpperCase()}</text></g>
               <g class="badge tt" {...tt(a.index, 300)} aria-hidden="true">
                 <rect x="-60" y="-13" width="120" height="26" rx="13" />
                 <text y="6" text-anchor="middle"></text>
@@ -191,6 +194,7 @@ const rulerName = (r: string) => r.replace(/^the /, "");
     </svg>
     </div>
     <div class="wheel-col">
+      <button type="button" class="zoom-btn" data-zoom="sign" aria-label="Enlarge the sun sign wheel">⤢ Enlarge</button>
       <svg class="wheel sign-wheel" viewBox="-500 -520 1000 1020" role="group" aria-label="The sun sign wheel" style="--spin: 0deg">
           <defs>
             {Object.entries(SIGN_ELEMENT_COLOURS).map(([el, c]) => (
@@ -223,7 +227,7 @@ const rulerName = (r: string) => r.replace(/^the /, "");
                     <circle class="medal" r="36" />
                     <text class="medal-glyph" y="14" text-anchor="middle">{g.glyph}</text>
                   </g></g>
-                  <text class="name tt" {...tt(i, 398)} y="8" text-anchor="middle">{g.name.toUpperCase()}</text>
+                  <g class="name-tag tt" {...tt(i, 396)}><rect x={-tagW(g.name) / 2} y="-16" width={tagW(g.name)} height="32" rx="16" /><text class="name" y="8" text-anchor="middle">{g.name.toUpperCase()}</text></g>
                   <text class="ruler-glyph tt" {...tt(i, 206)} y="12" text-anchor="middle">{RULER_GLYPH[rulerName(g.ruler)]}</text>
                   <text class="ruler-name tt" {...tt(i, 168)} y="6" text-anchor="middle">{rulerName(g.ruler).toUpperCase()}</text>
                   <text class="elem-name tt" {...tt(i, 118)} y="5" text-anchor="middle">{g.element.toUpperCase()}</text>
@@ -254,6 +258,11 @@ const rulerName = (r: string) => r.replace(/^the /, "");
         </svg>
     </div>
   </div>
+
+  <dialog class="zoom" aria-label="Enlarged wheel">
+    <button type="button" class="zoom-close" data-zoom-close>Close ✕</button>
+    <div class="zoom-stage" data-zoom-stage></div>
+  </dialog>
 
   <div class="reveal" data-reveal hidden>
     <div class="reveal-boxes">
@@ -286,6 +295,14 @@ const rulerName = (r: string) => r.replace(/^the /, "");
   @media (max-width: 900px) { .wheels, .reveal { grid-template-columns: 1fr; } .wheels .wheel-col { max-width: 560px; margin: 0 auto; width: 100%; } }
   @media (prefers-reduced-motion: reduce) { .reveal { animation: none; } }
 
+  .wheel-col { position: relative; }
+  .zoom-btn { position: absolute; top: 0; right: 0; z-index: 2; border-radius: 999px; padding: 6px 12px; font: 600 0.85rem var(--font-body); cursor: pointer; background: rgba(18, 14, 31, 0.85); color: var(--gold); border: 1px solid rgba(212, 175, 90, 0.6); }
+  .zoom-btn:hover, .zoom-btn:focus-visible { background: var(--gold); color: #120e1f; }
+  .zoom { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0b0816; color: var(--moonlight); }
+  .zoom::backdrop { background: rgba(0, 0, 0, 0.8); }
+  .zoom-stage { width: 100%; height: 100%; overflow: auto; padding: 60px 24px 24px; box-sizing: border-box; }
+  .zoom-stage :global(svg) { width: max(100%, 980px); max-width: 1400px; height: auto; margin: 0 auto; }
+  .zoom-close { position: fixed; top: 12px; right: 12px; z-index: 3; border-radius: 999px; padding: 8px 16px; font: 700 0.95rem var(--font-body); cursor: pointer; background: var(--gold); color: #120e1f; border: 0; }
   .wheel { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55)); }
   .wheel text { pointer-events: none; }
   .wheel .rot { transform: rotate(var(--spin)); transition: transform 1.5s cubic-bezier(0.65, 0, 0.35, 1); }
@@ -312,7 +329,8 @@ const rulerName = (r: string) => r.replace(/^the /, "");
   .wheel .earth-pill.is-on rect { stroke: #d4af5a; stroke-width: 4; filter: url(#glow); }
   .wheel .num-band { fill: #faf6ee; }
   .wheel .num { font: 700 23px var(--font-display); fill: #120e1f; }
-  .wheel .name { font: 700 23px var(--font-display); fill: #120e1f; letter-spacing: 0.02em; paint-order: stroke; stroke: rgba(255, 255, 255, 0.7); stroke-width: 5px; stroke-linejoin: round; }
+  .wheel .name-tag rect { fill: rgba(250, 246, 238, 0.94); stroke: #120e1f; stroke-width: 1.5; }
+  .wheel .name { font: 700 22px var(--font-body); fill: #120e1f; letter-spacing: 0.05em; }
   .wheel .ink circle, .wheel .ink line { fill: none; stroke: #1d1729; stroke-width: 2.4; }
   .wheel .spoke { stroke: #1d1729; stroke-width: 1.6; }
   .wheel .centre circle { fill: #120e1f; stroke: #d4af5a; stroke-width: 3; }
