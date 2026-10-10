@@ -161,7 +161,7 @@ export function initWheel(root: HTMLElement) {
     badge.classList.toggle("k-clash", kind === "clash");
     if (!label) return;
     badge.querySelector("text")!.textContent = label;
-    const w = label.length * 11.5 + 30;
+    const w = label.length * 8.8 + 20;
     const rect = badge.querySelector("rect")!;
     rect.setAttribute("x", String(-w / 2));
     rect.setAttribute("width", String(w));
