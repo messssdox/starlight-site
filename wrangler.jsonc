@@ -1,0 +1,10 @@
+// Cloudflare Workers settings: serve the built site in ./dist as static files.
+{
+  "name": "starlight",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  },
+  // Lets Cloudflare build a preview link for each pull request.
+  "previews": {}
+}
