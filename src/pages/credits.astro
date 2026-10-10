@@ -1,0 +1,76 @@
+---
+// Thanks and licence notices for the tools, artwork and fonts Starlight is built with.
+import Base from "../layouts/Base.astro";
+
+const credits = [
+  {
+    name: "Astronomy Engine",
+    by: "Don Cross",
+    use: "Works out where the Sun, Moon and planets were for your birth date.",
+    licence: "MIT licence",
+    href: "https://github.com/cosinekitty/astronomy",
+    licenceHref: "https://github.com/cosinekitty/astronomy/blob/master/LICENSE",
+  },
+  {
+    name: "Game-icons.net",
+    by: "Lorc, Delapouite and contributors",
+    use: "The animal shapes behind eleven of the gold zodiac medallions (recoloured and given a relief finish).",
+    licence: "CC BY 3.0",
+    href: "https://game-icons.net",
+    licenceHref: "https://creativecommons.org/licenses/by/3.0/",
+  },
+  {
+    name: "EmojiOne",
+    by: "JoyPixels",
+    use: "The dragon shape behind the Dragon medallion (recoloured and given a relief finish).",
+    licence: "CC BY 4.0",
+    href: "https://github.com/joypixels/emojione-legacy",
+    licenceHref: "https://creativecommons.org/licenses/by/4.0/",
+  },
+  {
+    name: "Cinzel, Cormorant Garamond and Inter",
+    by: "Natanael Gama, Christian Thalmann and Rasmus Andersson, via Google Fonts",
+    use: "The lettering used across the site.",
+    licence: "SIL Open Font Licence 1.1",
+    href: "https://fonts.google.com",
+    licenceHref: "https://openfontlicense.org",
+  },
+  {
+    name: "Astro",
+    by: "The Astro team",
+    use: "Builds the site into fast, simple pages.",
+    licence: "MIT licence",
+    href: "https://astro.build",
+    licenceHref: "https://github.com/withastro/astro/blob/main/LICENSE",
+  },
+];
+---
+
+<Base title="Credits" zone="library" description="The tools, artwork and fonts Starlight is built with.">
+  <section class="container cr">
+    <p class="eyebrow">Credits</p>
+    <h1>With thanks</h1>
+    <p class="muted">Starlight is crafted by Dean Theron and stands on the generous work of these people and projects.</p>
+    <ul>
+      {credits.map((c) => (
+        <li class="panel">
+          <h2><a href={c.href}>{c.name}</a></h2>
+          <p class="by">by {c.by}</p>
+          <p>{c.use}</p>
+          <p class="lic">Licence: <a href={c.licenceHref}>{c.licence}</a></p>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .cr { padding-top: 48px; max-width: 820px; }
+  ul { list-style: none; padding: 0; display: grid; gap: 12px; margin-top: 24px; }
+  li { padding: 18px 22px; }
+  h2 { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
+  h2 a { color: var(--gold); text-decoration: none; }
+  li p { margin: 6px 0 0; }
+  .by { color: var(--mist); font-size: 0.9rem; }
+  .lic { font-size: 0.9rem; }
+</style>

@@ -1,0 +1,23 @@
+// Cloudflare Workers settings. worker/index.ts answers /api/* and hands every
+// other request to the built site in ./dist.
+{
+  "name": "starlight",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  // The database behind the reading counter (and, later, the feedback page).
+  "d1_databases": [
+    {
+      "binding": "COUNTER_DB",
+      "database_name": "starlight-counter",
+      "database_id": "98755a1b-956c-49a2-aae5-14076fbab2ed",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Lets Cloudflare build a preview link for each pull request.
+  "previews": {}
+}
