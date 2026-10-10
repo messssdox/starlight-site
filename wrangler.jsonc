@@ -7,9 +7,11 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*"],
+    // Show src/pages/404.astro for addresses that don't exist.
+    "not_found_handling": "404-page"
   },
-  // The database behind the reading counter (and, later, the feedback page).
+  // The database behind the reading counter and the Share your thoughts messages.
   "d1_databases": [
     {
       "binding": "COUNTER_DB",
