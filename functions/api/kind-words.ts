@@ -13,5 +13,5 @@ export const onRequestGet = async ({ env }: Context) => {
      ORDER BY approved_at DESC LIMIT 60`,
   ).all<Row>();
   const words = results.map((r) => ({ name: publicName(r.first_name), starSign: r.star_sign, message: r.body, date: r.approved_at.slice(0, 10) }));
-  return json({ words }, 200, "public, max-age=60");
+  return json({ words });
 };

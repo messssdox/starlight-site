@@ -1,0 +1,49 @@
+---
+// The Kind words wall: approved praise from visitors, loaded from /api/kind-words.
+// On the homepage it stays hidden until there is at least one message.
+interface Props {
+  /** How many messages to show (the newest first). */
+  limit?: number;
+  /** Hide the whole section while the wall is empty. */
+  hideWhenEmpty?: boolean;
+  /** Show a "share your own" link under the wall. */
+  invite?: boolean;
+}
+const { limit = 60, hideWhenEmpty = false, invite = false } = Astro.props;
+---
+
+<section class="kind-words" id="kind-words" data-kind-words data-limit={limit} hidden={hideWhenEmpty}>
+  <p class="eyebrow">From our visitors</p>
+  <h2>Kind words</h2>
+  <div class="wall" data-wall>
+    <p class="muted">Kind words from visitors will appear here.</p>
+  </div>
+  {invite && <p class="invite"><a href="/thoughts">Share your own thoughts →</a></p>}
+</section>
+
+<style>
+  .wall { columns: 3 260px; column-gap: 16px; }
+  .wall :global(blockquote) { break-inside: avoid; margin: 0 0 16px; }
+  .wall :global(blockquote p) { font-family: var(--font-reading); font-size: 1.2rem; margin: 0 0 10px; white-space: pre-line; }
+  .wall :global(cite) { font-style: normal; font-size: 0.85rem; color: var(--antique-gold); }
+  .invite { margin: 4px 0 0; }
+</style>
+
+<script>
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  document.querySelectorAll<HTMLElement>("[data-kind-words]").forEach((section) => {
+    const wall = section.querySelector<HTMLElement>("[data-wall]")!;
+    const limit = Number(section.dataset.limit) || 60;
+    fetch("/api/kind-words", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { words: { name: string; starSign: string; message: string }[] }) => {
+        if (!d.words?.length) return;
+        wall.innerHTML = d.words
+          .slice(0, limit)
+          .map((w) => `<blockquote class="panel"><p>${esc(w.message)}</p><cite>${esc(w.name)}${w.starSign ? `, ${esc(w.starSign)}` : ""}</cite></blockquote>`)
+          .join("");
+        section.hidden = false;
+      })
+      .catch(() => {});
+  });
+</script>
