@@ -1,110 +1,165 @@
 ---
-// The interactive Chinese zodiac wheel.
-// Rings, from the centre out: the chosen animal, secret friends (inner ring),
-// the 12 animals in friend-group colours, their years, and each animal's element on the rim.
-// Tap an animal (or enter a birth date) and its friends, secret friend and clash light up.
-import { ANIMALS, GROUPS, SECRET_FRIENDS, ELEMENT_COLOURS } from "../data/zodiac.ts";
-import { yearsOf, elementOfZodiacYear } from "../lib/chinese.ts";
+// The interactive Chinese zodiac wheel, laid out like the original hand-drawn wheel.
+// Rings, from the outside in:
+//   1. the outer edge: the four season elements (Water, Wood, Fire, Metal) and the animals' numbers 1 to 12
+//   2. the 12 animals, each with its 3D illustration and name, coloured by friend group (same colour = friends)
+//   3. the inner colour ring: secret friends share a colour
+//   4. the years, newest on the outside, every 12 years further in
+// Directly opposite animals clash. Tap an animal or a year, or enter a birth date, and the wheel shows what it means.
+import { ANIMALS, SECRET_FRIENDS, SEASONS } from "../data/zodiac.ts";
 
-const R = { centre: 96, secretIn: 102, secretOut: 134, ringIn: 140, ringOut: 300, yearsIn: 304, yearsOut: 440, rimIn: 444, rimOut: 490 };
+const R = {
+  centre: 54,
+  yearsIn: 58, yearsOut: 242,
+  secretIn: 246, secretOut: 278,
+  animalIn: 282, animalOut: 430,
+  numIn: 432, numOut: 458,
+  rimIn: 458, rimOut: 492,
+};
+const YEAR_ROW_GAP = 20;
+const YEAR_ROWS = 9; // 9 rows of 12 years reach back to the 1920s
 const rad = (deg: number) => (deg * Math.PI) / 180;
 const angleOf = (i: number) => -90 + i * 30;
-const pt = (i: number, r: number) => [r * Math.cos(rad(angleOf(i))), r * Math.sin(rad(angleOf(i)))];
+const pt = (i: number, r: number) => [r * Math.cos(rad(angleOf(i))), r * Math.sin(rad(angleOf(i)))].map((v) => +v.toFixed(2));
+/** Rotation that lays text along the ring, flipped on the lower half so nothing is upside down. */
+const along = (i: number) => {
+  const a = angleOf(i);
+  return Math.sin(rad(a)) > 0.01 ? a - 90 : a + 90;
+};
 
-function wedge(i: number, r0: number, r1: number, pad = 0) {
-  const a0 = rad(angleOf(i) - 15 + pad), a1 = rad(angleOf(i) + 15 - pad);
+function wedge(i: number, r0: number, r1: number, span = 1) {
+  const a0 = rad(angleOf(i) - 15), a1 = rad(angleOf(i) - 15 + 30 * span);
   const p = (r: number, a: number) => `${(r * Math.cos(a)).toFixed(2)} ${(r * Math.sin(a)).toFixed(2)}`;
-  return `M${p(r1, a0)} A${r1} ${r1} 0 0 1 ${p(r1, a1)} L${p(r0, a1)} A${r0} ${r0} 0 0 0 ${p(r0, a0)} Z`;
+  const large = span > 6 ? 1 : 0;
+  return `M${p(r1, a0)} A${r1} ${r1} 0 ${large} 1 ${p(r1, a1)} L${p(r0, a1)} A${r0} ${r0} 0 ${large} 0 ${p(r0, a0)} Z`;
 }
 
-const ELEMENT_GLYPH = { Wood: "木", Fire: "火", Earth: "土", Metal: "金", Water: "水" } as const;
 const secretColour = (id: string) => SECRET_FRIENDS.find((s) => s.pair.includes(id))!.colour;
-const YEAR_ROWS = [-48, -24, 0, 24, 48];
+
+/** The newest year shown for each animal: the window 2019 (Pig) to 2030 (Dog), as on the drawn wheel. */
+const topYear = (i: number) => 2019 + ((i - 11 + 12) % 12);
+const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).slice(2));
 ---
 
 <section class="wheel-wrap" aria-labelledby="wheel-title">
   <div class="wheel-col">
-    <svg class="wheel" viewBox="-500 -500 1000 1000" role="group" aria-labelledby="wheel-title" style="--spin: 0deg">
+    <svg class="wheel" viewBox="-500 -500 1000 1000" role="group" aria-labelledby="wheel-title">
       <defs>
         {ANIMALS.map((a) => (
-          <radialGradient id={`g-${a.id}`} gradientUnits="userSpaceOnUse" cx="0" cy="0" r={R.ringOut}>
-            <stop offset="0.46" stop-color={a.colour} stop-opacity="0.18" />
-            <stop offset="0.8" stop-color={a.colour} stop-opacity="0.5" />
-            <stop offset="1" stop-color={a.colour} stop-opacity="0.78" />
+          <radialGradient id={`g-${a.id}`} gradientUnits="userSpaceOnUse" cx="0" cy="0" r={R.animalOut}>
+            <stop offset="0.64" stop-color={a.colour} stop-opacity="0.82" />
+            <stop offset="1" stop-color={a.colour} />
           </radialGradient>
         ))}
-        <radialGradient id="g-centre" cx="0.4" cy="0.35" r="0.75">
-          <stop offset="0" stop-color="#2a1d4d" />
-          <stop offset="1" stop-color="#0c0916" />
+        <radialGradient id="g-paper" gradientUnits="userSpaceOnUse" cx="0" cy="0" r={R.yearsOut}>
+          <stop offset="0" stop-color="#e9e1d1" />
+          <stop offset="1" stop-color="#f7f2e8" />
         </radialGradient>
-        <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="6" result="b" />
-          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
         <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.55" />
+          <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#1d1729" flood-opacity="0.45" />
+        </filter>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="5" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
 
-      <g class="rot">
-        <circle r={R.rimOut + 4} fill="none" stroke="#9c7a3c" stroke-opacity="0.6" stroke-width="1.5" />
-
-        {ANIMALS.map((a) => (
-          <g class="seg" data-id={a.id} data-group={a.group} tabindex="0" role="button" aria-label={`${a.name}: show friends, secret friend and clash`}>
-            <path class="rim" d={wedge(a.index, R.rimIn, R.rimOut, 0.3)} fill={ELEMENT_COLOURS[a.element]} fill-opacity="0.42" />
-            <path class="years" d={wedge(a.index, R.yearsIn, R.yearsOut, 0.3)} fill={a.colour} fill-opacity="0.1" />
-            <path class="animal" d={wedge(a.index, R.ringIn, R.ringOut, 0.3)} fill={`url(#g-${a.id})`} stroke={a.colour} stroke-opacity="0.9" stroke-width="1.5" />
-            <path class="secret" d={wedge(a.index, R.secretIn, R.secretOut, 0.6)} fill={secretColour(a.id)} fill-opacity="0.85" />
-            <path class="outline" d={wedge(a.index, R.ringIn, R.rimOut, 0)} fill="none" />
-          </g>
-        ))}
-
-        <!-- relationship lines, drawn by the script -->
-        <g class="lines" aria-hidden="true"></g>
-
-        {ANIMALS.map((a) => {
-          const [ix, iy] = pt(a.index, 212);
-          const [yx, yy] = pt(a.index, 372);
-          const [ex, ey] = pt(a.index, 467);
-          const years = yearsOf(a.id);
+      <!-- outer edge: the four seasons and their elements -->
+      <g class="rim" aria-hidden="true">
+        {SEASONS.map((s) => {
+          const first = ANIMALS.find((a) => a.id === s.animals[0])!.index;
+          const mid = ANIMALS.find((a) => a.id === s.animals[1])!;
+          const [x, y] = pt(mid.index, (R.rimIn + R.rimOut) / 2);
           return (
-            <g class="labels" data-for={a.id} aria-hidden="true" pointer-events="none">
-              <g transform={`translate(${ix.toFixed(1)} ${iy.toFixed(1)})`}>
-                <g class="upright">
-                  <image href={`/animals/${a.id}.png`} x="-50" y="-62" width="100" height="100" filter="url(#lift)" />
-                  <text class="name" y="64" text-anchor="middle">{a.name}</text>
-                </g>
-              </g>
-              <g transform={`translate(${yx.toFixed(1)} ${yy.toFixed(1)})`}>
-                <g class="upright">
-                  {years.map((y, k) => (
-                    <text class="year" x={k < 5 ? -36 : 36} y={YEAR_ROWS[k % 5] + 6} text-anchor="middle" fill={ELEMENT_COLOURS[elementOfZodiacYear(y)]} data-year={y}>{y}</text>
-                  ))}
-                </g>
-              </g>
-              <g transform={`translate(${ex.toFixed(1)} ${ey.toFixed(1)})`}>
-                <g class="upright">
-                  <text class="glyph" y="9" text-anchor="middle">{ELEMENT_GLYPH[a.element]}</text>
-                </g>
-              </g>
+            <g class="season" data-element={s.element}>
+              <path d={wedge(first, R.rimIn, R.rimOut, 3)} fill={s.colour} />
+              <text class="season-name" transform={`translate(${x} ${y}) rotate(${along(mid.index)})`} y="7" text-anchor="middle">{s.element.toUpperCase()}</text>
             </g>
           );
         })}
       </g>
 
-      <g class="centre" aria-hidden="true">
-        <circle r={R.centre} fill="url(#g-centre)" stroke="#d4af5a" stroke-width="2" />
-        <image class="centre-img" href="/animals/horse.png" x="-46" y="-62" width="92" height="92" />
-        <text class="centre-name" y="52" text-anchor="middle">Horse</text>
+      <!-- the 12 animal segments: number band, animal ring and secret-friend ring -->
+      {ANIMALS.map((a) => {
+        const [nx, ny] = pt(a.index, (R.numIn + R.numOut) / 2);
+        const [ix, iy] = pt(a.index, 366);
+        const [tx, ty] = pt(a.index, 306);
+        const [bx, by] = pt(a.index, 416);
+        return (
+          <g class="seg" data-id={a.id} tabindex="0" role="button" aria-label={`${a.name}: show its friends, secret friend and clash`}>
+            <path class="num-band" d={wedge(a.index, R.numIn, R.numOut)} />
+            <text class="num" transform={`translate(${nx} ${ny}) rotate(${along(a.index)})`} y="6" text-anchor="middle">{a.index + 1}</text>
+            <path class="animal" d={wedge(a.index, R.animalIn, R.animalOut)} fill={`url(#g-${a.id})`} />
+            <path class="secret" d={wedge(a.index, R.secretIn, R.secretOut)} fill={secretColour(a.id)} />
+            <image class="render" href={`/animals/${a.id}.png`} x={ix - 38} y={iy - 38} width="76" height="76" filter="url(#lift)" />
+            <text class="name" transform={`translate(${tx} ${ty}) rotate(${along(a.index)})`} y="8" text-anchor="middle">{a.name.toUpperCase()}</text>
+            <g class="badge" transform={`translate(${bx} ${by}) rotate(${along(a.index)})`} aria-hidden="true">
+              <rect x="-60" y="-12" width="120" height="24" rx="12" />
+              <text y="5" text-anchor="middle"></text>
+            </g>
+            <path class="outline" d={wedge(a.index, R.secretIn, R.animalOut)} />
+          </g>
+        );
+      })}
+
+      <!-- the years: newest on the outside, 12 years further back on each row inwards -->
+      <g class="years">
+        <circle r={R.yearsOut} fill="url(#g-paper)" />
+        <!-- relationship lines, drawn by the script, sit under the year numbers so the years stay readable -->
+        <g class="lines" aria-hidden="true" pointer-events="none"></g>
+        {ANIMALS.map((a) => (
+          <g class="year-col" data-for={a.id}>
+            {Array.from({ length: YEAR_ROWS }, (_, row) => {
+              const y = topYear(a.index) - 12 * row;
+              const r = R.yearsOut - 12 - row * YEAR_ROW_GAP;
+              const [x0, y0] = pt(a.index, r);
+              return (
+                <g class="year" data-year={y} data-id={a.id} tabindex="-1" role="button" aria-label={`${y}, year of the ${a.name}`}>
+                  <path class="cell" d={wedge(a.index, r - YEAR_ROW_GAP / 2, r + YEAR_ROW_GAP / 2)} />
+                  <text transform={`translate(${x0} ${y0}) rotate(${along(a.index)})`} y="5.5" text-anchor="middle">{yearLabel(y, row)}</text>
+                </g>
+              );
+            })}
+          </g>
+        ))}
+        {ANIMALS.map((a) => {
+          const [x1, y1] = pt(a.index - 0.5, R.centre);
+          const [x2, y2] = pt(a.index - 0.5, R.yearsOut);
+          return <line class="spoke" x1={x1} y1={y1} x2={x2} y2={y2} aria-hidden="true" />;
+        })}
+      </g>
+
+      <!-- ink lines between rings, like the drawn wheel -->
+      <g class="ink" aria-hidden="true" pointer-events="none">
+        {[R.yearsOut, R.secretIn, R.secretOut, R.animalIn, R.animalOut, R.numOut, R.rimOut].map((r) => <circle r={r} />)}
+        {ANIMALS.map((a) => {
+          const [x1, y1] = pt(a.index - 0.5, R.secretIn);
+          const [x2, y2] = pt(a.index - 0.5, R.numOut);
+          return <line x1={x1} y1={y1} x2={x2} y2={y2} />;
+        })}
+      </g>
+
+      <g class="centre" aria-hidden="true" pointer-events="none">
+        <circle r={R.centre} />
+        <image class="centre-img" href="/animals/rat.png" x="-30" y="-34" width="60" height="60" />
+        <text class="centre-name" y="40" text-anchor="middle"></text>
       </g>
     </svg>
 
-    <div class="legend" data-glossary>
-      <span><i style="background:#4A8BF0"></i>Water</span>
-      <span><i style="background:#E0503A"></i>Fire</span>
-      <span><i style="background:#2FA66A"></i>Wood</span>
-      <span><i style="background:#B8C2D6"></i>Metal</span>
-      <span class="muted">Same colour = friend group · inner ring = secret friends · opposite = clash</span>
+    <div class="rules" role="group" aria-label="How to read the wheel">
+      <p class="rules-title">How to read the wheel <span class="muted">(tap a rule to see it on the wheel)</span></p>
+      <button type="button" class="rule" data-rule="friends" aria-pressed="false">
+        <span class="swatches">{["water", "metal", "fire", "wood"].map((g) => <i style={`background:${ANIMALS.find((a) => a.group === g)!.colour}`}></i>)}</span>
+        <span><strong>Same colour = friends.</strong> Animals four places apart share a colour and see the world the same way.</span>
+      </button>
+      <button type="button" class="rule" data-rule="secret" aria-pressed="false">
+        <span class="swatches">{SECRET_FRIENDS.slice(0, 4).map((s) => <i style={`background:${s.colour}`}></i>)}</span>
+        <span><strong>Inner ring colour = secret friend.</strong> Each animal has one hidden ally with the same inner colour.</span>
+      </button>
+      <button type="button" class="rule" data-rule="clash" aria-pressed="false">
+        <span class="swatches"><i class="clash-swatch"></i></span>
+        <span><strong>Directly opposite = clash.</strong> Animals straight across the wheel pull in opposite directions, and so do their years.</span>
+      </button>
     </div>
   </div>
 
@@ -117,13 +172,11 @@ const YEAR_ROWS = [-48, -24, 0, 24, 48];
         <input id="wheel-date" name="date" type="date" min="1900-01-01" max="2100-12-31" required />
         <button class="btn" type="submit">Show me</button>
       </div>
-      <p class="hint muted">Or tap any animal on the wheel.</p>
+      <p class="hint muted">Or tap any animal, or any year, on the wheel.</p>
     </form>
     <div class="details" data-details data-glossary></div>
   </aside>
 </section>
-
-<script type="application/json" id="wheel-data" set:html={JSON.stringify({ ANIMALS, GROUPS, SECRET_FRIENDS })} />
 
 <style>
   .wheel-wrap {
@@ -134,47 +187,83 @@ const YEAR_ROWS = [-48, -24, 0, 24, 48];
   }
   @media (max-width: 900px) { .wheel-wrap { grid-template-columns: 1fr; } }
 
-  .wheel { width: 100%; height: auto; display: block; overflow: visible; }
-  .wheel .rot {
-    transform: rotate(var(--spin));
-    transition: transform 1.4s cubic-bezier(0.65, 0, 0.35, 1);
-  }
-  .wheel .upright {
-    transform: rotate(calc(-1 * var(--spin)));
-    transition: transform 1.4s cubic-bezier(0.65, 0, 0.35, 1);
-  }
-  .wheel .seg { cursor: pointer; outline: none; transition: opacity 0.6s; }
-  .wheel .seg .outline { stroke: transparent; stroke-width: 3; transition: stroke 0.3s; }
-  .wheel .seg:hover .outline, .wheel .seg:focus-visible .outline { stroke: rgba(236, 230, 245, 0.55); }
-  .wheel .seg.is-self .outline { stroke: #d4af5a; stroke-width: 4; filter: url(#soft-glow); }
-  .wheel .seg.is-clash .outline { stroke: #ff5a5f; stroke-width: 3; }
-  .wheel .seg.is-secret .secret { animation: pulse 2.4s ease-in-out infinite; }
-  .wheel .seg.is-dim, .wheel .labels.is-dim { opacity: 0.28; }
-  .wheel .labels { transition: opacity 0.6s; }
-  @keyframes pulse { 50% { fill-opacity: 0.35; } }
+  .wheel { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55)); }
+  .wheel text { pointer-events: none; }
 
-  .wheel .name { font: 600 22px var(--font-display); fill: #ece6f5; letter-spacing: 0.04em; paint-order: stroke; stroke: rgba(7, 6, 11, 0.7); stroke-width: 4px; }
-  .wheel .year { font: 500 17px var(--font-body); }
-  .wheel .year.is-birth { font-weight: 700; fill: #fff; text-decoration: underline; }
-  .wheel .glyph { font: 600 26px serif; fill: #f3ebdd; }
-  .wheel .centre-name { font: 600 22px var(--font-display); fill: #d4af5a; }
+  .wheel .season-name { font: 700 21px var(--font-display); fill: #1d1729; letter-spacing: 0.22em; }
+  .wheel .num-band { fill: #f7f2e8; }
+  .wheel .num { font: 600 17px var(--font-display); fill: #4a3f5c; }
+  .wheel .name { font: 700 23px var(--font-display); fill: #1d1729; letter-spacing: 0.06em; }
+  .wheel .ink circle, .wheel .ink line { fill: none; stroke: #1d1729; stroke-width: 2.2; }
+  .wheel .spoke { stroke: #1d1729; stroke-width: 1.6; }
+  .wheel .centre circle { fill: #120e1f; stroke: #d4af5a; stroke-width: 3; }
+  .wheel .centre-name { font: 600 15px var(--font-display); fill: #d4af5a; letter-spacing: 0.08em; }
+
+  .wheel .seg { cursor: pointer; outline: none; }
+  .wheel .seg > *:not(.badge):not(.outline) { transition: opacity 0.5s; }
+  .wheel .seg .outline { fill: none; stroke: transparent; stroke-width: 6; transition: stroke 0.3s; }
+  .wheel .seg:hover .outline, .wheel .seg:focus-visible .outline { stroke: rgba(212, 175, 90, 0.6); }
+  .wheel .seg.is-self .outline { stroke: #d4af5a; stroke-width: 8; filter: url(#glow); }
+  .wheel .seg.is-other .outline { stroke: #8e6bd9; stroke-width: 7; }
+  .wheel .seg.is-clash .outline { stroke: #d8343c; stroke-width: 6; }
+  .wheel .seg.is-secret .secret { animation: pulse 2.2s ease-in-out infinite; }
+  .wheel .seg.is-dim > *:not(.badge):not(.outline) { opacity: 0.5; }
+  @keyframes pulse { 50% { opacity: 0.45; } }
+
+  .wheel .badge { display: none; }
+  .wheel .badge.is-on { display: inline; }
+  .wheel .badge rect { fill: #1d1729; stroke: #d4af5a; stroke-width: 1.5; }
+  .wheel .badge text { font: 700 13px var(--font-body); fill: #f7f2e8; letter-spacing: 0.12em; }
+
+  .wheel .year { cursor: pointer; outline: none; }
+  .wheel .year .cell { fill: transparent; transition: fill 0.3s; }
+  .wheel .year:hover .cell { fill: rgba(212, 175, 90, 0.25); }
+  .wheel .year text { font: 600 15px var(--font-body); fill: #2a2135; font-variant-numeric: tabular-nums; transition: opacity 0.5s; paint-order: stroke; stroke: #f7f2e8; stroke-width: 4px; stroke-linejoin: round; }
+  .wheel .year-col.is-dim text { opacity: 0.35; }
+  .wheel .year.is-picked .cell { fill: #d4af5a; }
+  .wheel .year.is-picked text { fill: #1d1729; font-weight: 800; stroke: #d4af5a; }
   .wheel :global(.lines line) { stroke-linecap: round; }
 
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; font-size: 0.85rem; margin-top: 10px; }
-  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .rules { display: grid; gap: 8px; margin-top: 16px; }
+  .rules-title { margin: 0 0 2px; font-family: var(--font-display); color: var(--gold); font-size: 0.95rem; }
+  .rules-title .muted { font-family: var(--font-body); font-size: 0.8rem; }
+  .rule {
+    display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; text-align: left;
+    background: rgba(18, 14, 31, 0.75); color: var(--moonlight); border: 1px solid rgba(156, 122, 60, 0.35);
+    border-radius: 12px; padding: 10px 14px; font: inherit; font-size: 0.92rem; cursor: pointer;
+  }
+  .rule:hover, .rule[aria-pressed="true"] { border-color: var(--gold); background: rgba(59, 31, 107, 0.55); }
+  .rule strong { color: var(--gold); }
+  .swatches { display: flex; gap: 3px; }
+  .swatches i { width: 13px; height: 13px; border-radius: 50%; border: 1px solid #1d1729; }
+  .swatches .clash-swatch { width: 40px; height: 4px; border-radius: 2px; margin-top: 5px; background: repeating-linear-gradient(90deg, #d8343c 0 8px, transparent 8px 13px); border: 0; }
 
   .finder .row { display: flex; gap: 10px; }
   .finder .row input { flex: 1; min-width: 0; }
   .hint { font-size: 0.85rem; margin: 8px 0 0; }
   .details { margin-top: 22px; }
-  .details :global(h3) { font-size: 1.5rem; margin-bottom: 0.2em; }
+  .details :global(h3) { font-size: 1.6rem; margin: 0 0 0.15em; }
+  .details :global(.sub) { margin: 0 0 8px; color: var(--mist); font-size: 0.9rem; }
+  .details :global(.year-box) { border: 1px solid var(--gold); border-radius: 12px; padding: 10px 14px; margin: 0 0 16px; background: rgba(212, 175, 90, 0.08); }
+  .details :global(.year-box p) { margin: 4px 0; font-size: 0.95rem; }
   .details :global(.tags) { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; padding: 0; list-style: none; }
   .details :global(.tags li) { font-size: 0.8rem; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(212, 175, 90, 0.45); color: #e9d9b0; }
-  .details :global(.rel) { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; margin: 12px 0; }
-  .details :global(.rel img) { width: 36px; height: 36px; }
+  .details :global(.rel) { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: start; margin: 12px 0; padding: 10px 12px; border-radius: 12px; background: rgba(18, 14, 31, 0.6); border-left: 4px solid var(--c, var(--gold)); }
+  .details :global(.rel img) { width: 44px; height: 44px; }
   .details :global(.rel p) { margin: 0; font-size: 0.95rem; }
+  .details :global(.rel .why) { display: block; font-size: 0.82rem; color: var(--mist); margin-top: 4px; }
   .details :global(.rel strong) { color: var(--gold); }
-  .details :global(.years-note) { font-size: 0.92rem; border-top: 1px solid rgba(156, 122, 60, 0.3); padding-top: 12px; margin-top: 16px; }
+  .details :global(.compare) { margin-top: 18px; border-top: 1px solid rgba(156, 122, 60, 0.3); padding-top: 14px; }
+  .details :global(.compare h4), .details :global(.years-note h4) { margin: 0 0 8px; font-size: 1rem; }
+  .details :global(.chips) { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .details :global(.chips button) { background: rgba(18, 14, 31, 0.75); border: 1px solid rgba(156, 122, 60, 0.35); border-radius: 10px; padding: 4px 2px; cursor: pointer; color: var(--mist); font: inherit; font-size: 0.72rem; display: grid; justify-items: center; gap: 2px; }
+  .details :global(.chips button[aria-pressed="true"]) { border-color: #8e6bd9; background: rgba(59, 31, 107, 0.7); color: var(--moonlight); }
+  .details :global(.chips img) { width: 30px; height: 30px; }
+  .details :global(.verdict) { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(59, 31, 107, 0.45); font-size: 0.95rem; }
+  .details :global(.years-note) { font-size: 0.92rem; border-top: 1px solid rgba(156, 122, 60, 0.3); padding-top: 14px; margin-top: 18px; }
+  .details :global(.years-note p) { margin: 6px 0; }
+  .details :global(.good) { color: #8fd3a5; }
+  .details :global(.hard) { color: #ff8a8f; }
 </style>
 
 <script>
