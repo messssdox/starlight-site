@@ -1,0 +1,183 @@
+---
+// The interactive Chinese zodiac wheel.
+// Rings, from the centre out: the chosen animal, secret friends (inner ring),
+// the 12 animals in friend-group colours, their years, and each animal's element on the rim.
+// Tap an animal (or enter a birth date) and its friends, secret friend and clash light up.
+import { ANIMALS, GROUPS, SECRET_FRIENDS, ELEMENT_COLOURS } from "../data/zodiac.ts";
+import { yearsOf, elementOfZodiacYear } from "../lib/chinese.ts";
+
+const R = { centre: 96, secretIn: 102, secretOut: 134, ringIn: 140, ringOut: 300, yearsIn: 304, yearsOut: 440, rimIn: 444, rimOut: 490 };
+const rad = (deg: number) => (deg * Math.PI) / 180;
+const angleOf = (i: number) => -90 + i * 30;
+const pt = (i: number, r: number) => [r * Math.cos(rad(angleOf(i))), r * Math.sin(rad(angleOf(i)))];
+
+function wedge(i: number, r0: number, r1: number, pad = 0) {
+  const a0 = rad(angleOf(i) - 15 + pad), a1 = rad(angleOf(i) + 15 - pad);
+  const p = (r: number, a: number) => `${(r * Math.cos(a)).toFixed(2)} ${(r * Math.sin(a)).toFixed(2)}`;
+  return `M${p(r1, a0)} A${r1} ${r1} 0 0 1 ${p(r1, a1)} L${p(r0, a1)} A${r0} ${r0} 0 0 0 ${p(r0, a0)} Z`;
+}
+
+const ELEMENT_GLYPH = { Wood: "木", Fire: "火", Earth: "土", Metal: "金", Water: "水" } as const;
+const secretColour = (id: string) => SECRET_FRIENDS.find((s) => s.pair.includes(id))!.colour;
+const YEAR_ROWS = [-48, -24, 0, 24, 48];
+---
+
+<section class="wheel-wrap" aria-labelledby="wheel-title">
+  <div class="wheel-col">
+    <svg class="wheel" viewBox="-500 -500 1000 1000" role="group" aria-labelledby="wheel-title" style="--spin: 0deg">
+      <defs>
+        {ANIMALS.map((a) => (
+          <radialGradient id={`g-${a.id}`} gradientUnits="userSpaceOnUse" cx="0" cy="0" r={R.ringOut}>
+            <stop offset="0.46" stop-color={a.colour} stop-opacity="0.18" />
+            <stop offset="0.8" stop-color={a.colour} stop-opacity="0.5" />
+            <stop offset="1" stop-color={a.colour} stop-opacity="0.78" />
+          </radialGradient>
+        ))}
+        <radialGradient id="g-centre" cx="0.4" cy="0.35" r="0.75">
+          <stop offset="0" stop-color="#2a1d4d" />
+          <stop offset="1" stop-color="#0c0916" />
+        </radialGradient>
+        <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.55" />
+        </filter>
+      </defs>
+
+      <g class="rot">
+        <circle r={R.rimOut + 4} fill="none" stroke="#9c7a3c" stroke-opacity="0.6" stroke-width="1.5" />
+
+        {ANIMALS.map((a) => (
+          <g class="seg" data-id={a.id} data-group={a.group} tabindex="0" role="button" aria-label={`${a.name}: show friends, secret friend and clash`}>
+            <path class="rim" d={wedge(a.index, R.rimIn, R.rimOut, 0.3)} fill={ELEMENT_COLOURS[a.element]} fill-opacity="0.42" />
+            <path class="years" d={wedge(a.index, R.yearsIn, R.yearsOut, 0.3)} fill={a.colour} fill-opacity="0.1" />
+            <path class="animal" d={wedge(a.index, R.ringIn, R.ringOut, 0.3)} fill={`url(#g-${a.id})`} stroke={a.colour} stroke-opacity="0.9" stroke-width="1.5" />
+            <path class="secret" d={wedge(a.index, R.secretIn, R.secretOut, 0.6)} fill={secretColour(a.id)} fill-opacity="0.85" />
+            <path class="outline" d={wedge(a.index, R.ringIn, R.rimOut, 0)} fill="none" />
+          </g>
+        ))}
+
+        <!-- relationship lines, drawn by the script -->
+        <g class="lines" aria-hidden="true"></g>
+
+        {ANIMALS.map((a) => {
+          const [ix, iy] = pt(a.index, 212);
+          const [yx, yy] = pt(a.index, 372);
+          const [ex, ey] = pt(a.index, 467);
+          const years = yearsOf(a.id);
+          return (
+            <g class="labels" data-for={a.id} aria-hidden="true" pointer-events="none">
+              <g transform={`translate(${ix.toFixed(1)} ${iy.toFixed(1)})`}>
+                <g class="upright">
+                  <image href={`/animals/${a.id}.png`} x="-50" y="-62" width="100" height="100" filter="url(#lift)" />
+                  <text class="name" y="64" text-anchor="middle">{a.name}</text>
+                </g>
+              </g>
+              <g transform={`translate(${yx.toFixed(1)} ${yy.toFixed(1)})`}>
+                <g class="upright">
+                  {years.map((y, k) => (
+                    <text class="year" x={k < 5 ? -36 : 36} y={YEAR_ROWS[k % 5] + 6} text-anchor="middle" fill={ELEMENT_COLOURS[elementOfZodiacYear(y)]} data-year={y}>{y}</text>
+                  ))}
+                </g>
+              </g>
+              <g transform={`translate(${ex.toFixed(1)} ${ey.toFixed(1)})`}>
+                <g class="upright">
+                  <text class="glyph" y="9" text-anchor="middle">{ELEMENT_GLYPH[a.element]}</text>
+                </g>
+              </g>
+            </g>
+          );
+        })}
+      </g>
+
+      <g class="centre" aria-hidden="true">
+        <circle r={R.centre} fill="url(#g-centre)" stroke="#d4af5a" stroke-width="2" />
+        <image class="centre-img" href="/animals/horse.png" x="-46" y="-62" width="92" height="92" />
+        <text class="centre-name" y="52" text-anchor="middle">Horse</text>
+      </g>
+    </svg>
+
+    <div class="legend" data-glossary>
+      <span><i style="background:#4A8BF0"></i>Water</span>
+      <span><i style="background:#E0503A"></i>Fire</span>
+      <span><i style="background:#2FA66A"></i>Wood</span>
+      <span><i style="background:#B8C2D6"></i>Metal</span>
+      <span class="muted">Same colour = friend group · inner ring = secret friends · opposite = clash</span>
+    </div>
+  </div>
+
+  <aside class="info panel" aria-live="polite">
+    <p class="eyebrow">The Chinese zodiac wheel</p>
+    <h2 id="wheel-title">Find your animal</h2>
+    <form class="finder" autocomplete="off">
+      <label for="wheel-date">Your birth date</label>
+      <div class="row">
+        <input id="wheel-date" name="date" type="date" min="1900-01-01" max="2100-12-31" required />
+        <button class="btn" type="submit">Show me</button>
+      </div>
+      <p class="hint muted">Or tap any animal on the wheel.</p>
+    </form>
+    <div class="details" data-details data-glossary></div>
+  </aside>
+</section>
+
+<script type="application/json" id="wheel-data" set:html={JSON.stringify({ ANIMALS, GROUPS, SECRET_FRIENDS })} />
+
+<style>
+  .wheel-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(20px, 3vw, 40px);
+    align-items: start;
+  }
+  @media (max-width: 900px) { .wheel-wrap { grid-template-columns: 1fr; } }
+
+  .wheel { width: 100%; height: auto; display: block; overflow: visible; }
+  .wheel .rot {
+    transform: rotate(var(--spin));
+    transition: transform 1.4s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .wheel .upright {
+    transform: rotate(calc(-1 * var(--spin)));
+    transition: transform 1.4s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .wheel .seg { cursor: pointer; outline: none; transition: opacity 0.6s; }
+  .wheel .seg .outline { stroke: transparent; stroke-width: 3; transition: stroke 0.3s; }
+  .wheel .seg:hover .outline, .wheel .seg:focus-visible .outline { stroke: rgba(236, 230, 245, 0.55); }
+  .wheel .seg.is-self .outline { stroke: #d4af5a; stroke-width: 4; filter: url(#soft-glow); }
+  .wheel .seg.is-clash .outline { stroke: #ff5a5f; stroke-width: 3; }
+  .wheel .seg.is-secret .secret { animation: pulse 2.4s ease-in-out infinite; }
+  .wheel .seg.is-dim, .wheel .labels.is-dim { opacity: 0.28; }
+  .wheel .labels { transition: opacity 0.6s; }
+  @keyframes pulse { 50% { fill-opacity: 0.35; } }
+
+  .wheel .name { font: 600 22px var(--font-display); fill: #ece6f5; letter-spacing: 0.04em; paint-order: stroke; stroke: rgba(7, 6, 11, 0.7); stroke-width: 4px; }
+  .wheel .year { font: 500 17px var(--font-body); }
+  .wheel .year.is-birth { font-weight: 700; fill: #fff; text-decoration: underline; }
+  .wheel .glyph { font: 600 26px serif; fill: #f3ebdd; }
+  .wheel .centre-name { font: 600 22px var(--font-display); fill: #d4af5a; }
+  .wheel :global(.lines line) { stroke-linecap: round; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; font-size: 0.85rem; margin-top: 10px; }
+  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  .finder .row { display: flex; gap: 10px; }
+  .finder .row input { flex: 1; min-width: 0; }
+  .hint { font-size: 0.85rem; margin: 8px 0 0; }
+  .details { margin-top: 22px; }
+  .details :global(h3) { font-size: 1.5rem; margin-bottom: 0.2em; }
+  .details :global(.tags) { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; padding: 0; list-style: none; }
+  .details :global(.tags li) { font-size: 0.8rem; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(212, 175, 90, 0.45); color: #e9d9b0; }
+  .details :global(.rel) { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; margin: 12px 0; }
+  .details :global(.rel img) { width: 36px; height: 36px; }
+  .details :global(.rel p) { margin: 0; font-size: 0.95rem; }
+  .details :global(.rel strong) { color: var(--gold); }
+  .details :global(.years-note) { font-size: 0.92rem; border-top: 1px solid rgba(156, 122, 60, 0.3); padding-top: 12px; margin-top: 16px; }
+</style>
+
+<script>
+  import { initWheel } from "../scripts/wheel.ts";
+  initWheel(document.querySelector(".wheel-wrap")!);
+</script>

@@ -1,0 +1,48 @@
+---
+import Base from "../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+
+const CATEGORIES: Record<string, string> = {
+  "start-here": "Start Here",
+  numerology: "Numerology",
+  "sun-moon-rising": "Sun, Moon and Rising",
+  planets: "Planets and Points",
+  "houses-aspects": "Houses and Aspects",
+  "chinese-zodiac": "Chinese Zodiac",
+  elements: "Elements and Energy",
+  "moon-sky": "Moon and Sky",
+  compatibility: "Compatibility",
+  events: "Events Library",
+};
+const articles = await getCollection("library");
+---
+
+<Base title="The Library" zone="library">
+  <section class="container lib">
+    <p class="eyebrow">The Library</p>
+    <h1>Everything, explained</h1>
+    <p class="lede">Every planet, sign, animal, element and number used on Starlight has its own article, written in plain English. Search coming soon.</p>
+    <div class="cats">
+      {Object.entries(CATEGORIES).map(([id, label]) => {
+        const inCat = articles.filter((a) => a.data.category === id);
+        return (
+          <section class="cat panel">
+            <h2>{label}</h2>
+            {inCat.length === 0 ? <p class="muted">Articles coming soon.</p> : (
+              <ul>{inCat.map((a) => <li><a href={`/library/${a.id}`}>{a.data.title}</a><p class="muted">{a.data.summary}</p></li>)}</ul>
+            )}
+          </section>
+        );
+      })}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lib { padding-top: 48px; }
+  .lede { font-family: var(--font-reading); font-size: 1.2rem; color: var(--mist); max-width: 720px; }
+  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 28px; }
+  .cat h2 { font-size: 1.2rem; }
+  .cat ul { list-style: none; padding: 0; margin: 0; }
+  .cat li p { font-size: 0.88rem; margin: 4px 0 0; }
+</style>

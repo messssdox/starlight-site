@@ -1,0 +1,131 @@
+---
+// A reading, built in the visitor's browser from the details in the link.
+// This first version covers numerology and the Chinese zodiac; the astrology chart
+// (planets, houses, Lilith) joins it in Phase 3 of the build plan.
+import Base from "../layouts/Base.astro";
+import DonationBox from "../components/DonationBox.astro";
+---
+
+<Base title="Your reading">
+  <section class="container reading" data-reading>
+    <noscript><p>Your reading is calculated in your browser, so please turn on JavaScript.</p></noscript>
+  </section>
+  <section class="container" style="margin-top:64px">
+    <DonationBox compact />
+  </section>
+</Base>
+
+<style>
+  .reading { padding-top: 48px; max-width: 900px; }
+  .reading :global(.numbers) { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 24px 0; }
+  .reading :global(.medallion) { text-align: center; padding: 22px 16px; }
+  .reading :global(.medallion .n) { font: 600 3rem var(--font-display); color: var(--gold); line-height: 1; display: block; text-shadow: 0 0 24px rgba(212, 175, 90, 0.35); }
+  .reading :global(.medallion .k) { display: block; margin-top: 6px; font-family: var(--font-display); }
+  .reading :global(.medallion p) { text-align: left; font-size: 0.92rem; }
+  .reading :global(.medallion .what) { font-size: 0.8rem; color: var(--mist); text-transform: uppercase; letter-spacing: 0.12em; }
+  .reading :global(.steps) { font-size: 0.85rem; color: var(--mist); text-align: left; margin: 10px 0 0; padding-left: 18px; }
+  .reading :global(.animal) { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: center; }
+  .reading :global(.animal img) { width: 120px; height: 120px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.6)); }
+  .reading :global(section.part) { margin-top: 28px; }
+  .reading :global(.pair) { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .reading :global(.pair), .reading :global(.animal) { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { lifePath, expression, soulUrge, personality, personalYear, type Result } from "../lib/numerology.ts";
+  import { chineseSign, relationBetween, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
+  import { GROUPS } from "../data/zodiac.ts";
+  import { NUMBER_MEANINGS, NUMBER_FAMILIES, RELATIONSHIPS, type RelationshipId } from "../data/numbers.ts";
+
+  const q = new URLSearchParams(location.search);
+  const tier = (q.get("tier") ?? "first") as "glance" | "first" | "deep";
+  const name = (q.get("n") ?? "").trim();
+  const date = q.get("d") ?? "";
+  const root = document.querySelector<HTMLElement>("[data-reading]")!;
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    root.innerHTML = `<h1>Let's begin</h1><p>Please <a href="/">enter your birth date</a> to see your reading.</p>`;
+  } else {
+    root.innerHTML = render();
+    root.setAttribute("data-glossary", "");
+    document.dispatchEvent(new Event("glossary:scan"));
+    // count this reading once per browser session
+    if (!sessionStorage.getItem("counted")) {
+      fetch("/api/counter", { method: "POST" }).catch(() => {});
+      try { sessionStorage.setItem("counted", "1"); } catch {}
+    }
+  }
+
+  function medallion(what: string, r: Result) {
+    const m = NUMBER_MEANINGS[r.value];
+    const body =
+      tier === "glance" ? `<p class="muted">${m?.essence ?? ""}</p>` :
+      tier === "first" ? `<p class="muted">${m?.gentle ?? ""}</p>` :
+      `<p class="muted">${m?.gentle ?? ""}</p><ol class="steps">${r.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>`;
+    return `<div class="medallion panel"><span class="what">${what}</span><span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}</div>`;
+  }
+
+  function render() {
+    const first = name.split(/\s+/)[0] || "friend";
+    const lp = lifePath(date);
+    const cn = chineseSign(date);
+    const g = GROUPS[cn.animal.group];
+    const year = new Date().getFullYear();
+    const py = personalYear(date, year);
+    const nums = [medallion("Life Path", lp)];
+    if (name) nums.push(medallion("Expression", expression(name)));
+    if (name && tier !== "glance") nums.push(medallion("Soul Urge", soulUrge(name)), medallion("Personality", personality(name)));
+    nums.push(medallion(`Personal Year ${year}`, py));
+
+    const tierName = { glance: "Quick Glance", first: "First Timers", deep: "Full Deep Dive" }[tier];
+    let html = `
+      <p class="eyebrow">${tierName} reading</p>
+      <h1>${esc(first)}, here is your reading</h1>
+      ${tier === "first" ? `<p class="muted">Welcome! Each number below comes from your name or birth date. Tap any underlined word for a quick explanation.</p>` : ""}
+      <section class="part"><h2>Your numbers</h2><div class="numbers">${nums.join("")}</div></section>
+      <section class="part panel animal">
+        <img src="/animals/${cn.animal.id}.png" alt="" width="120" height="120">
+        <div>
+          <p class="eyebrow">Chinese zodiac</p>
+          <h2>${cn.element} ${cn.animal.name}</h2>
+          <p>${cn.animal.summary} Born in ${cn.zodiacYear}, a ${cn.yinYang.toLowerCase()} year, you belong to the ${g.element} friend group with ${friendsOf(cn.animal.id).map((f) => f.name).join(" and ")}.</p>
+          ${tier !== "glance" ? `<p>Your secret friend is the <strong>${secretFriendOf(cn.animal.id).name}</strong>, and your clash sign is the <strong>${clashOf(cn.animal.id).name}</strong>.</p>` : ""}
+        </div>
+      </section>`;
+
+    const relId = q.get("rel") as RelationshipId | null;
+    const date2 = q.get("d2") ?? "";
+    if (relId && RELATIONSHIPS[relId] && /^\d{4}-\d{2}-\d{2}$/.test(date2)) {
+      const rel = RELATIONSHIPS[relId];
+      const name2 = (q.get("n2") ?? "").trim() || rel.them;
+      const lp2 = lifePath(date2);
+      const cn2 = chineseSign(date2);
+      const relation = relationBetween(cn.animal.id, cn2.animal.id);
+      const chineseLine = {
+        same: `You are both ${cn.animal.name}s, so you understand each other's instincts, and can also mirror each other's blind spots.`,
+        friend: `Your ${cn.animal.name} and their ${cn2.animal.name} share a friend group on the wheel: a natural, easy understanding.`,
+        secret: `Your ${cn.animal.name} and their ${cn2.animal.name} are secret friends: a quiet, loyal bond that often runs deeper than it looks.`,
+        clash: `Your ${cn.animal.name} and their ${cn2.animal.name} sit directly opposite on the wheel. That clash brings friction, and also the chance to grow through your differences.`,
+        neutral: `Your ${cn.animal.name} and their ${cn2.animal.name} are neither friends nor rivals on the wheel, so this bond is shaped most by how you choose to meet each other.`,
+      }[relation];
+      const fam = (n: number) => NUMBER_FAMILIES.find((f) => f.members.includes(n));
+      const sameFamily = fam(lp.value) && fam(lp.value) === fam(lp2.value);
+      const numberLine = sameFamily
+        ? `Your Life Paths (${lp.value} and ${lp2.value}) belong to the same family of ${fam(lp.value)!.name}, so your rhythms flow together.`
+        : `Your Life Paths (${lp.value} and ${lp2.value}) come from different number families, so you each bring what the other is still learning.`;
+      html += `
+        <section class="part">
+          <h2>${rel.bond}${relId === "friend" ? ` with ${esc(name2)}` : ""}</h2>
+          <p>${rel.bond} is influenced by both the stars and the numbers.</p>
+          <div class="pair">
+            <div class="panel"><p class="eyebrow">Chinese zodiac</p><p>${chineseLine}</p></div>
+            <div class="panel"><p class="eyebrow">Numerology</p><p>${numberLine}</p></div>
+          </div>
+        </section>`;
+    }
+
+    html += `<p class="muted" style="margin-top:28px">Your planets, Moon and Rising signs are coming soon, along with PDF downloads and shareable links.</p>`;
+    return html;
+  }
+</script>

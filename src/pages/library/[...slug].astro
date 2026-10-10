@@ -1,0 +1,54 @@
+---
+import Base from "../../layouts/Base.astro";
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const articles = await getCollection("library");
+  return articles.map((a) => ({ params: { slug: a.id }, props: { article: a, all: articles } }));
+}
+
+const { article, all } = Astro.props;
+const { Content } = await render(article);
+// related articles: the ones sharing the most tags
+const related = all
+  .filter((a) => a.id !== article.id)
+  .map((a) => ({ a, score: a.data.tags.filter((t) => article.data.tags.includes(t)).length }))
+  .filter((x) => x.score > 0)
+  .sort((x, y) => y.score - x.score)
+  .slice(0, 3);
+---
+
+<Base title={article.data.title} description={article.data.summary} zone="library">
+  <article class="container article">
+    <p class="eyebrow"><a href="/library">The Library</a></p>
+    <h1>{article.data.title}</h1>
+    <p class="summary" data-glossary>{article.data.summary}</p>
+    <details class="deep" open>
+      <summary>The full deep dive</summary>
+      <div class="prose" data-glossary><Content /></div>
+    </details>
+    {article.data.sources.length > 0 && (
+      <section class="sources">
+        <h2>Sources and perspectives</h2>
+        <ul>{article.data.sources.map((s) => <li>{s.url ? <a href={s.url}>{s.title}</a> : s.title}</li>)}</ul>
+      </section>
+    )}
+    {related.length > 0 && (
+      <section class="related">
+        <h2>Related articles</h2>
+        <ul>{related.map(({ a }) => <li><a href={`/library/${a.id}`}>{a.data.title}</a></li>)}</ul>
+      </section>
+    )}
+  </article>
+</Base>
+
+<style>
+  .article { padding-top: 48px; max-width: 760px; }
+  .summary { font-family: var(--font-reading); font-size: 1.35rem; line-height: 1.55; color: #e9dfc7; border-left: 2px solid var(--gold); padding-left: 18px; }
+  .deep summary { cursor: pointer; font-family: var(--font-display); color: var(--gold); margin: 24px 0 8px; }
+  .prose { font-family: var(--font-reading); font-size: 1.22rem; line-height: 1.7; }
+  .prose :global(h2) { font-size: 1.45rem; margin-top: 1.6em; }
+  .prose :global(p:first-of-type)::first-letter { font-family: var(--font-display); color: var(--gold); float: left; font-size: 3.2em; line-height: 0.9; padding-right: 8px; }
+  .sources, .related { margin-top: 40px; border-top: 1px solid rgba(156, 122, 60, 0.3); padding-top: 16px; }
+  .sources h2, .related h2 { font-size: 1.1rem; }
+</style>

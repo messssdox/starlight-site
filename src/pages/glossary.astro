@@ -1,0 +1,30 @@
+---
+import Base from "../layouts/Base.astro";
+import { GLOSSARY } from "../data/glossary.ts";
+const sorted = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term, "en-GB"));
+---
+
+<Base title="Glossary" zone="library">
+  <section class="container gl">
+    <p class="eyebrow">Glossary</p>
+    <h1>Every special word, simply explained</h1>
+    <p class="muted">These definitions also pop up wherever the words appear on the site: just tap a word with a dotted underline.</p>
+    <dl>
+      {sorted.map((t) => (
+        <div class="entry panel" id={t.id}>
+          <dt>{t.term}</dt>
+          <dd>{t.definition} {t.article && <a href={t.article}>Read more →</a>}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+</Base>
+
+<style>
+  .gl { padding-top: 48px; max-width: 820px; }
+  dl { display: grid; gap: 12px; margin-top: 24px; }
+  .entry { padding: 18px 22px; }
+  dt { font-family: var(--font-display); color: var(--gold); font-size: 1.1rem; }
+  dd { margin: 6px 0 0; font-family: var(--font-reading); font-size: 1.15rem; }
+  .entry:target { border-color: var(--gold); }
+</style>

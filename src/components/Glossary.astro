@@ -1,0 +1,115 @@
+---
+// Tap-to-define: finds glossary words inside any element marked data-glossary
+// (the first time each word appears) and shows its definition in a small pop-up.
+import { GLOSSARY } from "../data/glossary.ts";
+---
+
+<div id="glossary-pop" role="dialog" aria-modal="false" hidden>
+  <p class="term"></p>
+  <p class="def"></p>
+  <a class="more" href="#">Read the full explainer →</a>
+</div>
+
+<script type="application/json" id="glossary-data" set:html={JSON.stringify(GLOSSARY)} />
+
+<style>
+  #glossary-pop {
+    position: absolute;
+    z-index: 50;
+    max-width: min(320px, calc(100vw - 32px));
+    background: #150f26;
+    border: 1px solid var(--antique-gold);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(142, 107, 217, 0.2);
+    font-size: 0.92rem;
+  }
+  #glossary-pop .term { font-family: var(--font-display); color: var(--gold); margin: 0 0 6px; }
+  #glossary-pop .def { margin: 0 0 8px; color: var(--moonlight); line-height: 1.5; }
+  #glossary-pop .more { font-size: 0.85rem; }
+  :global(button.gloss) {
+    all: unset;
+    cursor: help;
+    border-bottom: 1px dotted var(--gold);
+    color: inherit;
+  }
+  :global(button.gloss:hover), :global(button.gloss:focus-visible) { color: var(--gold); }
+</style>
+
+<script>
+  interface Term { id: string; term: string; aliases?: string[]; definition: string; article?: string }
+  const terms: Term[] = JSON.parse(document.getElementById("glossary-data")!.textContent || "[]");
+  const pop = document.getElementById("glossary-pop")!;
+  const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // longest phrases first, so "Life Path number" wins over "Life Path"
+  const entries = terms
+    .flatMap((t) => [t.term, ...(t.aliases ?? [])].map((w) => ({ word: w, t })))
+    .sort((a, b) => b.word.length - a.word.length);
+
+  /** Wraps the first unused term found in each text node; returns how many it wrapped. */
+  function wrapTerms(root: Element, used: Set<string>): number {
+    let wrapped = 0;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (n.parentElement?.closest("a, button, h1, h2, code, .no-gloss") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    const nodes: Text[] = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+    for (const node of nodes) {
+      for (const { word, t } of entries) {
+        if (used.has(t.id)) continue;
+        const re = new RegExp(`\\b${escape(word)}\\b`, "i");
+        const m = node.data.match(re);
+        if (!m || m.index === undefined) continue;
+        const after = node.splitText(m.index);
+        after.splitText(m[0].length);
+        const btn = document.createElement("button");
+        btn.className = "gloss";
+        btn.type = "button";
+        btn.dataset.term = t.id;
+        btn.textContent = after.data;
+        after.replaceWith(btn);
+        used.add(t.id);
+        wrapped++;
+        break; // this text node has changed; the rest of it is handled as its own node next time
+      }
+    }
+    return wrapped;
+  }
+
+  function scanAll() {
+    document.querySelectorAll<HTMLElement>("[data-glossary]").forEach((el) => {
+      if (el.dataset.glossaryDone) return;
+      el.dataset.glossaryDone = "1";
+      // each term is wrapped once per area, at its first appearance;
+      // repeat until nothing new is found, so a paragraph with several terms gets them all
+      const used = new Set<string>();
+      while (wrapTerms(el, used) > 0);
+    });
+  }
+  scanAll();
+  // pages that build content in the browser (like a reading) ask for a fresh scan
+  document.addEventListener("glossary:scan", scanAll);
+
+  function show(btn: HTMLElement) {
+    const t = terms.find((x) => x.id === btn.dataset.term);
+    if (!t) return;
+    pop.querySelector(".term")!.textContent = t.term;
+    pop.querySelector(".def")!.textContent = t.definition;
+    const more = pop.querySelector<HTMLAnchorElement>(".more")!;
+    more.href = t.article ?? `/glossary#${t.id}`;
+    more.textContent = t.article ? "Read the full explainer →" : "See it in the glossary →";
+    pop.hidden = false;
+    const r = btn.getBoundingClientRect();
+    const left = Math.max(16, Math.min(window.scrollX + r.left, window.scrollX + window.innerWidth - pop.offsetWidth - 16));
+    pop.style.left = `${left}px`;
+    pop.style.top = `${window.scrollY + r.bottom + 8}px`;
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>("button.gloss");
+    if (btn) { show(btn); e.stopPropagation(); return; }
+    if (!(e.target as HTMLElement).closest("#glossary-pop")) pop.hidden = true;
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") pop.hidden = true; });
+</script>

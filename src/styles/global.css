@@ -1,0 +1,105 @@
+/* Starlight design tokens. Change a colour here and it changes everywhere. */
+:root {
+  --void: #07060b;
+  --night: #120e1f;
+  --night-2: #1a1430;
+  --amethyst: #3b1f6b;
+  --orchid: #8e6bd9;
+  --gold: #d4af5a;
+  --antique-gold: #9c7a3c;
+  --moonlight: #ece6f5;
+  --mist: #a79fb8;
+  --clash: #ff5a5f;
+
+  --font-display: "Cinzel", Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-reading: "Cormorant Garamond", Georgia, serif;
+
+  --radius: 14px;
+  --gutter: clamp(16px, 4vw, 40px);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--void);
+  color: var(--moonlight);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+h1 { font-size: clamp(2rem, 5vw, 3.4rem); margin: 0 0 0.5em; }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2.2rem); margin: 0 0 0.6em; }
+h3 { font-size: 1.2rem; margin: 0 0 0.4em; }
+
+a { color: var(--orchid); }
+a:hover { color: var(--gold); }
+
+:focus-visible { outline: 2px solid var(--orchid); outline-offset: 3px; }
+
+.container { width: min(1120px, 100%); margin: 0 auto; padding: 0 var(--gutter); }
+
+.panel {
+  background: color-mix(in srgb, var(--night) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--antique-gold) 45%, transparent);
+  border-radius: var(--radius);
+  backdrop-filter: blur(6px);
+  padding: clamp(20px, 3vw, 36px);
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  color: var(--antique-gold);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font: 600 0.95rem var(--font-body);
+  padding: 0.8em 1.5em;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  background: linear-gradient(180deg, #e2c27a, var(--gold) 55%, #b48f3e);
+  color: #1b1206;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 0 24px rgba(212, 175, 90, 0.35); color: #1b1206; }
+.btn.ghost { background: transparent; color: var(--gold); }
+
+input, select {
+  font: inherit;
+  color: var(--moonlight);
+  background: rgba(7, 6, 11, 0.7);
+  border: 1px solid color-mix(in srgb, var(--orchid) 45%, transparent);
+  border-radius: 10px;
+  padding: 0.7em 0.9em;
+  width: 100%;
+}
+input:focus, select:focus { border-color: var(--gold); outline: none; }
+label { font-size: 0.85rem; color: var(--mist); display: block; margin-bottom: 0.35em; }
+
+.muted { color: var(--mist); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

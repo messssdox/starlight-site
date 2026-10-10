@@ -1,0 +1,87 @@
+---
+// The frame around every page: fonts, the moving cosmos, the header and the footer.
+import "../styles/global.css";
+import Cosmos from "../components/Cosmos.astro";
+import ReadingCounter from "../components/ReadingCounter.astro";
+import Glossary from "../components/Glossary.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** "library" gives the calmer, archive-style look. */
+  zone?: "main" | "library";
+}
+
+const { title, description = "Free numerology, astrology and Chinese zodiac readings, forever.", zone = "main" } = Astro.props;
+const nav = [
+  { href: "/", label: "Home" },
+  { href: "/numerology", label: "Numerology" },
+  { href: "/library", label: "Library" },
+  { href: "/glossary", label: "Glossary" },
+  { href: "/support", label: "Support" },
+];
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Starlight</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class={`zone-${zone}`}>
+    <Cosmos dim={zone === "library"} />
+    <header class="site-header">
+      <div class="container bar">
+        <a class="brand" href="/">✦ Starlight</a>
+        <ReadingCounter />
+        <nav aria-label="Main">
+          {nav.map((n) => <a href={n.href} aria-current={Astro.url.pathname === n.href ? "page" : undefined}>{n.label}</a>)}
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <p>Starlight is free, and always will be. Readings are for reflection and self-understanding, not predictions or advice.</p>
+        <p class="muted small">
+          Animal illustrations: <a href="https://github.com/microsoft/fluentui-emoji">Fluent Emoji</a> by Microsoft (MIT licence).
+          Planet positions: <a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> (MIT licence).
+        </p>
+      </div>
+    </footer>
+    <Glossary />
+  </body>
+</html>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: linear-gradient(180deg, rgba(7, 6, 11, 0.92), rgba(7, 6, 11, 0.6));
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(156, 122, 60, 0.25);
+  }
+  .bar { display: flex; align-items: center; gap: 1rem; padding-top: 0.7rem; padding-bottom: 0.7rem; flex-wrap: wrap; }
+  .brand { font-family: var(--font-display); color: var(--gold); text-decoration: none; font-size: 1.25rem; letter-spacing: 0.08em; }
+  nav { display: flex; gap: 1.1rem; margin-left: auto; flex-wrap: wrap; }
+  nav a { color: var(--mist); text-decoration: none; font-size: 0.92rem; }
+  nav a:hover, nav a[aria-current="page"] { color: var(--gold); }
+  main { position: relative; z-index: 1; }
+  .site-footer { position: relative; z-index: 1; padding: 3rem 0; border-top: 1px solid rgba(156, 122, 60, 0.25); margin-top: 4rem; font-size: 0.9rem; }
+  .small { font-size: 0.8rem; }
+  @media (max-width: 640px) {
+    nav { margin-left: 0; width: 100%; gap: 0.9rem; }
+  }
+</style>

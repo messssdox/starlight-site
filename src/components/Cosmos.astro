@@ -1,0 +1,18 @@
+---
+// The slow-moving background: stars, a faint nebula and drifting planets.
+// It pauses when the tab is hidden and stays still for visitors who prefer reduced motion.
+interface Props { dim?: boolean }
+const { dim = false } = Astro.props;
+---
+
+<canvas id="cosmos" aria-hidden="true" data-dim={dim ? "1" : "0"}></canvas>
+
+<style>
+  #cosmos { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; display: block; }
+</style>
+
+<script>
+  import { startCosmos } from "../scripts/cosmos.ts";
+  const canvas = document.getElementById("cosmos") as HTMLCanvasElement | null;
+  if (canvas) startCosmos(canvas, canvas.dataset.dim === "1");
+</script>

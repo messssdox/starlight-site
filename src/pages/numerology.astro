@@ -1,0 +1,97 @@
+---
+// The standalone numerology area: a calculator that shows every step of the maths.
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Numerology" description="Calculate your numerology numbers and see exactly how each one is worked out.">
+  <section class="container num">
+    <p class="eyebrow">Numerology</p>
+    <h1>Your numbers, with the maths shown</h1>
+    <p class="lede" data-glossary>
+      Numerology turns your birth date and name into a handful of meaningful numbers. Starlight uses the Pythagorean system, the most widely used
+      in the West. Every letter has a value from 1 to 9, and numbers are added together until one digit is left, except the master numbers 11, 22
+      and 33, which are kept as they are.
+    </p>
+
+    <form class="calc panel" autocomplete="off">
+      <div>
+        <label for="nm">Full birth name</label>
+        <input id="nm" name="n" placeholder="e.g. Ada Lovelace" />
+      </div>
+      <div>
+        <label for="dt">Birth date</label>
+        <input id="dt" name="d" type="date" required />
+      </div>
+      <button class="btn" type="submit">Calculate</button>
+    </form>
+
+    <div class="results" data-results></div>
+
+    <section class="panel table-wrap" id="letters">
+      <h2>The letter values</h2>
+      <table>
+        <thead><tr>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => <th>{n}</th>)}</tr></thead>
+        <tbody>
+          {["ABCDEFGHI", "JKLMNOPQR", "STUVWXYZ"].map((row) => (
+            <tr>{row.split("").map((c) => <td>{c}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="muted">Vowels (A, E, I, O, U) give the Soul Urge number; consonants give the Personality number; all letters together give the Expression number.</p>
+    </section>
+  </section>
+</Base>
+
+<style>
+  .num { padding-top: 48px; max-width: 900px; }
+  .lede { font-family: var(--font-reading); font-size: 1.2rem; color: var(--mist); }
+  .calc { display: grid; grid-template-columns: 2fr 1fr auto; gap: 14px; align-items: end; margin: 28px 0; }
+  .results :global(.r) { margin-bottom: 14px; }
+  .results :global(.r h3) { display: flex; justify-content: space-between; align-items: baseline; }
+  .results :global(.r .n) { font: 600 2.2rem var(--font-display); color: var(--gold); }
+  .results :global(ol) { margin: 6px 0 0; padding-left: 20px; color: var(--mist); font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+  .table-wrap { margin-top: 32px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; text-align: center; font-family: var(--font-display); }
+  th { color: var(--gold); padding: 8px; border-bottom: 1px solid rgba(212, 175, 90, 0.4); }
+  td { padding: 8px; color: var(--moonlight); }
+  @media (max-width: 720px) { .calc { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { lifePath, expression, soulUrge, personality, birthday, personalYear, maturity, universalYear, type Result } from "../lib/numerology.ts";
+  import { NUMBER_MEANINGS } from "../data/numbers.ts";
+
+  const form = document.querySelector<HTMLFormElement>("form.calc")!;
+  const out = document.querySelector<HTMLElement>("[data-results]")!;
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  const block = (id: string, title: string, how: string, r: Result) => `
+    <article class="r panel" id="${id}">
+      <h3><span>${title}</span><span class="n">${r.value}</span></h3>
+      <p class="muted">${how}</p>
+      <ol>${r.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>
+      ${NUMBER_MEANINGS[r.value] ? `<p><strong>${NUMBER_MEANINGS[r.value].keyword}.</strong> ${NUMBER_MEANINGS[r.value].gentle}</p>` : ""}
+    </article>`;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = (form.elements.namedItem("n") as HTMLInputElement).value.trim();
+    const date = (form.elements.namedItem("d") as HTMLInputElement).value;
+    if (!date) return;
+    const year = new Date().getFullYear();
+    let html = block("life-path", "Life Path", "Reduce the day, month and year of birth separately, then add them and reduce again.", lifePath(date));
+    html += block("birthday", "Birthday", "The day you were born, reduced to one digit.", birthday(date));
+    html += block("personal-year", `Personal Year ${year}`, "Your birth day and month plus this year. It shows where you are in your 9-year cycle.", personalYear(date, year));
+    if (name) {
+      html += block("expression", "Expression", "Every letter of your full birth name.", expression(name));
+      html += block("soul-urge", "Soul Urge", "The vowels in your name: what you want most deep down.", soulUrge(name));
+      html += block("personality", "Personality", "The consonants in your name: how others first see you.", personality(name));
+      html += block("maturity", "Maturity", "Life Path plus Expression: who you grow into.", maturity(date, name));
+    }
+    html += block("universal-year", `Universal Year ${year}`, "The calendar year's own number, the same for everyone.", universalYear(year));
+    out.innerHTML = html;
+    out.setAttribute("data-glossary", "");
+    delete out.dataset.glossaryDone;
+    document.dispatchEvent(new Event("glossary:scan"));
+  });
+</script>

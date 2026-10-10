@@ -1,0 +1,91 @@
+---
+// The entry form on the homepage. The more someone shares, the deeper the reading.
+import { RELATIONSHIPS } from "../data/numbers.ts";
+const tiers = [
+  { id: "glance", name: "Quick Glance", text: "Just the essence and your key traits." },
+  { id: "first", name: "First Timers", text: "A friendly, gentle introduction, with everything explained." },
+  { id: "deep", name: "Full Deep Dive", text: "Comprehensive and detailed, with all the working shown." },
+];
+---
+
+<form class="reading-form panel" action="/reading" method="get">
+  <fieldset class="tiers">
+    <legend>How deep would you like to go?</legend>
+    {tiers.map((t, i) => (
+      <label class="tier">
+        <input type="radio" name="tier" value={t.id} checked={i === 1} />
+        <span><strong>{t.name}</strong><small>{t.text}</small></span>
+      </label>
+    ))}
+  </fieldset>
+
+  <div class="grid">
+    <div>
+      <label for="f-name">Your full birth name</label>
+      <input id="f-name" name="n" autocomplete="name" placeholder="As on your birth certificate" required />
+    </div>
+    <div>
+      <label for="f-date">Your birth date</label>
+      <input id="f-date" name="d" type="date" min="1900-01-01" max="2100-12-31" required />
+    </div>
+  </div>
+
+  <details class="more">
+    <summary>Add birth time and place for deeper insights</summary>
+    <div class="grid">
+      <div>
+        <label for="f-time">Birth time (if you know it)</label>
+        <input id="f-time" name="t" type="time" />
+      </div>
+      <div>
+        <label for="f-place">Birth town or city</label>
+        <input id="f-place" name="p" placeholder="e.g. Manchester" />
+      </div>
+    </div>
+    <p class="muted small">Your time unlocks your Moon and Rising signs. Nothing you type is stored on our side.</p>
+  </details>
+
+  <details class="more">
+    <summary>Add someone for a compatibility reading</summary>
+    <div class="grid three">
+      <div>
+        <label for="f-rel">They are your…</label>
+        <select id="f-rel" name="rel">
+          <option value="">Choose…</option>
+          {Object.entries(RELATIONSHIPS).map(([id, r]) => <option value={id}>{r.label}</option>)}
+        </select>
+      </div>
+      <div>
+        <label for="f-name2">Their name</label>
+        <input id="f-name2" name="n2" />
+      </div>
+      <div>
+        <label for="f-date2">Their birth date</label>
+        <input id="f-date2" name="d2" type="date" min="1900-01-01" max="2100-12-31" />
+      </div>
+    </div>
+  </details>
+
+  <button class="btn" type="submit">Reveal my reading ✦</button>
+</form>
+
+<style>
+  .reading-form { display: grid; gap: 18px; }
+  .tiers { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tiers legend { font-family: var(--font-display); color: var(--gold); margin-bottom: 10px; font-size: 1.05rem; }
+  .tier { margin: 0; cursor: pointer; }
+  .tier input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .tier span { display: grid; gap: 4px; height: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(142, 107, 217, 0.4); transition: all 0.2s; }
+  .tier strong { color: var(--moonlight); font-weight: 600; }
+  .tier small { color: var(--mist); font-size: 0.82rem; line-height: 1.4; }
+  .tier input:checked + span { border-color: var(--gold); background: rgba(212, 175, 90, 0.1); box-shadow: 0 0 20px rgba(212, 175, 90, 0.15); }
+  .tier input:focus-visible + span { outline: 2px solid var(--orchid); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .more summary { cursor: pointer; color: var(--orchid); font-size: 0.95rem; margin-bottom: 10px; }
+  .small { font-size: 0.8rem; }
+  .btn { justify-self: start; }
+  @media (max-width: 720px) {
+    .tiers, .grid, .grid.three { grid-template-columns: 1fr; }
+  }
+</style>

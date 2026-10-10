@@ -1,0 +1,55 @@
+---
+import Base from "../layouts/Base.astro";
+import ReadingForm from "../components/ReadingForm.astro";
+import ZodiacWheel from "../components/ZodiacWheel.astro";
+import DonationBox from "../components/DonationBox.astro";
+---
+
+<Base title="Your stars, your numbers, your story">
+  <section class="hero container">
+    <p class="eyebrow">Numerology · Astrology · The Chinese Zodiac</p>
+    <h1>Your stars, your numbers,<br />your story.</h1>
+    <p class="lede" data-glossary>
+      Enter your name and birth date to receive a personal reading: your Life Path number, your signs, your Chinese zodiac animal and the energies
+      that shape your years. Add someone you love to see how your energies meet. Everything is explained, and everything is free.
+    </p>
+  </section>
+
+  <section class="container" aria-label="Start a reading">
+    <ReadingForm />
+  </section>
+
+  <section class="container block">
+    <ZodiacWheel />
+  </section>
+
+  <section class="container block three-up">
+    <a class="card panel" href="/numerology">
+      <h3>Numerology</h3>
+      <p class="muted">See exactly how your numbers are calculated, step by step.</p>
+    </a>
+    <a class="card panel" href="/library">
+      <h3>The Library</h3>
+      <p class="muted">Every planet, sign, animal and number explained in plain English.</p>
+    </a>
+    <a class="card panel" href="/glossary">
+      <h3>Glossary</h3>
+      <p class="muted">Tap any special word on the site for a quick definition.</p>
+    </a>
+  </section>
+
+  <section class="container block">
+    <DonationBox />
+  </section>
+</Base>
+
+<style>
+  .hero { padding-top: clamp(48px, 9vw, 110px); padding-bottom: 32px; max-width: 860px; text-align: center; }
+  .lede { font-family: var(--font-reading); font-size: clamp(1.15rem, 2.2vw, 1.4rem); color: var(--mist); line-height: 1.6; }
+  .block { margin-top: clamp(48px, 8vw, 96px); }
+  .three-up { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { text-decoration: none; color: inherit; transition: border-color 0.2s, transform 0.2s; }
+  .card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .card p { margin: 0; }
+  @media (max-width: 720px) { .three-up { grid-template-columns: 1fr; } }
+</style>

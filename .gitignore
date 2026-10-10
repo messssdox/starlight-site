@@ -1,0 +1,11 @@
+# Built site and installed packages (recreated automatically)
+dist/
+node_modules/
+.astro/
+.wrangler/
+
+# Personal settings and secrets: never commit these
+.env
+.env.*
+.DS_Store
+npm-debug.log*
