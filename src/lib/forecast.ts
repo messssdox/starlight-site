@@ -8,6 +8,11 @@
 import { ANIMALS, ELEMENTS, PROFILES, animalById, type Animal, type Element } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
 import { relationBetween, animalOfZodiacYear, elementOfZodiacYear, friendsOf, secretFriendOf, clashOf, type Relation } from "./chinese.ts";
+import { MakeTime } from "astronomy-engine";
+import { SIGNS, type Sign, type SignId, type PlanetId } from "../data/astrology.ts";
+import { longitudeOf, signOf } from "./astrology.ts";
+import { signAspect, type SignAspect } from "./pair.ts";
+import { retrogradeNow } from "./sky-events.ts";
 
 const STEM_ELEMENTS: Element[] = ["Wood", "Wood", "Fire", "Fire", "Earth", "Earth", "Metal", "Metal", "Water", "Water"];
 /** 7 January 2000 was a Jia Zi day (Wood Rat), the first day of the 60-day cycle. */
@@ -342,5 +347,120 @@ export function yearlyForecast(id: string, iso: string): YearForecast {
     intro: [YEAR_TEXT[rel](self, ya)],
     bestMonths: months.filter((m) => good.includes(monthAnimal(m).id)),
     careMonths: months.filter((m) => monthAnimal(m).id === clashOf(id).id),
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Sign and animal together. The animal side comes from the Chinese calendar, as above. The sign
+// side comes from where the planets really are (Astronomy Engine, as the Sky now page uses): how
+// the sign each planet is in sits with your sun sign. A friendly sign lifts a topic, a sign at
+// odds with yours asks for care.
+
+const SIGN_TONE: Record<SignAspect, number> = { same: 1, trine: 1, sextile: 1, neutral: 0, square: -1, opposite: -1 };
+const clampStars = (n: number) => Math.max(1, Math.min(5, Math.round(n)));
+const at = (iso: string) => MakeTime(new Date(`${iso}T12:00:00Z`));
+const planetSign = (id: PlanetId, iso: string) => signOf(longitudeOf(id, at(iso))).sign;
+
+/** "in Scorpio, a fellow Water sign" */
+function inSign(mine: Sign, there: Sign): string {
+  switch (signAspect(mine.id, there.id)) {
+    case "same": return `in ${there.name}, your own sign`;
+    case "trine": return `in ${there.name}, a fellow ${there.element} sign`;
+    case "sextile": return `in ${there.name}, a friendly sign for you`;
+    case "square": return `in ${there.name}, at odds with ${mine.name}`;
+    case "opposite": return `in ${there.name}, opposite ${mine.name}`;
+    case "neutral": return `in ${there.name}, a quiet sign for you`;
+  }
+}
+
+const RELATION_SHORT: Record<Relation, (a: Animal) => string> = {
+  secret: (a) => `the ${a.name}'s secret friend`,
+  friend: (a) => `a friend of the ${a.name}`,
+  same: (a) => `the ${a.name}'s own animal`,
+  neutral: (a) => `neither friend nor rival to the ${a.name}`,
+  clash: (a) => `the ${a.name}'s clash`,
+};
+
+/** Which planet speaks for each topic in the sign half of the forecast. */
+const TOPIC_PLANET: Record<Topic, PlanetId> = { love: "venus", work: "mars", money: "jupiter", wellbeing: "sun" };
+const PLANET_NAME: Record<PlanetId, string> = {
+  sun: "The Sun", moon: "The Moon", mercury: "Mercury", venus: "Venus", mars: "Mars",
+  jupiter: "Jupiter", saturn: "Saturn", uranus: "Uranus", neptune: "Neptune", pluto: "Pluto",
+};
+
+export interface PairMonthForecast extends MonthForecast {
+  signStars: number;
+  mercuryRetrograde: boolean;
+}
+
+/** This month for a sign and animal together. `iso` is today, which also sets where the planets are. */
+export function pairMonthlyForecast(signId: SignId, animalId: string, iso: string): PairMonthForecast {
+  const self = animalById(animalId);
+  const mine = SIGNS.find((s) => s.id === signId)!;
+  const base = monthlyForecast(animalId, iso);
+  const signs = Object.fromEntries((["sun", "venus", "mars", "jupiter"] as PlanetId[]).map((p) => [p, planetSign(p, iso)])) as Record<string, Sign>;
+  const tone = (p: PlanetId) => SIGN_TONE[signAspect(signId, signs[p].id)];
+  const signStars = clampStars(3 + (tone("sun") + tone("venus") + tone("mars") + tone("jupiter")) / 2);
+  const stars = clampStars((base.stars + signStars) / 2);
+  const t = toneOf(stars);
+  const monthName = new Date(Date.UTC(base.year, base.month - 1, 15)).toLocaleDateString("en-GB", { month: "long", timeZone: "UTC" });
+  const topics = TOPICS.map((topic) => {
+    const p = TOPIC_PLANET[topic];
+    const line = pick(TOPIC_LINES[topic][toneOf(clampStars(base.stars + tone(p)))], `${signId}:${animalId}:month:${base.year}-${base.month}:${topic}`);
+    return { topic, text: `${PLANET_NAME[p]} is ${inSign(mine, signs[p])}. ${line}` };
+  });
+  const moonEl = (d: string) => planetSign("moon", d);
+  const dates = Array.from({ length: new Date(Date.UTC(base.year, base.month, 0)).getUTCDate() }, (_, k) => `${iso.slice(0, 8)}${String(k + 1).padStart(2, "0")}`);
+  const moons = new Map(dates.map((d) => [d, moonEl(d)]));
+  const best = dates.filter((d) => dayScore(animalId, d) >= 4 && moons.get(d)!.element === mine.element);
+  const opposite = SIGNS[(SIGNS.indexOf(mine) + 6) % 12];
+  return {
+    ...base,
+    stars, signStars,
+    headline: t === "bright" ? `A bright month for the ${mine.name} ${self.name}` : t === "steady" ? "A steady month: what you put in comes back" : "A month to go gently and pick your battles",
+    intro: [`Most of ${monthName} is the ${base.animal.name}'s month in the Chinese calendar, ${RELATION_SHORT[base.relation](self)}.`],
+    topics,
+    bestDays: best.length ? best : base.bestDays,
+    careDays: dates.filter((d) => base.careDays.includes(d) || moons.get(d)!.id === opposite.id),
+    mercuryRetrograde: retrogradeNow(at(iso).date).includes("mercury"),
+  };
+}
+
+export interface PairYearForecast extends YearForecast {
+  signStars: number;
+  jupiter: string;
+  saturn: string;
+}
+
+/** The zodiac year for a sign and animal together, with Jupiter (growth) and Saturn (lessons) for the sign. */
+export function pairYearlyForecast(signId: SignId, animalId: string, iso: string): PairYearForecast {
+  const mine = SIGNS.find((s) => s.id === signId)!;
+  const base = yearlyForecast(animalId, iso);
+  const jup = planetSign("jupiter", iso);
+  const sat = planetSign("saturn", iso);
+  const jt = SIGN_TONE[signAspect(signId, jup.id)];
+  const st = SIGN_TONE[signAspect(signId, sat.id)];
+  const signStars = clampStars(3 + jt + Math.min(0, st));
+  const stars = clampStars((base.stars + signStars) / 2);
+  const t = toneOf(stars);
+  // each month: the month animal's relation, plus how the Sun's sign mid-month meets yours
+  const scored = Array.from({ length: 12 }, (_, k) => {
+    const m = k + 1;
+    const y = m === 1 ? base.zodiacYear + 1 : base.zodiacYear;
+    const sun = planetSign("sun", `${y}-${String(m).padStart(2, "0")}-15`);
+    return { m, score: RELATION_SCORE[relationBetween(animalId, monthAnimal(m).id)] + SIGN_TONE[signAspect(signId, sun.id)] };
+  });
+  const byScore = [...scored].sort((a, b) => b.score - a.score || a.m - b.m);
+  const sortM = (xs: { m: number }[]) => xs.map((x) => x.m).sort((a, b) => a - b);
+  const jupLine = jt > 0 ? "so luck and growth come easily" : jt < 0 ? "so growth comes through stretching yourself" : "so growth comes from steady effort";
+  return {
+    ...base,
+    stars: base.relation === "same" ? Math.min(stars, 3) : stars,
+    signStars,
+    headline: base.relation === "same" ? base.headline : t === "bright" ? `A good year for the ${mine.name} ${animalById(animalId).name}` : t === "steady" ? "An even year: steady effort stays built" : "A year to go steadily and lean on friends",
+    jupiter: `Jupiter, the planet of luck, is ${inSign(mine, jup)}, ${jupLine}.`,
+    saturn: `Saturn, the teacher, is ${inSign(mine, sat)}${st < 0 ? ", so expect a few tests of patience" : ""}.`,
+    bestMonths: sortM((byScore.filter((x) => x.score >= 5).length >= 2 ? byScore.filter((x) => x.score >= 5) : byScore.filter((x) => x.score >= 4)).slice(0, 3)),
+    careMonths: sortM(byScore.filter((x) => x.score <= 2).slice(-2)),
   };
 }
