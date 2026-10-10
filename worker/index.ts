@@ -2,6 +2,9 @@
 // handlers in functions/api/ (written in the Cloudflare Pages style); every
 // other request is served from the built site in ./dist.
 import * as counter from "../functions/api/counter";
+import * as thoughts from "../functions/api/thoughts";
+import * as kindWords from "../functions/api/kind-words";
+import * as adminMessages from "../functions/api/admin/messages";
 
 type Handler = (context: PagesContext) => Response | Promise<Response>;
 type HandlerModule = Partial<Record<"onRequest" | "onRequestGet" | "onRequestPost" | "onRequestPut" | "onRequestDelete" | "onRequestPatch", Handler>>;
@@ -23,6 +26,9 @@ interface Env {
 // One line per API route. Add new handlers from functions/api/ here.
 const routes: Record<string, HandlerModule> = {
   "/api/counter": counter,
+  "/api/thoughts": thoughts,
+  "/api/kind-words": kindWords,
+  "/api/admin/messages": adminMessages,
 };
 
 const METHOD_EXPORT: Record<string, keyof HandlerModule> = {

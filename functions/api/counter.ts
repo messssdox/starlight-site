@@ -1,4 +1,4 @@
-// The reading counter: a tiny serverless function that runs on Cloudflare Pages.
+// The reading counter: a tiny serverless function that runs on Cloudflare (routed by worker/index.ts).
 //   GET  /api/counter  -> { count: 12408 }
 //   POST /api/counter  -> adds one, returns the new count
 // It stores a single number in a free Cloudflare D1 database bound as COUNTER_DB.

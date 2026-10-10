@@ -12,7 +12,7 @@ A free-forever website for personalised numerology, astrology and Chinese zodiac
 | `src/data/` | The facts the site uses: zodiac animals and colours, number meanings, glossary words, Lunar New Year dates. |
 | `src/lib/` | The calculations: numerology and the Chinese zodiac. |
 | `src/config/donations.ts` | **The one place to plug in donations** when you're ready. |
-| `functions/api/` | The small server pieces that run on Cloudflare: the reading counter, "Share your thoughts" messages, the Kind words wall and the admin inbox. |
+| `functions/api/` | The small server pieces that run on Cloudflare (listed in `worker/index.ts`): the reading counter, "Share your thoughts" messages, the Kind words wall and the admin inbox. |
 | `server/` | Shared rules for those server pieces: message checks, spam limits and the admin password check. |
 | `migrations/` | The database tables, as numbered SQL files. Run each new one once (see below). |
 | `public/` | Images and files served as they are, including the 12 animal illustrations. |
@@ -33,8 +33,8 @@ npm run build    # builds the finished site into the dist/ folder
 
 The form at `/thoughts` saves messages in the same free Cloudflare D1 database as the reading counter. Two one-off steps:
 
-1. **Create the message tables.** In the Cloudflare dashboard, open **Storage & Databases → D1**, click your database, then the **Console** tab. Open `migrations/0002_thoughts.sql` on GitHub, copy everything in it, paste it into the console and click **Execute**.
-2. **Choose an admin password.** In **Workers & Pages**, click the Starlight project, then **Settings → Variables and Secrets → Add**. Type `ADMIN_PASSWORD` as the name, choose **Secret**, paste a long password (at least 12 characters) and save. Then open **Deployments** and click **Retry deployment** on the latest one so the site picks it up.
+1. **Create the message tables.** In the Cloudflare dashboard, open **Storage & Databases → D1**, click **starlight-counter**, then the **Console** tab. Open `migrations/0002_thoughts.sql` on GitHub, copy everything in it, paste it into the console and click **Execute**.
+2. **Choose an admin password.** Open **Workers & Pages**, click **starlight**, then **Settings → Variables and Secrets → Add**. Choose **Secret** as the type, type `ADMIN_PASSWORD` as the name, paste a long password (at least 12 characters) and click **Deploy**.
 
 Then visit `/admin` on your site and enter the password. There you can:
 

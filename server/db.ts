@@ -9,7 +9,7 @@ export interface D1Database {
   prepare(sql: string): D1Statement;
 }
 
-/** Everything the site's server functions can see. Set these in Cloudflare Pages > Settings. */
+/** Everything the site's server functions can see. Set these in Cloudflare: Workers & Pages > starlight > Settings. */
 export interface Env {
   /** The D1 database (the binding is still called COUNTER_DB from when it only held the counter). */
   COUNTER_DB: D1Database;
