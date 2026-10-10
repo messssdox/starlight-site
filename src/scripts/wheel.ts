@@ -452,9 +452,27 @@ export function initWheel(root: HTMLElement) {
     copy.removeAttribute("role");
     copy.querySelectorAll("[tabindex]").forEach((el) => el.removeAttribute("tabindex"));
     stage.replaceChildren(copy);
+    zoomLevel = 0;
+    applyZoom();
     zoom.showModal();
-    stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) / 2;
-    stage.scrollTop = 0;
+  }));
+  // zoom steps: the whole wheel, then bigger; the view stays centred on the same spot
+  const LEVELS = [1, 1.6, 2.4, 3.4];
+  let zoomLevel = 0;
+  function applyZoom() {
+    const copy = stage.querySelector<SVGSVGElement>("svg");
+    if (!copy) return;
+    const cx = (stage.scrollLeft + stage.clientWidth / 2) / Math.max(stage.scrollWidth, 1);
+    const cy = (stage.scrollTop + stage.clientHeight / 2) / Math.max(stage.scrollHeight, 1);
+    copy.style.setProperty("--z", String(LEVELS[zoomLevel]));
+    stage.scrollLeft = cx * stage.scrollWidth - stage.clientWidth / 2;
+    stage.scrollTop = cy * stage.scrollHeight - stage.clientHeight / 2;
+    zoom.querySelector<HTMLButtonElement>('[data-zoom-step="-1"]')!.disabled = zoomLevel === 0;
+    zoom.querySelector<HTMLButtonElement>('[data-zoom-step="1"]')!.disabled = zoomLevel === LEVELS.length - 1;
+  }
+  zoom.querySelectorAll<HTMLButtonElement>("[data-zoom-step]").forEach((b) => b.addEventListener("click", () => {
+    zoomLevel = Math.max(0, Math.min(LEVELS.length - 1, zoomLevel + Number(b.dataset.zoomStep)));
+    applyZoom();
   }));
   zoom.querySelector("[data-zoom-close]")!.addEventListener("click", () => zoom.close());
   zoom.addEventListener("click", (e) => { if (e.target === zoom) zoom.close(); });

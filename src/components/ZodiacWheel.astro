@@ -260,7 +260,11 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   </div>
 
   <dialog class="zoom" aria-label="Enlarged wheel">
-    <button type="button" class="zoom-close" data-zoom-close>Close ✕</button>
+    <div class="zoom-bar">
+      <button type="button" data-zoom-step="-1" aria-label="Zoom out">−</button>
+      <button type="button" data-zoom-step="1" aria-label="Zoom in">+</button>
+      <button type="button" class="zoom-close" data-zoom-close>Close ✕</button>
+    </div>
     <div class="zoom-stage" data-zoom-stage></div>
   </dialog>
 
@@ -300,9 +304,13 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   .zoom-btn:hover, .zoom-btn:focus-visible { background: var(--gold); color: #120e1f; }
   .zoom { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0b0816; color: var(--moonlight); }
   .zoom::backdrop { background: rgba(0, 0, 0, 0.8); }
-  .zoom-stage { width: 100%; height: 100%; overflow: auto; padding: 60px 24px 24px; box-sizing: border-box; }
-  .zoom-stage :global(svg) { width: max(100%, 980px); max-width: 1400px; height: auto; margin: 0 auto; }
-  .zoom-close { position: fixed; top: 12px; right: 12px; z-index: 3; border-radius: 999px; padding: 8px 16px; font: 700 0.95rem var(--font-body); cursor: pointer; background: var(--gold); color: #120e1f; border: 0; }
+  .zoom-stage { display: flex; width: 100%; height: 100%; overflow: auto; padding: 64px 12px 12px; box-sizing: border-box; }
+  /* opens with the whole wheel in sight; + and − change --z to make it bigger or smaller */
+  .zoom-stage :global(svg) { --fit: min(calc(100vw - 24px), calc(100dvh - 76px)); width: calc(var(--fit) * var(--z, 1)); max-width: none; height: auto; margin: auto; flex-shrink: 0; }
+  .zoom-bar { position: fixed; top: 12px; right: 12px; z-index: 3; display: flex; gap: 8px; }
+  .zoom-bar button { border-radius: 999px; min-width: 44px; padding: 8px 14px; font: 700 1rem var(--font-body); cursor: pointer; background: rgba(18, 14, 31, 0.9); color: var(--gold); border: 1px solid var(--gold); }
+  .zoom-bar .zoom-close { background: var(--gold); color: #120e1f; }
+  .zoom-bar button:disabled { opacity: 0.4; cursor: default; }
   .wheel { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55)); }
   .wheel text { pointer-events: none; }
   .wheel .rot { transform: rotate(var(--spin)); transition: transform 1.5s cubic-bezier(0.65, 0, 0.35, 1); }
