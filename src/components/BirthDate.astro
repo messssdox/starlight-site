@@ -1,7 +1,9 @@
 ---
-// A birth date entered as day, month and year boxes, so the year can be typed
-// instead of scrolled to. A hidden input carries the date as YYYY-MM-DD under
-// `name` and `id`, so forms and scripts read it like a normal date field.
+// A birth date picked from day, month and year lists. On phones each list opens the
+// native scroll wheel, and the year list runs newest first in decade groups, so a
+// birth year is a short flick away (on a computer, typing "1990" jumps straight to it).
+// A hidden input carries the date as YYYY-MM-DD under `name` and `id`, so forms and
+// scripts read it like a normal date field.
 interface Props {
   id: string;
   name: string;
@@ -9,18 +11,32 @@ interface Props {
   required?: boolean;
 }
 const { id, name, label = "Birth date", required = false } = Astro.props;
+// newest first, grouped by decade: 2020s, 2010s, ... 1900s
+const thisYear = new Date().getFullYear();
+const decades: { label: string; years: number[] }[] = [];
+for (let y = thisYear; y >= 1900; y--) {
+  const label = `${Math.floor(y / 10) * 10}s`;
+  if (decades.at(-1)?.label !== label) decades.push({ label, years: [] });
+  decades.at(-1)!.years.push(y);
+}
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 ---
 
 <fieldset class="birthdate" data-birthdate>
   <legend>{label}</legend>
   <div class="bd-row">
-    <input class="bd-day" id={`${id}-day`} type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Day" aria-label="Day" autocomplete="bday-day" required={required} />
+    <select class="bd-day" id={`${id}-day`} aria-label="Day" autocomplete="bday-day" required={required}>
+      <option value="">Day</option>
+      {Array.from({ length: 31 }, (_, i) => <option value={String(i + 1)}>{i + 1}</option>)}
+    </select>
     <select class="bd-month" id={`${id}-month`} aria-label="Month" autocomplete="bday-month" required={required}>
       <option value="">Month</option>
       {months.map((m, i) => <option value={String(i + 1)}>{m}</option>)}
     </select>
-    <input class="bd-year" id={`${id}-year`} type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Year" aria-label="Year" autocomplete="bday-year" required={required} />
+    <select class="bd-year" id={`${id}-year`} aria-label="Year" autocomplete="bday-year" required={required}>
+      <option value="">Year</option>
+      {decades.map((d) => <optgroup label={d.label}>{d.years.map((y) => <option value={String(y)}>{y}</option>)}</optgroup>)}
+    </select>
   </div>
   <input type="hidden" id={id} name={name} />
 </fieldset>
@@ -28,56 +44,28 @@ const months = ["January", "February", "March", "April", "May", "June", "July", 
 <style>
   .birthdate { border: 0; padding: 0; margin: 0; min-width: 0; }
   .birthdate legend { font-size: 0.85rem; color: var(--mist); margin-bottom: 0.35em; padding: 0; }
-  .bd-row { display: grid; grid-template-columns: 4.5em minmax(0, 1fr) 5.5em; gap: 8px; }
+  .bd-row { display: grid; grid-template-columns: 5em minmax(0, 1fr) 6em; gap: 8px; }
 </style>
 
 <script>
-  // Supported years: the Lunar New Year table covers 1900 to 2100.
-  const MIN_YEAR = 1900;
-  const MAX_YEAR = 2100;
-
   for (const box of document.querySelectorAll<HTMLElement>("[data-birthdate]")) {
-    const day = box.querySelector<HTMLInputElement>(".bd-day")!;
-    const month = box.querySelector<HTMLSelectElement>(".bd-month")!;
-    const year = box.querySelector<HTMLInputElement>(".bd-year")!;
+    const [day, month, year] = [".bd-day", ".bd-month", ".bd-year"].map((c) => box.querySelector<HTMLSelectElement>(c)!);
     const out = box.querySelector<HTMLInputElement>('input[type="hidden"]')!;
 
     const update = () => {
-      day.value = day.value.replace(/\D/g, "");
-      year.value = year.value.replace(/\D/g, "");
       const d = Number(day.value), m = Number(month.value), y = Number(year.value);
-      const any = day.value || month.value || year.value;
       for (const f of [day, month, year]) f.setCustomValidity("");
       out.value = "";
-      if (!any) return;
-      if (year.value.length === 4 && (y < MIN_YEAR || y > MAX_YEAR)) {
-        year.setCustomValidity(`Please enter a year from ${MIN_YEAR} to ${MAX_YEAR}.`);
-        return;
-      }
-      if (!day.value || !m || year.value.length < 4) {
-        // a half-filled date: point at the first missing part
-        if (!day.value) day.setCustomValidity("Please enter the day.");
-        else if (!m) month.setCustomValidity("Please choose the month.");
-        else if (year.value.length < 4) year.setCustomValidity("Please enter the year as four digits, like 1990.");
-        return;
-      }
-      const date = new Date(Date.UTC(y, m - 1, d));
-      if (d < 1 || date.getUTCDate() !== d) {
-        day.setCustomValidity("That day does not exist in that month.");
-        return;
-      }
+      if (!d && !m && !y) return;
+      // a half-filled date: point at the first missing part
+      if (!d) return day.setCustomValidity("Please choose the day.");
+      if (!m) return month.setCustomValidity("Please choose the month.");
+      if (!y) return year.setCustomValidity("Please choose the year.");
+      if (new Date(Date.UTC(y, m - 1, d)).getUTCDate() !== d) return day.setCustomValidity("That day does not exist in that month.");
       out.value = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     };
 
-    day.addEventListener("input", () => {
-      update();
-      if (day.value.length === 2) month.focus();
-    });
-    month.addEventListener("change", () => {
-      update();
-      if (month.value && !year.value) year.focus();
-    });
-    year.addEventListener("input", update);
+    for (const f of [day, month, year]) f.addEventListener("change", update);
     update();
   }
 </script>
