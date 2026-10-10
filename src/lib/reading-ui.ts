@@ -40,11 +40,14 @@ export function medallion(what: string, r: Result, tier: Tier) {
   return `<div class="medallion panel"><span class="what">${what}</span><span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}</div>`;
 }
 
-/** Count this reading once per browser session. */
+/** Count every reading: each new set of details counts once, so only a refresh of the same page doesn't. */
 export function countReading() {
+  const params = new URLSearchParams(location.search);
+  params.sort();
+  const key = `counted:${params.toString()}`;
   try {
-    if (sessionStorage.getItem("counted")) return;
-    sessionStorage.setItem("counted", "1");
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
   } catch {}
   fetch("/api/counter", { method: "POST" }).catch(() => {});
 }

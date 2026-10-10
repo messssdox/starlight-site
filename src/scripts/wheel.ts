@@ -1,17 +1,17 @@
-// Brings the zodiac wheel to life. Selecting an animal (or a year, or a birth date) turns the wheel
-// so that animal sits at the top under the gold marker, labels its friends, secret friend and clash
-// on the wheel, fills the three boxes under the wheel with what each one means, and shows the
-// animal's own profile in the side panel.
-import { ANIMALS, GROUPS, PROFILES, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS, animalById, seasonOf, type Animal, type Element } from "../data/zodiac.ts";
+// Brings the two wheels to life. Show me (or tapping a sign, animal or year) turns each wheel so the
+// chosen sign and animal sit at the top under the gold markers, labels their friends, secret friend
+// and clash on both wheels, fills the three boxes with the pair's matches, and shows one reading for
+// the sign and animal together, with its month and year forecast, in the side panel.
+import { ANIMALS, GROUPS, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS, animalById, seasonOf, type Animal, type Element } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
-import {
-  chineseSign, friendsOf, secretFriendOf, clashOf, relationBetween,
-  animalOfZodiacYear, elementOfZodiacYear, yinYangOfZodiacYear,
-} from "../lib/chinese.ts";
-import { dailyForecast, weeklyForecast, monthlyForecast, yearlyForecast, luckyAnimals, animalHours, weekdayName } from "../lib/forecast.ts";
+import { SIGNS, type Sign, type SignId } from "../data/astrology.ts";
+import { SIGN_FRIEND, ANIMAL_FRIEND, SIGN_SECRET } from "../data/pairs.ts";
+import { chineseSign, animalOfZodiacYear, elementOfZodiacYear, yinYangOfZodiacYear } from "../lib/chinese.ts";
+import { pairMonthlyForecast, pairYearlyForecast, luckyAnimals, animalHours } from "../lib/forecast.ts";
+import { pairProfile, pairMatches, sunSignOn, signById, poss, type PairMatch } from "../lib/pair.ts";
 
 const CLASH_RED = "#d8343c";
-const TURN_MS = 1300; // keep in step with the transition in ZodiacWheel.astro
+const TURN_MS = 1500; // keep in step with the transition in ZodiacWheel.astro
 
 const img = (a: Animal, size = 40) => `<img src="/animals/${a.id}.png" alt="" width="${size}" height="${size}" loading="lazy">`;
 const list = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
@@ -22,26 +22,14 @@ const dayBefore = (iso: string) => {
   d.setUTCDate(d.getUTCDate() - 1);
   return d.toISOString().slice(0, 10);
 };
+const signGlyph = (g: Sign) => `<span class="sg" aria-hidden="true">${g.glyph}</span>`;
+const pairName = (m: PairMatch) => `${m.sign.name} ${m.animal.name}`;
 const yearsOfAnimal = (a: Animal, from: number, to: number) =>
   Array.from({ length: to - from + 1 }, (_, k) => from + k).filter((y) => animalOfZodiacYear(y).id === a.id);
 const nextYearOf = (a: Animal) => yearsOfAnimal(a, new Date().getFullYear(), new Date().getFullYear() + 11)[0];
 const article = (word: string) => (/^[AEIOU]/.test(word) ? "an" : "a");
 
-const COMPARE_TEXT = {
-  same: (a: Animal) => `Two ${a.name}s: the same animal. You understand each other's instincts instantly, and you can also share the same blind spots.`,
-  friend: (a: Animal, b: Animal) => `Friends. The ${a.name} and the ${b.name} share a colour on the wheel, so they see the world the same way and work well together.`,
-  secret: (a: Animal, b: Animal) => `Secret friends. The ${a.name} and the ${b.name} share an inner-ring colour: a quiet, loyal bond that often runs deeper than it looks.`,
-  clash: (a: Animal, b: Animal) => `A clash. The ${a.name} and the ${b.name} sit directly opposite, so their energies pull in opposite directions. It can work, with patience and respect for your differences.`,
-  neutral: (a: Animal, b: Animal) => `Neutral. The ${a.name} and the ${b.name} are neither friends nor rivals on the wheel, so this bond is shaped by how you treat each other.`,
-};
 
-/** What each friend group brings to the selected animal, in plain words. */
-const FRIEND_INSIGHT: Record<string, string> = {
-  water: "Together you think fast and plan ahead. These friends understand your ideas before you finish explaining them.",
-  metal: "Together you build things that last. These friends share your sense of duty and keep their promises.",
-  fire: "Together you stand up for what is right. These friends are brave, warm and always on your side.",
-  wood: "Together you bring people together. These friends share your kindness and love of peace and beauty.",
-};
 
 /** Today's date where the reader is, as YYYY-MM-DD. */
 const localToday = () => {
@@ -59,58 +47,38 @@ const stars = (n: number) =>
 const TOPIC_NAMES = { love: "Love", work: "Work", money: "Money", wellbeing: "Wellbeing" };
 const topicsHtml = (ts: { topic: keyof typeof TOPIC_NAMES; text: string }[]) =>
   `<div class="topics">${ts.map((t) => `<div><span>${TOPIC_NAMES[t.topic]}</span>${t.text}</div>`).join("")}</div>`;
-type Scope = "day" | "week" | "month" | "year";
+type Scope = "month" | "year";
 
-/** The forecast box under the wheel, for the selected animal and the chosen period. */
-function forecastHtml(self: Animal, scope: Scope): string {
+/** The forecast inside the reveal panel, for the sign and animal together. */
+function forecastHtml(sign: Sign, self: Animal, scope: Scope): string {
   const today = localToday();
-  if (scope === "day") {
-    const f = dailyForecast(self.id, today);
-    return `
-      <p class="fc-when">${longDate(today)}</p>
-      <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
-      <p class="ruler">${img(f.animal, 34)}<span>${f.intro[0]}</span></p>
-      <p>${f.intro[1]}</p>
-      ${topicsHtml(f.topics)}
-      <ul class="fc-lucky"><li>Lucky colour: ${f.luckyColour}</li><li>Lucky number: ${f.luckyNumber}</li><li>Best hours: ${f.luckyHours}</li></ul>`;
-  }
-  if (scope === "week") {
-    const f = weeklyForecast(self.id, today);
-    const strip = f.days.map((d) =>
-      `<div class="s${d.stars}${d.date === today ? " today" : ""}" title="${weekdayName(d.date)}: ${d.animal.name} day, ${d.stars} out of 5">
-        <b>${weekdayName(d.date).slice(0, 3)}</b><span>${Number(d.date.slice(8))}</span>${img(d.animal, 26)}<span>${d.animal.name}</span>${"★".repeat(d.stars)}</div>`).join("");
-    return `
-      <p class="fc-when">${longDate(f.days[0].date)} to ${longDate(f.days[6].date)}</p>
-      <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
-      <div class="week">${strip}</div>
-      ${f.intro.map((t) => `<p>${t}</p>`).join("")}
-      ${topicsHtml(f.topics)}
-      <p><strong class="good">Best day:</strong> ${weekdayName(f.best)}${f.care ? `. <strong class="hard">Go gently on:</strong> ${weekdayName(f.care)}` : ""}.</p>`;
-  }
   if (scope === "month") {
-    const f = monthlyForecast(self.id, today);
+    const f = pairMonthlyForecast(sign.id, self.id, today);
     const days = (xs: string[]) => xs.map((d) => shortDate(d)).join(", ");
     return `
       <p class="fc-when">${MONTHS[f.month - 1]} ${f.year}</p>
       <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
       <p class="ruler">${img(f.animal, 34)}<span>${f.intro[0]}</span></p>
       ${topicsHtml(f.topics)}
+      ${f.mercuryRetrograde ? "<p>Mercury is retrograde right now, so double-check plans and messages.</p>" : ""}
       <p><strong class="good">Your brightest days:</strong> ${f.bestDays.length ? days(f.bestDays) : "none stand out this month, so steady effort wins"}.</p>
-      <p><strong class="hard">Days to take care:</strong> ${days(f.careDays)} (${clashOf(self.id).name} days, the ${self.name}'s clash).</p>`;
+      <p><strong class="hard">Days to take care:</strong> ${days(f.careDays)} (${clashName(self)} days, and days the Moon sits opposite ${sign.name}).</p>`;
   }
-  const f = yearlyForecast(self.id, today);
+  const f = pairYearlyForecast(sign.id, self.id, today);
   const end = LUNAR_NEW_YEAR[f.zodiacYear + 1];
   const months = (xs: number[]) => list(xs.map((m) => MONTHS[m - 1]));
   return `
     <p class="fc-when">The ${f.element} ${f.animal.name} year: ${longDate(LUNAR_NEW_YEAR[f.zodiacYear])}${end ? ` to ${longDate(dayBefore(end))}` : ""}</p>
     <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
     <p class="ruler">${img(f.animal, 34)}<span>${f.intro[0]}</span></p>
-    <p><strong class="good">Your best months:</strong> ${months(f.bestMonths)}.</p>
-    <p><strong class="hard">Months to take care:</strong> ${months(f.careMonths)}.</p>
-    <p class="next">Months here are the Chinese solar months, which start around the 4th to the 8th.</p>`;
+    <p>${f.jupiter} ${f.saturn}</p>
+    <p><strong class="good">Your best months:</strong> ${f.bestMonths.length ? months(f.bestMonths) : "none stand out, so steady effort wins"}.</p>
+    ${f.careMonths.length ? `<p><strong class="hard">Months to take care:</strong> ${months(f.careMonths)}.</p>` : ""}
+    <p class="next">Months here follow the Chinese solar months, which start around the 4th to the 8th.</p>`;
 }
 
 interface Focus { date?: string; year?: number }
+const clashName = (a: Animal) => animalById(ANIMALS[(a.index + 6) % 12].id).name;
 
 /** How each element feeds the next (the producing cycle) and keeps another in check (the controlling cycle), in pictures. */
 const FEEDS_PICTURE: Record<Element, string> = {
@@ -131,20 +99,49 @@ const CONTROLS_PICTURE: Record<Element, string> = {
 /** A tappable element name, used inside the side panel and boxes. */
 const elemLink = (e: Element) => `<button type="button" class="elem-link" data-element="${e}">${e}</button>`;
 
+/** Turns one wheel so a segment sits at the top, keeping every label along the ring the right way up. */
+function makeTurner(svg: SVGSVGElement) {
+  const texts = [...svg.querySelectorAll<SVGElement>(".tt")];
+  let spin = 0; // running total, so the wheel always turns the short way round
+  let timer = 0;
+  const orient = () => {
+    for (const t of texts) {
+      const a = -90 + Number(t.dataset.i) * 30 + spin;
+      const rot = (Math.sin((a * Math.PI) / 180) > 0.01 ? a - 90 : a + 90) - spin;
+      t.setAttribute("transform", `translate(${t.dataset.x} ${t.dataset.y}) rotate(${rot.toFixed(2)})`);
+    }
+  };
+  /** `extra` adds whole turns, so Show me visibly spins the wheel even when it is already in place. */
+  return (index: number, animate: boolean, extra = 0) => {
+    let delta = (-index * 30 - spin) % 360;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    spin += delta + 360 * extra;
+    svg.classList.toggle("no-anim", !animate);
+    svg.style.setProperty("--spin", `${spin}deg`);
+    clearTimeout(timer);
+    if (animate) timer = window.setTimeout(orient, TURN_MS);
+    else orient();
+  };
+}
+
 export function initWheel(root: HTMLElement) {
-  const svg = root.querySelector<SVGSVGElement>("svg.wheel")!;
+  const svg = root.querySelector<SVGSVGElement>("svg.wheel:not(.sign-wheel)")!;
+  const signSvg = root.querySelector<SVGSVGElement>("svg.sign-wheel")!;
   const details = root.querySelector<HTMLElement>("[data-details]")!;
   const insights = root.querySelector<HTMLElement>("[data-insights]")!;
+  const reveal = root.querySelector<HTMLElement>("[data-reveal]")!;
+  const signPick = root.querySelector<HTMLSelectElement>("#wheel-sign")!;
   const centreImg = svg.querySelector<SVGImageElement>(".centre-img")!;
   const segs = [...svg.querySelectorAll<SVGGElement>(".seg")];
+  const signSegs = [...signSvg.querySelectorAll<SVGGElement>(".seg")];
   const cols = [...svg.querySelectorAll<SVGGElement>(".year-col")];
   const yearCells = [...svg.querySelectorAll<SVGGElement>(".year")];
-  const texts = [...svg.querySelectorAll<SVGElement>(".tt")];
   const elems = [...svg.querySelectorAll<SVGGElement>(".elem")];
   const centreGlyph = svg.querySelector<SVGTextElement>(".centre-glyph")!;
-  const forecast = root.querySelector<HTMLElement>("[data-forecast]")!;
-  const forecastTitle = root.querySelector<HTMLElement>("[data-fc-title]")!;
-  const tabs = [...root.querySelectorAll<HTMLButtonElement>(".fc-tabs [data-scope]")];
+  const signCentre = signSvg.querySelector<SVGTextElement>(".sign-centre")!;
+  const turnAnimal = makeTurner(svg);
+  const turnSign = makeTurner(signSvg);
   const box = (kind: string) => insights.querySelector<HTMLElement>(`[data-kind="${kind}"]`)!;
   const setLabels = (a: string, b: string, c: string) => {
     box("friends").querySelector(".label")!.textContent = a;
@@ -152,36 +149,11 @@ export function initWheel(root: HTMLElement) {
     box("clash").querySelector(".label")!.textContent = c;
   };
 
-  let spin = 0; // running total, so the wheel always turns the short way round
   let current = "";
-  let compareWith = "";
+  let sign: SignId = "aries";
   let focus: Focus = {};
-  let orientTimer = 0;
-  let scope: Scope = "day";
-
-  /** Keep every label along the ring readable for the wheel's current turn: none upside down. */
-  function orientText() {
-    for (const t of texts) {
-      const i = Number(t.dataset.i);
-      const a = -90 + i * 30 + spin;
-      const s = Math.sin((a * Math.PI) / 180);
-      const rot = (s > 0.01 ? a - 90 : a + 90) - spin;
-      t.setAttribute("transform", `translate(${t.dataset.x} ${t.dataset.y}) rotate(${rot.toFixed(2)})`);
-    }
-  }
-
-  function turnTo(a: Animal, animate: boolean) {
-    const target = -a.index * 30;
-    let delta = (target - spin) % 360;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    spin += delta;
-    svg.classList.toggle("no-anim", !animate);
-    svg.style.setProperty("--spin", `${spin}deg`);
-    clearTimeout(orientTimer);
-    if (animate) orientTimer = window.setTimeout(orientText, TURN_MS);
-    else orientText();
-  }
+  let scope: Scope = "month";
+  let revealTimer = 0;
 
   function setBadge(seg: SVGGElement, label: string | null, kind = "") {
     const badge = seg.querySelector<SVGGElement>(".badge")!;
@@ -189,81 +161,86 @@ export function initWheel(root: HTMLElement) {
     badge.classList.toggle("k-clash", kind === "clash");
     if (!label) return;
     badge.querySelector("text")!.textContent = label;
-    const w = label.length * 10.5 + 28;
+    const w = label.length * 8.8 + 20;
     const rect = badge.querySelector("rect")!;
     rect.setAttribute("x", String(-w / 2));
     rect.setAttribute("width", String(w));
   }
 
-  function paint(animate: boolean) {
-    const self = animalById(current);
-    const friends = friendsOf(current);
-    const secret = secretFriendOf(current);
-    const clash = clashOf(current);
-    const other = compareWith && compareWith !== current ? animalById(compareWith) : null;
+  /** Mark self, friends, secret friend and clash on one wheel. */
+  function mark(gs: SVGGElement[], key: (g: SVGGElement) => string, self: string, m: ReturnType<typeof pairMatches>, of: (x: PairMatch) => string) {
+    gs.forEach((g) => {
+      const id = key(g);
+      const isFriend = m.friends.some((f) => of(f) === id);
+      g.classList.toggle("is-self", id === self);
+      g.classList.toggle("is-friend", isFriend);
+      g.classList.toggle("is-secret", id === of(m.secret));
+      g.classList.toggle("is-clash", id === of(m.clash));
+      g.setAttribute("aria-pressed", String(id === self));
+      if (id === self) setBadge(g, "SELECTED");
+      else if (isFriend) setBadge(g, "FRIEND");
+      else if (id === of(m.secret)) setBadge(g, "SECRET FRIEND");
+      else if (id === of(m.clash)) setBadge(g, "CLASH", "clash");
+      else setBadge(g, null);
+    });
+  }
 
-    turnTo(self, animate);
+  function paint(animate: boolean, extra = 0) {
+    const self = animalById(current);
+    const sg = signById(sign);
+    const m = pairMatches(sign, current);
+
+    turnAnimal(self.index, animate, extra);
+    turnSign(SIGNS.indexOf(sg), animate, extra);
     elems.forEach((e) => e.classList.remove("is-on"));
     centreGlyph.textContent = "";
     centreImg.style.display = "";
+    centreImg.setAttribute("href", `/animals/${self.id}.png`);
+    signCentre.textContent = sg.glyph;
     setLabels("Friends", "Secret friend", "Clash");
-    segs.forEach((g) => {
-      const id = g.dataset.id!;
-      const isFriend = friends.some((f) => f.id === id);
-      g.classList.toggle("is-self", id === self.id);
-      g.classList.toggle("is-friend", isFriend);
-      g.classList.toggle("is-secret", id === secret.id);
-      g.classList.toggle("is-clash", id === clash.id);
-      g.setAttribute("aria-pressed", String(id === self.id));
-      if (id === self.id) setBadge(g, "SELECTED");
-      else if (isFriend) setBadge(g, "FRIEND");
-      else if (id === secret.id) setBadge(g, "SECRET FRIEND");
-      else if (id === clash.id) setBadge(g, "CLASH", "clash");
-      else if (other && id === other.id) setBadge(g, "COMPARING");
-      else setBadge(g, null);
-    });
+    mark(segs, (g) => g.dataset.id!, self.id, m, (x) => x.animal.id);
+    mark(signSegs, (g) => g.dataset.sign!, sg.id, m, (x) => x.sign.id);
     cols.forEach((c) => c.classList.toggle("is-self", c.dataset.for === self.id));
     yearCells.forEach((c) => c.classList.toggle("is-picked", focus.year !== undefined && Number(c.dataset.year) === focus.year));
-    centreImg.setAttribute("href", `/animals/${self.id}.png`);
 
-    renderInsights(self, friends, secret, clash);
-    renderDetails(self, friends, secret, clash, other);
-    renderForecast();
+    renderInsights(sg, self, m);
+    renderDetails(sg, self, m);
   }
 
-  function renderForecast() {
-    const self = animalById(current);
-    forecastTitle.textContent = `Forecast for the ${self.name}`;
-    tabs.forEach((t) => t.setAttribute("aria-selected", String(t.dataset.scope === scope)));
-    forecast.innerHTML = forecastHtml(self, scope);
-  }
-
-  /** The three boxes under the wheel: what the friends, secret friend and clash mean for this animal. */
-  function renderInsights(self: Animal, friends: Animal[], secret: Animal, clash: Animal) {
+  /** The three boxes: the pair's friends, secret friend and clash, each a sign and an animal together. */
+  function renderInsights(sg: Sign, self: Animal, m: ReturnType<typeof pairMatches>) {
     const group = GROUPS[self.group];
     const pair = SECRET_FRIENDS.find((s) => s.pair.includes(self.id))!;
     box("friends").style.setProperty("--c", group.colour);
     box("secret").style.setProperty("--c", pair.colour);
     box("clash").style.setProperty("--c", CLASH_RED);
 
+    const fa = m.friends.map((f) => f.animal);
     box("friends").querySelector(".body")!.innerHTML = `
-      <div class="who">${friends.map((f) => img(f)).join("")}<strong>${list(friends.map((f) => f.name))}</strong></div>
-      <p>${FRIEND_INSIGHT[self.group]} The ${self.name}, ${list(friends.map((f) => f.name))} are known as ${group.name}.</p>
-      <p class="next">They share the ${self.name}'s colour on the wheel. Next friend years: ${friends.map((f) => `${nextYearOf(f)} (${f.name})`).join(", ")}.</p>`;
+      <div class="who">${m.friends.map((f) => signGlyph(f.sign) + img(f.animal)).join("")}<strong>${list(m.friends.map(pairName))}</strong></div>
+      <p>${SIGN_FRIEND[sg.element]}, and the ${list(fa.map((f) => f.name))} ${ANIMAL_FRIEND[self.group]}.</p>
+      <p class="next">They share your colour on both wheels. Next friend years: ${fa.map((f) => `${nextYearOf(f)} (${f.name})`).join(", ")}.</p>`;
     box("secret").querySelector(".body")!.innerHTML = `
-      <div class="who">${img(secret)}<strong>The ${secret.name}</strong></div>
-      <p>Your hidden ally. The ${secret.name} brings what the ${self.name} lacks, and this bond is often quiet, loyal and deeper than it looks.</p>
-      <p class="next">You share the same colour on the inner ring. Next ${secret.name} year: ${nextYearOf(secret)}.</p>`;
+      <div class="who">${signGlyph(m.secret.sign)}${img(m.secret.animal)}<strong>The ${pairName(m.secret)}</strong></div>
+      <p>Your hidden ally. ${SIGN_SECRET[sg.element]}, and the ${m.secret.animal.name} brings what the ${self.name} lacks: a quiet, loyal bond.</p>
+      <p class="next">Two signs on, and the same colour on the inner ring. Next ${m.secret.animal.name} year: ${nextYearOf(m.secret.animal)}.</p>`;
     box("clash").querySelector(".body")!.innerHTML = `
-      <div class="who">${img(clash)}<strong>The ${clash.name}</strong></div>
-      <p>Your opposite. The ${self.name} and the ${clash.name} want different things, so this bond takes patience. Learn from each other rather than compete.</p>
-      <p class="next">Directly opposite on the wheel. Next ${clash.name} year, a year to take extra care: ${nextYearOf(clash)}.</p>`;
+      <div class="who">${signGlyph(m.clash.sign)}${img(m.clash.animal)}<strong>The ${pairName(m.clash)}</strong></div>
+      <p>Your opposite. ${m.clash.sign.name} and ${sg.name} face each other, and the ${self.name} and ${m.clash.animal.name} want different things, so this bond takes patience. Learn from each other rather than compete.</p>
+      <p class="next">Directly opposite on both wheels. Next ${m.clash.animal.name} year, a year to take extra care: ${nextYearOf(m.clash.animal)}.</p>`;
     delete insights.dataset.glossaryDone;
   }
 
-  function renderDetails(self: Animal, friends: Animal[], secret: Animal, clash: Animal, other: Animal | null) {
+  function renderForecast() {
+    const body = details.querySelector<HTMLElement>("[data-forecast]");
+    if (!body) return;
+    details.querySelectorAll<HTMLButtonElement>(".fc-tabs [data-scope]").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.scope === scope)));
+    body.innerHTML = forecastHtml(signById(sign), animalById(current), scope);
+  }
+
+  function renderDetails(sg: Sign, self: Animal, m: ReturnType<typeof pairMatches>) {
     const season = seasonOf(self.id);
-    const profile = PROFILES[self.id];
+    const p = pairProfile(sg.id, self.id);
     let yearBox = "";
     if (focus.year !== undefined) {
       const y = focus.year;
@@ -282,55 +259,40 @@ export function initWheel(root: HTMLElement) {
       const el = elementOfZodiacYear(y);
       yearBox = `<div class="year-box">${born}<p><strong>${y} is ${article(el)} ${el} ${self.name} year</strong> (${yinYangOfZodiacYear(y).toLowerCase()}).${span}</p><p>Every year also has an element, from its last digit. Tap ${elemLink(el)} to see what it brings.</p></div>`;
     }
-
-    const now = new Date().getFullYear();
-    const ahead = Array.from({ length: 12 }, (_, k) => now + k);
-    const good = ahead.filter((y) => [secret.id, ...friends.map((f) => f.id)].includes(animalOfZodiacYear(y).id));
-    const hard = ahead.filter((y) => [clash.id, self.id].includes(animalOfZodiacYear(y).id));
-    const hardText = hard
-      .map((y) => (animalOfZodiacYear(y).id === self.id ? `${y} (your own ${self.name} year, Ben Ming Nian)` : `${y} (a ${clash.name} year)`))
-      .join(" and ");
-
-    const chips = ANIMALS.map(
-      (a) => `<button type="button" data-compare="${a.id}" aria-pressed="${a.id === compareWith}">${img(a, 30)}${a.name}</button>`,
-    ).join("");
-    const verdict = other ? `<p class="verdict">${COMPARE_TEXT[relationBetween(self.id, other.id)](self, other)}</p>` : "";
+    const lucky = luckyAnimals(self.id);
+    const tab = (k: Scope, label: string) => `<button type="button" role="tab" data-scope="${k}" aria-selected="${k === scope}">${label}</button>`;
 
     details.innerHTML = `
       ${yearBox}
-      <div class="head">${img(self, 84)}<div><h3>The ${self.name}</h3>
-        <p class="sub">Number ${self.index + 1} on the wheel · ${self.yinYang} · ${season.season} (${season.element})</p>
+      <div class="head"><div class="pic">${img(self, 84)}${signGlyph(sg)}</div><div><h3>${p.title}</h3>
+        <p class="sub">${sg.element} sign, ruled by ${sg.ruler} · Number ${self.index + 1} on the wheel · ${self.yinYang} · ${season.season} (${season.element})</p>
         ${self.alsoKnownAs ? `<p class="aka">${self.alsoKnownAs}</p>` : ""}</div></div>
-      <ul class="tags">${self.traits.map((t) => `<li>${t}</li>`).join("")}</ul>
-      <p>${self.summary}</p>
+      <ul class="tags">${p.tags.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <p>${p.summary}</p>
       <dl>
-        <dt>Strengths</dt><dd>${profile.strengths}</dd>
-        <dt>Watch out for</dt><dd>${profile.watchOut}</dd>
-        <dt>In love</dt><dd>${profile.love}</dd>
-        <dt>At work</dt><dd>${profile.work}</dd>
-        <dt>Careers</dt><dd>${profile.careers}</dd>
-        <dt>Wellbeing</dt><dd>${profile.wellbeing}</dd>
-        <dt>Lucky days</dt><dd>Days and hours of the ${list(luckyAnimals(self.id).map((a) => a.name))}, especially the ${secret.name} (${list(luckyAnimals(self.id).map((a) => animalHours(a)))}). The forecast below the wheel picks them out.</dd>
-        <dt>Elements</dt><dd>The ${self.name}'s own element is ${elemLink(self.element)}. It sits in ${season.season.toLowerCase()} on the outer edge, the season of ${elemLink(season.element)}, which brings ${season.meaning}.${EARTH_ANIMALS.includes(self.id) ? ` As the last animal of its season, it also carries ${elemLink("Earth")}, which links one season to the next.` : ""}</dd>
+        <dt>Strengths</dt><dd>${p.strengths}</dd>
+        <dt>Watch out for</dt><dd>${p.watchOut}</dd>
+        <dt>In love</dt><dd>${p.love}</dd>
+        <dt>At work</dt><dd>${p.work}</dd>
+        <dt>Careers</dt><dd>${p.careers}</dd>
+        <dt>Wellbeing</dt><dd>${p.wellbeing}</dd>
+        <dt>Lucky days</dt><dd>${p.part.day}s, ${poss(p.part.dayRuler)} day for ${sg.name}, and the days and hours of the ${list(lucky.map((a) => a.name))}, especially the ${m.secret.animal.name} (${animalHours(m.secret.animal)}). The forecast below picks them out.</dd>
+        <dt>Elements</dt><dd>${p.elementSign} ${elemLink(self.element)}, in ${season.season.toLowerCase()} on the wheel's edge. ${p.elementBlend}</dd>
       </dl>
       <div class="lucky">
-        <div><span>Lucky numbers</span><b>${profile.luckyNumbers.join(", ")}</b></div>
-        <div><span>Lucky colours</span><b>${profile.luckyColours.join(", ")}</b></div>
-        <div><span>Lucky flowers</span><b>${profile.luckyFlowers.join(", ")}</b></div>
+        <div><span>Lucky numbers</span><b>${p.luckyNumbers.join(", ")}</b></div>
+        <div><span>Lucky colours</span><b>${p.luckyColours.join(", ")}</b></div>
+        <div><span>Lucky flowers</span><b>${p.luckyFlowers.join(", ")}</b></div>
       </div>
-
-      <div class="compare">
-        <h4>How does the ${self.name} get on with…</h4>
-        <div class="chips">${chips}</div>
-        ${verdict}
-      </div>
-
-      <div class="years-note">
-        <h4>${self.name} years</h4>
-        <p>${yearsOfAnimal(self, 1924, 2031).reverse().join(", ")}</p>
-        <p><strong class="good">Supportive years ahead:</strong> ${good.slice(0, 4).join(", ")}, the years of your friends and secret friend.</p>
-        <p><strong class="hard">Years to take extra care:</strong> ${hardText}.</p>
-      </div>`;
+      <section class="forecast" aria-label="Forecast">
+        <div class="fc-top">
+          <h4>Forecast for the ${sg.name} ${self.name}</h4>
+          <div class="fc-tabs" role="tablist" aria-label="Forecast period">${tab("month", "This month")}${tab("year", "This year")}</div>
+        </div>
+        <div class="fc-body" role="tabpanel" aria-live="polite" data-forecast></div>
+        <p class="fc-note">Based on the traditional Chinese calendar and where the planets are right now. For fun and reflection, not fate.</p>
+      </section>`;
+    renderForecast();
     delete details.dataset.glossaryDone;
     document.dispatchEvent(new Event("glossary:scan"));
   }
@@ -341,7 +303,8 @@ export function initWheel(root: HTMLElement) {
     const season = SEASONS.find((x) => x.element === el);
     const seasonAnimals = (season ? season.animals : EARTH_ANIMALS).map(animalById);
     const own = ANIMALS.filter((a) => a.element === el);
-    if (season) turnTo(animalById(season.animals[1]), true);
+    if (season) turnAnimal(animalById(season.animals[1]).index, true);
+    showReveal(false);
 
     elems.forEach((e) => e.classList.toggle("is-on", e.dataset.element === el));
     segs.forEach((g) => {
@@ -394,26 +357,46 @@ export function initWheel(root: HTMLElement) {
       <div class="compare">
         <h4>The five elements</h4>
         <div class="elem-chips">${chips}</div>
-        <p class="muted" style="margin-top:10px">Tap any animal on the wheel to go back to the animals.</p>
+        <p class="muted" style="margin-top:10px">Tap any animal or sign on the wheels to go back to your reading.</p>
       </div>`;
     delete details.dataset.glossaryDone;
     document.dispatchEvent(new Event("glossary:scan"));
   }
 
-  function select(id: string, f: Focus = {}, animate = true) {
-    if (id !== current) compareWith = "";
-    current = id;
-    focus = f;
+  /** Show the boxes and panel. After Show me they appear once the wheels have stopped. */
+  function showReveal(afterSpin: boolean) {
+    clearTimeout(revealTimer);
+    const wasHidden = reveal.hidden;
+    const open = () => {
+      reveal.hidden = false;
+      if (wasHidden && afterSpin) reveal.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (afterSpin && !still) revealTimer = window.setTimeout(open, TURN_MS);
+    else open();
+  }
+
+  /** Change the animal and/or sign. Before Show me, this only turns the wheels. */
+  function select(next: { animal?: string; sign?: SignId; focus?: Focus }, animate = true) {
+    if (next.animal) current = next.animal;
+    if (next.sign) { sign = next.sign; signPick.value = sign; }
+    if (next.focus) focus = next.focus;
     paint(animate);
+    if (!reveal.hidden) showReveal(false);
   }
 
   segs.forEach((g) => {
-    g.addEventListener("click", () => select(g.dataset.id!));
-    g.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(g.dataset.id!); }
-    });
+    const go = () => select({ animal: g.dataset.id!, focus: {} });
+    g.addEventListener("click", go);
+    g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
   });
-  yearCells.forEach((c) => c.addEventListener("click", () => select(c.dataset.id!, { year: Number(c.dataset.year) })));
+  signSegs.forEach((g) => {
+    const go = () => select({ sign: g.dataset.sign as SignId });
+    g.addEventListener("click", go);
+    g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
+  yearCells.forEach((c) => c.addEventListener("click", () => select({ animal: c.dataset.id!, focus: { year: Number(c.dataset.year) } })));
+  signPick.addEventListener("change", () => select({ sign: signPick.value as SignId }));
 
   elems.forEach((g) => {
     g.addEventListener("click", () => selectElement(g.dataset.element as Element));
@@ -426,28 +409,84 @@ export function initWheel(root: HTMLElement) {
     if (link) selectElement(link.dataset.element as Element);
   });
 
-  tabs.forEach((t) => t.addEventListener("click", () => {
+  details.addEventListener("click", (e) => {
+    const t = (e.target as HTMLElement).closest<HTMLButtonElement>(".fc-tabs [data-scope]");
+    if (!t) return;
     scope = t.dataset.scope as Scope;
     renderForecast();
-  }));
-
-  details.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-compare]");
-    if (!btn) return;
-    compareWith = compareWith === btn.dataset.compare ? "" : btn.dataset.compare!;
-    paint(false);
   });
+
+  // the sun sign fills itself in from the birth date (day and month are enough), and can still be changed
+  const part = (k: string) => Number(root.querySelector<HTMLSelectElement>(`#wheel-date-${k}`)!.value);
+  /** The date as YYYY-MM-DD, using a stand-in year when only the day and month are chosen. */
+  const isoFrom = (stand?: number) => {
+    const d = part("day"), mo = part("month"), y = part("year") || stand;
+    if (!d || !mo || !y || new Date(Date.UTC(y, mo - 1, d)).getUTCDate() !== d) return "";
+    return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  };
+  const fillSign = () => {
+    const iso = isoFrom(2001);
+    if (iso) signPick.value = sunSignOn(iso).id;
+  };
+  for (const k of ["day", "month", "year"]) root.querySelector(`#wheel-date-${k}`)!.addEventListener("change", fillSign);
 
   root.querySelector<HTMLFormElement>("form.finder")!.addEventListener("submit", (e) => {
     e.preventDefault();
-    const date = root.querySelector<HTMLInputElement>("#wheel-date")!.value;
-    if (!date) return;
-    const sign = chineseSign(date);
-    select(sign.animal.id, { date, year: sign.zodiacYear });
+    const date = isoFrom();
+    if (date) {
+      const cs = chineseSign(date);
+      current = cs.animal.id;
+      focus = { date, year: cs.zodiacYear };
+    }
+    sign = signPick.value as SignId;
+    paint(true, 1);
+    showReveal(true);
   });
 
-  // start on this year's animal, with this year highlighted, already turned to the top
-  const today = chineseSign(new Date().toISOString().slice(0, 10));
-  select(today.animal.id, { year: today.zodiacYear }, false);
-  requestAnimationFrame(() => svg.classList.remove("no-anim"));
+  // Enlarge: moves the wheel itself into a full-screen view, so it can still be tapped and turned there,
+  // and puts it back in its place on Close. On phones it can also be scrolled and pinched.
+  const zoom = root.querySelector<HTMLDialogElement>("dialog.zoom")!;
+  const stage = zoom.querySelector<HTMLElement>("[data-zoom-stage]")!;
+  let lent: { wheel: SVGSVGElement; home: HTMLElement } | null = null;
+  root.querySelectorAll<HTMLButtonElement>("[data-zoom]").forEach((b) => b.addEventListener("click", () => {
+    const wheel = b.dataset.zoom === "sign" ? signSvg : svg;
+    lent = { wheel, home: wheel.parentElement! };
+    stage.replaceChildren(wheel);
+    zoomLevel = 0;
+    applyZoom();
+    zoom.showModal();
+  }));
+  // zoom steps: the whole wheel, then bigger; the view stays centred on the same spot
+  const LEVELS = [1, 1.6, 2.4, 3.4];
+  let zoomLevel = 0;
+  function applyZoom() {
+    const wheel = stage.querySelector<SVGSVGElement>("svg");
+    if (!wheel) return;
+    const cx = (stage.scrollLeft + stage.clientWidth / 2) / Math.max(stage.scrollWidth, 1);
+    const cy = (stage.scrollTop + stage.clientHeight / 2) / Math.max(stage.scrollHeight, 1);
+    wheel.style.setProperty("--z", String(LEVELS[zoomLevel]));
+    stage.scrollLeft = cx * stage.scrollWidth - stage.clientWidth / 2;
+    stage.scrollTop = cy * stage.scrollHeight - stage.clientHeight / 2;
+    zoom.querySelector<HTMLButtonElement>('[data-zoom-step="-1"]')!.disabled = zoomLevel === 0;
+    zoom.querySelector<HTMLButtonElement>('[data-zoom-step="1"]')!.disabled = zoomLevel === LEVELS.length - 1;
+  }
+  zoom.querySelectorAll<HTMLButtonElement>("[data-zoom-step]").forEach((b) => b.addEventListener("click", () => {
+    zoomLevel = Math.max(0, Math.min(LEVELS.length - 1, zoomLevel + Number(b.dataset.zoomStep)));
+    applyZoom();
+  }));
+  zoom.querySelector("[data-zoom-close]")!.addEventListener("click", () => zoom.close());
+  zoom.addEventListener("click", (e) => { if (e.target === zoom) zoom.close(); });
+  zoom.addEventListener("close", () => {
+    if (lent) { lent.wheel.style.removeProperty("--z"); lent.home.append(lent.wheel); lent = null; }
+  });
+
+  // start on this year's animal and today's sign, already turned to the top; the reading waits for Show me
+  const todayIso = localToday();
+  const today = chineseSign(todayIso);
+  current = today.animal.id;
+  sign = sunSignOn(todayIso).id;
+  signPick.value = sign;
+  focus = { year: today.zodiacYear };
+  paint(false);
+  requestAnimationFrame(() => { svg.classList.remove("no-anim"); signSvg.classList.remove("no-anim"); });
 }
