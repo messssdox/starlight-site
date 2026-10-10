@@ -27,7 +27,11 @@ const articles = (await getCollection("library")).map((a) => a.id);
 <script>
   import { lifePath } from "../lib/numerology.ts";
   import { chineseSign, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
-  import { GROUPS, ELEMENTS, seasonOf } from "../data/zodiac.ts";
+  import { GROUPS, ELEMENTS, PROFILES, seasonOf } from "../data/zodiac.ts";
+  import { PLANET_BY_ID } from "../data/astrology.ts";
+  import { PLACEMENTS } from "../data/placements.ts";
+  import { PAIR_TITLES, PAIR_LINES, PAIR_SHORT, CHEMISTRY, type Tone } from "../data/synastry.ts";
+  import { personalSigns, pairUp, chemistryOf } from "../lib/synastry.ts";
   import { NUMBER_MEANINGS, NUMBER_FAMILIES } from "../data/numbers.ts";
   import { KINDS, relationshipById } from "../data/relationships.ts";
   import { compare, comparisonBreakdown, elementLine, lifePathPairLine, yearTogetherLine } from "../lib/compat.ts";
@@ -40,6 +44,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
   const date = q.get("d") ?? "";
   const root = document.querySelector<HTMLElement>("[data-reading]")!;
   const articles = new Set<string>(JSON.parse(root.dataset.articles ?? "[]"));
+  const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     root.innerHTML = `<h1>Let's begin</h1><p>Please <a href="/">enter your birth date</a> to see your reading.</p>`;
@@ -116,6 +121,28 @@ const articles = (await getCollection("library")).map((a) => a.id);
         ${tier === "glance" ? "" : `<p><strong>Secret friend:</strong> the ${secretFriendOf(cn.animal.id).name}, a quiet, loyal ally.</p>
         <p><strong>Clash:</strong> the ${clashOf(cn.animal.id).name}, directly opposite you: friction, and a chance to grow.</p>`}
       </div>`;
+    if (tier === "first") {
+      // First Timers: the same story in one panel, headline first, then the follow-on
+      return `
+      <section class="part">
+        <div class="panel animal">
+          <img src="/animals/${cn.animal.id}.png" alt="" width="120" height="120">
+          <div>
+            <p class="eyebrow">Chinese zodiac</p>
+            <h2>${cn.element} ${cn.animal.name}</h2>
+            <ul class="chips">${cn.animal.traits.map((t) => `<li>${t}</li>`).join("")}</ul>
+            <p>${cn.animal.summary}</p>
+          </div>
+        </div>
+        <div class="panel says">
+          <div class="say"><h3>${el.glyph} What ${cn.element} brings</h3>
+            <p><strong>${el.strengths}</strong> ${el.personality} ${cn.yinYang === "Yang" ? `Born in a yang year, you tend to act first and meet the world head on.` : `Born in a yin year, you tend to watch first, feel deeply and act with care.`} Watch out for ${lc(el.watchOut)}</p></div>
+          <div class="say"><h3>Your people on the wheel</h3>
+            <p>You click with the ${friends.join(" and ")}, your ${g.name} friend group, and the ${secretFriendOf(cn.animal.id).name} is your secret friend, a quiet, loyal ally. The ${clashOf(cn.animal.id).name} sits opposite you: friction, and a chance to grow.</p></div>
+        </div>
+        ${calc(chineseBreakdowns(date), articles)}
+      </section>`;
+    }
     return `
       <section class="part">
         <div class="panel animal">
@@ -139,22 +166,69 @@ const articles = (await getCollection("library")).map((a) => a.id);
     const rel = relationshipById(q.get("rel"))!;
     const date2 = q.get("d2")!;
     const kind = KINDS[rel.kind];
+    const tone: Tone = rel.kind === "love" ? "love" : rel.kind === "friend" ? "friends" : ["boss", "colleague", "report", "mentor"].includes(rel.kind) ? "work" : "family";
     const myName = name.split(/\s+/)[0];
     const given = (q.get("n2") ?? "").trim().split(/\s+/)[0];
     const them = given ? esc(given) : rel.them;
+    const Them = them.charAt(0).toUpperCase() + them.slice(1);
     const year = Number(todayIso().slice(0, 4));
     const c = compare(date, date2, year);
     const animalLine = kind.chinese[c.relation].replaceAll("{me}", c.me.sign.animal.name).replaceAll("{them}", c.them.sign.animal.name);
     const stars = "★".repeat(Math.floor(c.harmony)) + (c.harmony % 1 ? "½" : "");
     const fam = NUMBER_FAMILIES.find((f) => f.members.includes(c.me.lifePath));
-    const person = (who: string, p: typeof c.me) => `
+
+    // both charts at midday (or at your birth time, if given) in this device's time zone
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    const timeIn = q.get("t") ?? "";
+    const mine = personalSigns(date, /^\d{2}:\d{2}$/.test(timeIn) ? timeIn : "", zone);
+    const theirs = personalSigns(date2, "", zone);
+    const pairs = pairUp(mine, theirs);
+
+    // where you click and where to take care, from every part of the comparison
+    const click: string[] = [], care: string[] = [];
+    for (const p of pairs) {
+      if (p.feel === "easy") click.push(`<strong>${PAIR_TITLES[p.planet][tone]}:</strong> ${PAIR_SHORT[p.planet].easy}.`);
+      if (p.feel === "care") care.push(`<strong>${PAIR_TITLES[p.planet][tone]}:</strong> ${PAIR_SHORT[p.planet].care}.`);
+    }
+    if (c.relation === "friend" || c.relation === "secret") click.push(`<strong>Your animals:</strong> the ${c.me.sign.animal.name} and ${c.them.sign.animal.name} are ${c.relation === "secret" ? "secret friends" : "in the same friend group"} on the zodiac wheel.`);
+    if (c.relation === "clash") care.push(`<strong>Your animals:</strong> the ${c.me.sign.animal.name} and ${c.them.sign.animal.name} sit opposite each other on the wheel.`);
+    if (c.element === "iFeed" || c.element === "theyFeed") click.push(`<strong>Your elements:</strong> ${c.element === "iFeed" ? `your ${c.me.sign.element} feeds ${them}'s ${c.them.sign.element}` : `${them}'s ${c.them.sign.element} feeds your ${c.me.sign.element}`}.`);
+    if (c.element === "iGuide" || c.element === "theyGuide") care.push(`<strong>Your elements:</strong> ${c.element === "iGuide" ? `your ${c.me.sign.element} keeps ${them}'s ${c.them.sign.element} in check` : `${them}'s ${c.them.sign.element} keeps your ${c.me.sign.element} in check`}.`);
+    if (c.sameFamily) click.push(`<strong>Your Life Paths:</strong> ${c.me.lifePath} and ${c.them.lifePath} share a family, so you want similar things from life.`);
+    if (c.me.personalYear === c.them.personalYear) click.push(`<strong>This year:</strong> you are both in a Personal Year ${c.me.personalYear}, moving in step.`);
+    const easiest = pairs.find((p) => p.link === "trine" || p.link === "same") ?? pairs.find((p) => p.feel === "easy");
+    const hardest = pairs.find((p) => p.link === "square") ?? pairs.find((p) => p.feel === "care");
+
+    const person = (who: string, p: typeof c.me, signs: typeof mine) => `
       <div class="panel who">
         <img src="/animals/${p.sign.animal.id}.png" alt="" width="64" height="64">
         <div>
           <p class="eyebrow">${who}</p>
-          <p><strong>${p.sign.element} ${p.sign.animal.name}</strong><br>Life Path ${p.lifePath}, ${NUMBER_MEANINGS[p.lifePath]?.keyword ?? ""}<br>Personal Year ${p.personalYear}</p>
+          <p><strong>${signs.signs.sun.glyph} ${signs.signs.sun.name} Sun · ${p.sign.element} ${p.sign.animal.name}</strong><br>Moon in ${signs.signs.moon.name}${signs.unsure.moon ? " (best guess)" : ""} · Life Path ${p.lifePath}, ${NUMBER_MEANINGS[p.lifePath]?.keyword ?? ""}<br>Personal Year ${p.personalYear}</p>
         </div>
       </div>`;
+
+    const block = (p: (typeof pairs)[number]) => {
+      const planet = PLANET_BY_ID[p.planet];
+      const pm = PLACEMENTS[p.planet][p.mine.id], pt = PLACEMENTS[p.planet][p.theirs.id];
+      const u = theirs.unsure[p.planet] ?? mine.unsure[p.planet];
+      const whose = theirs.unsure[p.planet] ? `${Them}'s` : "Your";
+      return `
+        <div class="say">
+          <h3><span class="gl">${planet.glyph}</span>${PAIR_TITLES[p.planet][tone]}</h3>
+          <p><span class="pl">Your ${planet.name} in ${p.mine.name}:</span> ${lc(pm.glance)}. <span class="pl">${Them}'s ${planet.name} in ${p.theirs.name}:</span> ${lc(pt.glance)}.</p>
+          <p>${PAIR_LINES[p.planet][p.link]}</p>
+          ${u ? `<p class="facts">${whose} ${planet.name} changed sign that day, from ${u.from.name} to ${u.to.name}, so without a birth time this one is a best guess.</p>` : ""}
+        </div>`;
+    };
+    const chemistry = tone === "love"
+      ? `<div class="say"><h3><span class="gl">♀\uFE0E♂\uFE0E</span>Chemistry</h3>
+          <p>${CHEMISTRY[chemistryOf(mine.signs.venus, theirs.signs.mars)].replace("{V}", "Your").replace("{M}", `${them}'s`)}</p>
+          <p>${CHEMISTRY[chemistryOf(theirs.signs.venus, mine.signs.mars)].replace("{V}", `${Them}'s`).replace("{M}", "your")}</p>
+        </div>`
+      : "";
+    const profile = (id: string) => PROFILES[id]?.[tone === "love" ? "love" : tone === "work" ? "work" : "strengths"] ?? "";
+
     document.querySelector<HTMLElement>("[data-reading-end]")!.innerHTML = `
       <p class="back" style="margin-top:28px">Want the full picture of yourself too? <a href="/reading?${soloQuery(q)}">See your own reading</a></p>`;
     return `
@@ -165,18 +239,38 @@ const articles = (await getCollection("library")).map((a) => a.id);
         <div class="panel harmony">
           <p class="eyebrow">Your harmony</p>
           <p class="stars" aria-label="${c.harmony} out of 5">${stars}<span class="muted"> ${c.harmony} of 5</span></p>
-          <p class="muted">Worked out from the zodiac wheel, the five elements and your Life Paths.</p>
+          ${easiest || hardest ? `<p>${easiest ? `Your easiest link is <strong>${PAIR_TITLES[easiest.planet][tone].toLowerCase()}</strong>.` : ""} ${hardest ? `Your biggest lesson is <strong>${PAIR_TITLES[hardest.planet][tone].toLowerCase()}</strong>.` : ""}</p>` : ""}
           ${calc([comparisonBreakdown(c, given || rel.them)], articles, "How we scored it")}
         </div>
-        <div class="pair">${person(myName ? esc(myName) : "You", c.me)}${person(given ? them : rel.label, c.them)}</div>
+        <div class="pair">${person(myName ? esc(myName) : "You", c.me, mine)}${person(given ? them : rel.label, c.them, theirs)}</div>
         <div class="pair">
-          <div class="panel"><p class="eyebrow">On the zodiac wheel</p><p>${animalLine}</p></div>
-          <div class="panel"><p class="eyebrow">The five elements</p><p>${elementLine(c.me.sign.element, c.them.sign.element, given ? them : rel.them)}</p></div>
+          <div class="panel"><p class="eyebrow">Where you click</p>${click.length ? `<ul>${click.map((x) => `<li>${x}</li>`).join("")}</ul>` : `<p>No part of your charts is an automatic match, so this is a bond you build by choice, and those are often the strongest.</p>`}</div>
+          <div class="panel"><p class="eyebrow">Where to take care</p>${care.length ? `<ul>${care.map((x) => `<li>${x}</li>`).join("")}</ul>` : `<p>Nothing in your charts pulls hard against the other. Your main job is not to take the ease for granted.</p>`}</div>
         </div>
-        <div class="pair">
-          <div class="panel"><p class="eyebrow">Your Life Paths</p><p>${lifePathPairLine(c.me.lifePath, c.them.lifePath, given ? them : rel.them)} ${c.sameFamily ? kind.numbers.same : kind.numbers.different}${c.sameFamily && fam ? ` You are both ${fam.name}.` : ""}</p></div>
-          <div class="panel"><p class="eyebrow">This year together</p><p>${yearTogetherLine(c.me.personalYear, c.them.personalYear, given ? them : rel.them)}</p></div>
-        </div>
+        <section class="part">
+          <h2>Planet by planet</h2>
+          <p class="muted">Each planet is one part of a person. Here is how each part of you meets the same part of ${them}.</p>
+          <div class="panel says">${pairs.map(block).join("")}${chemistry}</div>
+        </section>
+        <section class="part">
+          <h2>Your animals and elements</h2>
+          <div class="panel says">
+            <div class="say"><h3>${c.me.sign.element} ${c.me.sign.animal.name} and ${c.them.sign.element} ${c.them.sign.animal.name}</h3>
+              <p>${animalLine}</p>
+              ${profile(c.me.sign.animal.id) ? `<p><span class="pl">Your ${c.me.sign.animal.name}:</span> ${lc(profile(c.me.sign.animal.id))} <span class="pl">${Them}'s ${c.them.sign.animal.name}:</span> ${lc(profile(c.them.sign.animal.id))}</p>` : ""}</div>
+            <div class="say"><h3>${ELEMENTS[c.me.sign.element].glyph} ${c.me.sign.element} meets ${ELEMENTS[c.them.sign.element].glyph} ${c.them.sign.element}</h3>
+              <p>${elementLine(c.me.sign.element, c.them.sign.element, them)}</p></div>
+          </div>
+        </section>
+        <section class="part">
+          <h2>Your numbers</h2>
+          <div class="panel says">
+            <div class="say"><h3>Life Path ${c.me.lifePath} and Life Path ${c.them.lifePath}</h3>
+              <p>${lifePathPairLine(c.me.lifePath, c.them.lifePath, them)} ${c.sameFamily ? kind.numbers.same : kind.numbers.different}${c.sameFamily && fam ? ` You are both ${fam.name}.` : ""}</p></div>
+            <div class="say"><h3>This year together</h3>
+              <p>${yearTogetherLine(c.me.personalYear, c.them.personalYear, them)}</p></div>
+          </div>
+        </section>
         <div class="panel tips"><p class="eyebrow">Tips for your bond</p><ul>${kind.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>
       </section>`;
   }

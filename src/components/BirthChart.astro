@@ -35,6 +35,20 @@ const articles = (await getCollection("library")).map((a) => a.id);
   .chart :global(table) { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
   .chart :global(th), .chart :global(td) { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(142, 107, 217, 0.25); vertical-align: top; }
   .chart :global(th) { color: var(--gold); font-weight: 500; }
+  .chart :global(.says) { display: grid; gap: 4px; }
+  .chart :global(.say) { padding: 14px 0; border-bottom: 1px solid rgba(142, 107, 217, 0.2); }
+  .chart :global(.say:last-child) { border-bottom: 0; }
+  .chart :global(.say h4) { margin: 0 0 6px; font: 600 1.15rem var(--font-display); }
+  .chart :global(.say h4 .gl) { color: var(--gold); margin-right: 8px; }
+  .chart :global(.say h4 .muted) { font: 400 0.85rem var(--font-body); }
+  .chart :global(.say p) { margin: 4px 0; }
+  .chart :global(.say strong) { color: var(--gold); font-weight: 500; }
+  .chart :global(.add-details) { display: grid; gap: 10px; margin-top: 16px; }
+  .chart :global(.add-details p) { margin: 0; }
+  .chart :global(.ad-grid) { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .chart :global(.ad-grid label) { display: grid; gap: 4px; font-size: 0.9rem; }
+  .chart :global(.add-details .small) { font-size: 0.8rem; }
+  .chart :global(.add-details .btn) { justify-self: start; }
   .chart :global(.balance) { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .chart :global(section.part) { margin-top: 28px; }
   .chart :global(.how) { margin-top: 14px; }
@@ -45,7 +59,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
   .chart :global(.how-card li) { margin: 4px 0; }
   .chart :global(.how-card .result) { color: var(--gold); font-family: var(--font-display); margin: 8px 0 0; }
   .chart :global(.how-card .note) { font-size: 0.9rem; border-left: 2px solid var(--orchid); padding-left: 12px; margin-top: 12px; }
-  @media (max-width: 640px) { .chart :global(.big3), .chart :global(.balance) { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .chart :global(.big3), .chart :global(.balance), .chart :global(.ad-grid) { grid-template-columns: 1fr; } }
 </style>
 
 <script>
@@ -59,18 +73,22 @@ const articles = (await getCollection("library")).map((a) => a.id);
   const q = new URLSearchParams(location.search);
   const tier = (q.get("tier") ?? "first") as "glance" | "first" | "deep";
   const date = q.get("d") ?? "";
-  const timeIn = q.get("t") ?? "";
-  const time = /^\d{2}:\d{2}$/.test(timeIn) ? timeIn : "";
-  const placeText = (q.get("p") ?? "").trim();
+  // the birth time and town can be added on this page, so they are read afresh on each draw
+  let time = "";
+  let placeText = "";
   const root = document.querySelector<HTMLElement>("[data-chart]")!;
   const articles = new Set<string>(JSON.parse(root.dataset.articles ?? "[]"));
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
   const link = (id: string, label: string) => (articles.has(id) ? `<a href="/library/${id}">${esc(label)}</a>` : "");
 
   // a reading with a second person shows only the relationship, so no chart
   if (/^\d{4}-\d{2}-\d{2}$/.test(date) && !isPartnerReading(q)) start();
 
   async function start() {
+    const timeIn = q.get("t") ?? "";
+    time = /^\d{2}:\d{2}$/.test(timeIn) ? timeIn : "";
+    placeText = (q.get("p") ?? "").trim();
     let place: Place | null = null;
     let placeProblem = "";
     if (placeText) {
@@ -91,6 +109,32 @@ const articles = (await getCollection("library")).map((a) => a.id);
     }
     root.setAttribute("data-glossary", "");
     document.dispatchEvent(new Event("glossary:scan"));
+    root.querySelector<HTMLFormElement>("[data-add-details]")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target as HTMLFormElement);
+      for (const k of ["t", "p"]) {
+        const v = String(f.get(k) ?? "").trim();
+        if (v) q.set(k, v); else q.delete(k);
+      }
+      history.replaceState(null, "", `${location.pathname}?${q}`);
+      start().then(() => root.scrollIntoView({ behavior: "smooth", block: "start" }));
+    });
+  }
+
+  /** Birth time and town, added here rather than on the home page. */
+  function addDetails() {
+    const missing = !time || !placeText;
+    const form = `
+      <form class="panel add-details" data-add-details id="add-details">
+        <p>${missing ? `<strong>Add your birth time and town</strong> to unlock your Rising sign and houses${time ? "" : " and pin down your Moon"}.` : `<strong>Change your birth time or town</strong>`}</p>
+        <div class="ad-grid">
+          <label>Birth time (if you know it)<input name="t" type="time" value="${esc(time)}"></label>
+          <label>Birth town or city<input name="p" value="${esc(placeText)}" placeholder="e.g. Manchester, UK"></label>
+        </div>
+        <p class="muted small">Add the country if your town shares its name with others. Your town is looked up on the free Open-Meteo place finder, and nothing you type is stored.</p>
+        <button class="btn" type="submit">Update my chart</button>
+      </form>`;
+    return missing ? form : `<details class="calc"><summary>Change your birth time or town</summary>${form}</details>`;
   }
 
   function moment(place: Place | null): { m: BirthMoment; utc: Date } {
@@ -115,10 +159,9 @@ const articles = (await getCollection("library")).map((a) => a.id);
 
     const notices: string[] = [];
     if (placeProblem) notices.push(placeProblem);
-    if (!time && !place) notices.push(`You did not give a birth time or town, so your Rising sign and houses are left out, and the planets are placed at midday. <a href="/">Add them</a> for the full chart.`);
-    else if (!time) notices.push(`You did not give a birth time, so your Rising sign and houses are left out, and the planets are placed at midday. <a href="/">Add your birth time</a> for the full chart.`);
-    else if (!place) notices.push(`You did not give a birth town, so your Rising sign and houses are left out. <a href="/">Add your town</a> for the full chart.`);
-    for (const u of unsure) notices.push(`Your ${PLANET_BY_ID[u.id].name} moved from ${u.from.name} into ${u.to.name} at about ${clock(u.at)} on your birth day${place ? "" : " (in this device's time zone)"}. If you were born before then, your ${PLANET_BY_ID[u.id].name} is in ${u.from.name}; after, it is in ${u.to.name}.${tier === "glance" ? "" : ` We show ${byId[u.id].sign.name}, its sign at midday, and both meanings below.`}`);
+    if (!time) notices.push(`Without a birth time, the planets are placed at midday.`);
+    // First Timers show this inline, beside the planet itself
+    if (tier !== "first") for (const u of unsure) notices.push(`Your ${PLANET_BY_ID[u.id].name} moved from ${u.from.name} into ${u.to.name} at about ${clock(u.at)} on your birth day${place ? "" : " (in this device's time zone)"}. If you were born before then, your ${PLANET_BY_ID[u.id].name} is in ${u.from.name}; after, it is in ${u.to.name}.${tier === "glance" ? "" : ` We show ${byId[u.id].sign.name}, its sign at midday, and both meanings below.`}`);
 
     let html = `
       <p class="eyebrow">Astrology</p>
@@ -126,9 +169,12 @@ const articles = (await getCollection("library")).map((a) => a.id);
       ${tier === "first" ? `<p class="muted">Your birth chart is a snapshot of the sky at the moment you were born. Each planet stands for a part of you, like your feelings or your drive, and its sign shows how that part of you behaves.</p>` : ""}
       ${place ? `<p class="muted">Drawn for ${esc(place.label)}${time ? ` at ${time}` : ""}.</p>` : ""}
       ${notices.map((n) => `<p class="notice muted">${n}</p>`).join("")}
-      ${bigThree(chart, byId)}`;
+      ${bigThree(chart, byId)}
+      ${time && place ? "" : addDetails()}`;
 
-    if (tier === "glance") {
+    if (tier === "first") {
+      html += concise(chart, unsureOf, clock);
+    } else if (tier === "glance") {
       html += `<section class="part"><h3>Your planets at a glance</h3><ul class="rows">${chart.points
         .filter((p) => p.id !== "sun" && p.id !== "moon")
         .map((p) => `<li><span class="gl">${PLANET_BY_ID[p.id].glyph}</span><span><strong>${PLANET_BY_ID[p.id].name} in ${p.sign.name}</strong> <span class="muted">(${PLANET_BY_ID[p.id].governs})</span>: ${PLACEMENTS[p.id][p.sign.id].glance}.</span></li>`)
@@ -143,6 +189,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
       if (tier === "deep" && chart.houses) html += housesSection(chart);
     }
 
+    if (time && place) html += `<section class="part">${addDetails()}</section>`;
     const how: ChartBreakdown[] = [momentBreakdown(m, chart), planetsBreakdown(chart)];
     if (chart.angles && place) how.push(risingBreakdown(chart, place)!, housesBreakdown(chart)!);
     how.push(aspectsBreakdown(chart), lilithBreakdown(chart));
@@ -157,6 +204,61 @@ const articles = (await getCollection("library")).map((a) => a.id);
     return html;
   }
 
+  /**
+   * First Timers: one short, readable pass. Each personal planet gets a headline and its
+   * follow-on, the slow generation planets get a line each, and the chart's overall
+   * flavour is summed up at the end.
+   */
+  function concise(chart: Chart, unsureOf: (id: PointId) => { from: (typeof SIGNS)[number]; to: (typeof SIGNS)[number]; at: Date } | undefined, clock: (d: Date) => string) {
+    const personal: PointId[] = ["sun", "moon", "mercury", "venus", "mars"];
+    const line = (p: PointPosition) => {
+      const planet = PLANET_BY_ID[p.id];
+      const pl = PLACEMENTS[p.id][p.sign.id];
+      const u = unsureOf(p.id);
+      const other = u ? (u.from.id === p.sign.id ? u.to : u.from) : null;
+      return `
+        <div class="say" id="chart-${p.id}">
+          <h4><span class="gl">${planet.glyph}</span>${planet.name} in ${p.sign.name} <span class="muted">· ${planet.governs}</span></h4>
+          <p><strong>${pl.glance}.</strong> ${pl.text}</p>
+          ${p.house ? `<p class="facts">You feel this most in your ${ordinal(p.house)} house: ${HOUSES[p.house - 1].area}.</p>` : ""}
+          ${other ? `<p class="facts">If you were born ${other.id === u!.to.id ? "after" : "before"} about ${clock(u!.at)}, your ${planet.name} is in ${other.name} instead: ${lc(PLACEMENTS[p.id][other.id].glance)}.</p>` : ""}
+        </div>`;
+    };
+    const asc = chart.angles?.asc;
+    const rising = asc ? `
+        <div class="say" id="chart-rising">
+          <h4><span class="gl">AC</span>Rising in ${asc.sign.name} <span class="muted">· the first impression you give</span></h4>
+          <p><strong>${PLACEMENTS.rising[asc.sign.id].glance}.</strong> ${PLACEMENTS.rising[asc.sign.id].text}</p>
+        </div>` : "";
+    const slow = chart.points.filter((p) => !personal.includes(p.id));
+    const { elements, modalities } = balance(chart.points);
+    const top = <T extends string>(r: Record<T, PointId[]>) => (Object.entries(r) as [T, PointId[]][]).sort((a, b) => b[1].length - a[1].length)[0];
+    const [el, elList] = top(elements as Record<Element, PointId[]>);
+    const [mo] = top(modalities as Record<Modality, PointId[]>);
+    const strongest = chart.aspects[0];
+    const link1 = strongest ? (() => {
+      const asp = ASPECTS.find((a) => a.id === strongest.aspect)!;
+      const a = PLANET_BY_ID[strongest.a], b = PLANET_BY_ID[strongest.b];
+      return `<p><strong>Your strongest link:</strong> ${a.name} ${asp.name.toLowerCase()} ${b.name}. ${asp.about} Here it ties ${a.governs} to ${b.governs}.</p>`;
+    })() : "";
+    return `
+      <section class="part">
+        <h3>Your planets, in plain words</h3>
+        <div class="says">${personal.map((id) => line(chart.points.find((p) => p.id === id)!)).join("")}${rising}</div>
+      </section>
+      <section class="part">
+        <h3>Your generation planets</h3>
+        <p class="muted">These move slowly, so you share them with everyone born around the same time.</p>
+        <ul class="rows">${slow.map((p) => `<li><span class="gl">${PLANET_BY_ID[p.id].glyph}</span><span><strong>${PLANET_BY_ID[p.id].name} in ${p.sign.name}:</strong> ${lc(PLACEMENTS[p.id][p.sign.id].glance)}.</span></li>`).join("")}</ul>
+      </section>
+      <section class="part panel">
+        <h3>Your chart in a nutshell</h3>
+        <p><strong>${elList.length} of your ten planets are in ${el} signs.</strong> ${ELEMENT_MEANING[el]}</p>
+        <p>${MODALITY_MEANING[mo]}</p>
+        ${link1}
+      </section>`;
+  }
+
   function bigThree(chart: Chart, byId: Record<PointId, PointPosition>) {
     const card = (what: string, glyph: string, sign: string, body: string) =>
       `<div class="panel"><span class="w">${what}</span><span class="g">${glyph}</span><span class="s">${sign}</span>${body}</div>`;
@@ -168,7 +270,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
     const asc = chart.angles?.asc;
     const rising = asc
       ? card("Rising sign", asc.sign.glyph, `${asc.sign.name}${tier === "deep" ? ` ${formatDegree(asc.degree)}` : ""}`, `<p class="muted">${PLACEMENTS.rising[asc.sign.id].glance}.</p>`)
-      : card("Rising sign", "?", "Not yet known", `<p class="muted">Needs your birth time and town. <a href="/">Add them</a></p>`);
+      : card("Rising sign", "?", "Not yet known", `<p class="muted">Needs your birth time and town. <a href="#add-details">Add them below</a></p>`);
     return `<section class="part"><h3>Your Big Three</h3>${tier === "glance" ? "" : `<p class="muted">Your Sun is your core self, your Moon is your emotional side, and your Rising sign is the first impression you give.</p>`}<div class="big3">${one("sun")}${one("moon")}${rising}</div></section>`;
   }
 

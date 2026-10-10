@@ -264,9 +264,9 @@ export interface RelationshipInfo {
 const r = (label: string, bond: string, them: string, kind: KindId, group: RelationshipInfo["group"]): RelationshipInfo => ({ label, bond, them, kind, group });
 
 export const RELATIONSHIPS = {
-  partner: r("Partner", "Your relationship with your partner", "your partner", "love", "Love"),
-  spouse: r("Husband or wife", "Your marriage", "your husband or wife", "love", "Love"),
-  date: r("Crush or date", "Your connection", "your crush", "love", "Love"),
+  "partner-him": r("Partner (him)", "Your relationship with your partner", "your partner", "love", "Love"),
+  "partner-her": r("Partner (her)", "Your relationship with your partner", "your partner", "love", "Love"),
+  partner: r("Partner (them)", "Your relationship with your partner", "your partner", "love", "Love"),
   mother: r("Mother", "Your bond with your mother", "your mother", "parent", "Family"),
   father: r("Father", "Your bond with your father", "your father", "parent", "Family"),
   son: r("Son", "Your bond with your son", "your son", "child", "Family"),
@@ -293,8 +293,10 @@ export const RELATIONSHIPS = {
 
 export type RelationshipId = keyof typeof RELATIONSHIPS;
 
-/** Older links used "sibling", before brother and sister were split; keep them working. */
+/** Older links used these before the choices changed; keep them working. */
 export const RELATIONSHIP_ALIASES: Record<string, RelationshipInfo> = {
+  spouse: r("Partner", "Your relationship with your partner", "your partner", "love", "Love"),
+  date: r("Partner", "Your relationship with your partner", "your partner", "love", "Love"),
   sibling: r("Sibling", "Your bond with your sibling", "your sibling", "sibling", "Family"),
 };
 

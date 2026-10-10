@@ -8,6 +8,7 @@ import KindWords from "../components/KindWords.astro";
 
 <Base title="Your stars, your numbers, your story">
   <section class="hero container">
+    <p class="promise">Your birth details are never stored or saved <span aria-hidden="true">✦</span> Everything here is completely free</p>
     <p class="eyebrow">Numerology · Astrology · The Chinese Zodiac</p>
     <h1>Your stars, your numbers,<br />your story.</h1>
     <p class="lede" data-glossary>
@@ -49,7 +50,9 @@ import KindWords from "../components/KindWords.astro";
 </Base>
 
 <style>
-  .hero { padding-top: clamp(48px, 9vw, 110px); padding-bottom: 32px; max-width: 860px; text-align: center; }
+  .promise { margin: 0 0 clamp(28px, 6vw, 64px); font-size: 0.8rem; letter-spacing: 0.04em; color: var(--mist); opacity: 0.85; }
+  .promise span { color: var(--gold); margin: 0 6px; }
+  .hero { padding-top: clamp(14px, 2.5vw, 24px); padding-bottom: 32px; max-width: 860px; text-align: center; }
   .lede { font-family: var(--font-reading); font-size: clamp(1.15rem, 2.2vw, 1.4rem); color: var(--mist); line-height: 1.6; }
   .block { margin-top: clamp(48px, 8vw, 96px); }
   .three-up { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
