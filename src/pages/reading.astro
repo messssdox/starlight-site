@@ -1,8 +1,9 @@
 ---
 // A reading, built in the visitor's browser from the details in the link.
-// This first version covers numerology and the Chinese zodiac; the astrology chart
-// (planets, houses, Lilith) joins it in Phase 3 of the build plan.
+// Numerology and the Chinese zodiac are drawn here; the astrology birth chart
+// (planets, Rising sign, houses, aspects and Lilith) comes from BirthChart.astro.
 import Base from "../layouts/Base.astro";
+import BirthChart from "../components/BirthChart.astro";
 import DonationBox from "../components/DonationBox.astro";
 ---
 
@@ -10,6 +11,7 @@ import DonationBox from "../components/DonationBox.astro";
   <section class="container reading" data-reading>
     <noscript><p>Your reading is calculated in your browser, so please turn on JavaScript.</p></noscript>
   </section>
+  <BirthChart />
   <section class="container" style="margin-top:64px">
     <DonationBox compact />
   </section>
@@ -126,7 +128,7 @@ import DonationBox from "../components/DonationBox.astro";
         </section>`;
     }
 
-    html += `<p class="muted" style="margin-top:28px">Your planets, Moon and Rising signs are coming soon, along with PDF downloads and shareable links.</p>`;
+    html += `<p class="muted" style="margin-top:28px">PDF downloads and shareable links are coming soon.</p>`;
     return html;
   }
 </script>
