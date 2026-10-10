@@ -170,6 +170,20 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
       <div class="insight" data-kind="secret"><p class="label">Secret friend</p><div class="body"></div></div>
       <div class="insight" data-kind="clash"><p class="label">Clash</p><div class="body"></div></div>
     </div>
+
+    <section class="forecast" aria-labelledby="fc-title">
+      <div class="fc-top">
+        <h3 id="fc-title" data-fc-title>Forecast</h3>
+        <div class="fc-tabs" role="tablist" aria-label="Forecast period">
+          <button type="button" role="tab" data-scope="day" aria-selected="true">Today</button>
+          <button type="button" role="tab" data-scope="week" aria-selected="false">This week</button>
+          <button type="button" role="tab" data-scope="month" aria-selected="false">This month</button>
+          <button type="button" role="tab" data-scope="year" aria-selected="false">This year</button>
+        </div>
+      </div>
+      <div class="fc-body" role="tabpanel" aria-live="polite" data-forecast></div>
+      <p class="fc-note">Based on the traditional Chinese calendar, where every day, month and year has its own animal. For fun and reflection, not fate.</p>
+    </section>
   </div>
 
   <aside class="info panel" aria-live="polite">
@@ -261,6 +275,38 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
   .insight :global(.elem-link) { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--gold); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
   .insight :global(.next) { color: var(--mist); font-size: 0.85rem; }
   @media (max-width: 520px) { .insight { grid-template-columns: 1fr; } .insight .label { padding: 8px; } }
+
+  .forecast { margin-top: 18px; border-radius: 16px; border: 1px solid rgba(156, 122, 60, 0.4); background: rgba(18, 14, 31, 0.82); padding: 16px 18px; }
+  .fc-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .fc-top h3 { margin: 0; font-size: 1.15rem; color: var(--gold); }
+  .fc-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fc-tabs button { border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; background: transparent; color: var(--mist); border: 1px solid rgba(156, 122, 60, 0.45); }
+  .fc-tabs button[aria-selected="true"] { background: var(--gold); color: #120e1f; border-color: var(--gold); font-weight: 700; }
+  .fc-body { margin-top: 14px; font-size: 0.95rem; }
+  .fc-body :global(.fc-when) { margin: 0; color: var(--mist); font-size: 0.85rem; }
+  .fc-body :global(.fc-headline) { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 4px 0 8px; }
+  .fc-body :global(.fc-headline h4) { margin: 0; font-size: 1.1rem; }
+  .fc-body :global(.stars) { color: var(--gold); letter-spacing: 0.1em; white-space: nowrap; }
+  .fc-body :global(.stars .off) { color: rgba(212, 175, 90, 0.3); }
+  .fc-body :global(.ruler) { display: flex; align-items: center; gap: 8px; }
+  .fc-body :global(.ruler img) { width: 34px; height: 34px; }
+  .fc-body :global(p) { margin: 6px 0; }
+  .fc-body :global(.topics) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+  .fc-body :global(.topics div) { border: 1px solid rgba(156, 122, 60, 0.3); border-radius: 12px; padding: 8px 10px; background: rgba(59, 31, 107, 0.25); }
+  .fc-body :global(.topics span) { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); }
+  .fc-body :global(.fc-lucky) { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+  .fc-body :global(.fc-lucky li) { font-size: 0.82rem; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(212, 175, 90, 0.45); color: #e9d9b0; }
+  .fc-body :global(.week) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 10px 0; }
+  .fc-body :global(.week div) { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border-radius: 10px; background: rgba(250, 246, 238, 0.05); font-size: 0.72rem; color: var(--mist); text-align: center; }
+  .fc-body :global(.week div.today) { outline: 2px solid var(--gold); }
+  .fc-body :global(.week div.s5), .fc-body :global(.week div.s4) { background: rgba(143, 211, 165, 0.16); }
+  .fc-body :global(.week div.s1), .fc-body :global(.week div.s2) { background: rgba(255, 138, 143, 0.16); }
+  .fc-body :global(.week img) { width: 26px; height: 26px; }
+  .fc-body :global(.week b) { color: var(--moonlight); font-size: 0.8rem; }
+  .fc-body :global(.good) { color: #8fd3a5; }
+  .fc-body :global(.hard) { color: #ff8a8f; }
+  .fc-note { margin: 12px 0 0; font-size: 0.78rem; color: var(--mist); }
+  @media (max-width: 520px) { .fc-body :global(.topics) { grid-template-columns: 1fr; } .fc-body :global(.week span) { display: none; } }
 
   .finder .row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
   .finder .row :global(.birthdate) { flex: 1 1 260px; }

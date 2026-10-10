@@ -99,6 +99,9 @@ export interface Profile {
   watchOut: string;
   love: string;
   work: string;
+  /** Jobs that suit the animal's nature. */
+  careers: string;
+  wellbeing: string;
   luckyNumbers: number[];
   luckyColours: string[];
   luckyFlowers: string[];
@@ -110,6 +113,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can worry about security and hold on too tightly to money or plans.",
     love: "Devoted and attentive once they trust you, and quietly romantic.",
     work: "Thrives in fast-moving roles: business, research, writing and anything that rewards clever thinking.",
+    careers: "Writer, researcher, entrepreneur, detective, financial adviser.",
+    wellbeing: "Busy minds need switching off: regular sleep and screen-free evenings keep the Rat sharp.",
     luckyNumbers: [2, 3], luckyColours: ["Blue", "Gold", "Green"], luckyFlowers: ["Lily", "African violet"],
   },
   ox: {
@@ -117,6 +122,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can be stubborn and slow to accept change or other people's ideas.",
     love: "Loyal and steady, showing love through actions more than words.",
     work: "Shines where persistence pays: engineering, farming, finance, medicine and craft.",
+    careers: "Engineer, farmer, surgeon, accountant, craftsperson.",
+    wellbeing: "Strong but prone to overwork. Stretching, rest days and fresh air keep the Ox going.",
     luckyNumbers: [1, 4], luckyColours: ["White", "Yellow", "Green"], luckyFlowers: ["Tulip", "Peach blossom"],
   },
   tiger: {
@@ -124,6 +131,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can act on impulse and find it hard to sit still or take advice.",
     love: "Passionate and generous, but needs a partner who gives them freedom.",
     work: "Born for leadership, adventure, campaigning and starting new things.",
+    careers: "Leader, explorer, campaigner, athlete, entrepreneur.",
+    wellbeing: "Big bursts of energy then sudden tiredness. Steady exercise and proper meals help the Tiger last the distance.",
     luckyNumbers: [1, 3, 4], luckyColours: ["Blue", "Grey", "Orange"], luckyFlowers: ["Cineraria"],
   },
   rabbit: {
@@ -131,6 +140,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can avoid conflict so carefully that their own needs go unspoken.",
     love: "Tender and caring, seeking a calm, safe and loving home.",
     work: "Flourishes in design, the arts, counselling, diplomacy and caring roles.",
+    careers: "Designer, teacher, counsellor, diplomat, writer.",
+    wellbeing: "Sensitive to stress and noise. Calm spaces, gentle exercise and time in nature restore the Rabbit.",
     luckyNumbers: [3, 4, 6], luckyColours: ["Red", "Pink", "Purple", "Blue"], luckyFlowers: ["Plantain lily", "Jasmine"],
   },
   dragon: {
@@ -138,6 +149,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can be proud or impatient when others cannot keep up.",
     love: "Ardent and loyal, looking for a partner who matches their fire.",
     work: "Excels as a leader, entrepreneur, performer or anywhere ambition is welcome.",
+    careers: "Founder, performer, architect, inventor, manager.",
+    wellbeing: "Runs on enthusiasm and can burn out. Learning to pause, and to delegate, keeps the Dragon flying.",
     luckyNumbers: [1, 6, 7], luckyColours: ["Gold", "Silver", "Grey"], luckyFlowers: ["Bleeding-heart vine", "Larkspur"],
   },
   snake: {
@@ -145,6 +158,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can keep feelings hidden and become suspicious or possessive.",
     love: "Deeply devoted, valuing trust and a meaningful, private bond.",
     work: "Suited to strategy, research, psychology, finance and the arts.",
+    careers: "Scientist, analyst, psychologist, investor, artist.",
+    wellbeing: "Carries worries quietly. Talking things through, and slow movement like yoga or swimming, suit the Snake.",
     luckyNumbers: [2, 8, 9], luckyColours: ["Black", "Red", "Yellow"], luckyFlowers: ["Orchid", "Cactus"],
   },
   horse: {
@@ -152,6 +167,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can grow restless and lose interest once the excitement fades.",
     love: "Fun-loving and affectionate, needing space as much as closeness.",
     work: "Happiest on the move: travel, sport, sales, media and anything with variety.",
+    careers: "Traveller, sales lead, journalist, coach, pilot.",
+    wellbeing: "Needs to move. Daily exercise and time outdoors stop the Horse from feeling restless or trapped.",
     luckyNumbers: [2, 3, 7], luckyColours: ["Yellow", "Green"], luckyFlowers: ["Calla lily", "Jasmine"],
   },
   goat: {
@@ -159,6 +176,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can worry, doubt themselves or lean on others for reassurance.",
     love: "Romantic and sensitive, thriving with a protective, encouraging partner.",
     work: "Gifted in art, music, design, gardening and caring professions.",
+    careers: "Artist, musician, gardener, carer, interior designer.",
+    wellbeing: "Feels everything deeply. Creative hobbies, kind company and good routines keep the Goat balanced.",
     luckyNumbers: [2, 7], luckyColours: ["Brown", "Red", "Purple"], luckyFlowers: ["Carnation", "Primrose"],
   },
   monkey: {
@@ -166,6 +185,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can get bored easily or rely on cleverness instead of patience.",
     love: "Playful and lively, needing a partner who keeps up with their mind.",
     work: "Brilliant in science, technology, trading, entertainment and problem-solving.",
+    careers: "Inventor, trader, comedian, engineer, problem solver.",
+    wellbeing: "Easily over-stimulated. Games, puzzles and a wind-down routine help the Monkey rest properly.",
     luckyNumbers: [4, 9], luckyColours: ["White", "Blue", "Gold"], luckyFlowers: ["Chrysanthemum", "Crape myrtle"],
   },
   rooster: {
@@ -173,6 +194,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can be blunt or critical, of others and of themselves.",
     love: "Faithful and protective, showing love through care and dependability.",
     work: "Excels where detail matters: accounting, medicine, journalism and planning.",
+    careers: "Editor, surgeon, chef, auditor, stylist.",
+    wellbeing: "Holds high standards for body and mind. Allowing imperfect days and good sleep keeps the Rooster bright.",
     luckyNumbers: [5, 7, 8], luckyColours: ["Gold", "Brown", "Yellow"], luckyFlowers: ["Gladiolus", "Cockscomb"],
   },
   dog: {
@@ -180,6 +203,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can be anxious or quick to see the worst in a situation.",
     love: "Sincere and devoted, giving their whole heart to the right person.",
     work: "Drawn to work with meaning: law, teaching, healthcare and community service.",
+    careers: "Nurse, lawyer, social worker, police officer, teacher.",
+    wellbeing: "Worries about others before themselves. Walks, laughter and saying no sometimes protect the Dog.",
     luckyNumbers: [3, 4, 9], luckyColours: ["Red", "Green", "Purple"], luckyFlowers: ["Rose", "Cymbidium orchid"],
   },
   pig: {
@@ -187,6 +212,8 @@ export const PROFILES: Record<string, Profile> = {
     watchOut: "Can be too trusting or indulge a little too much in life's pleasures.",
     love: "Affectionate and easy-going, creating a loving and comfortable home.",
     work: "Thrives in hospitality, the arts, charity work and anything that helps people.",
+    careers: "Chef, host, charity worker, doctor, entertainer.",
+    wellbeing: "Loves comfort, so balance is key. Shared active hobbies and good food in moderation suit the Pig.",
     luckyNumbers: [2, 5, 8], luckyColours: ["Yellow", "Grey", "Brown", "Gold"], luckyFlowers: ["Hydrangea", "Daisy"],
   },
 };
