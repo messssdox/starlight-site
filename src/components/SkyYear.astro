@@ -25,7 +25,7 @@ const FILTERS = [
   <p class="eyebrow">Sky now</p>
   <Heading id="sky-year-title">{months === 12 ? "The next 12 months in the sky" : "This month and next in the sky"}</Heading>
   <p class="muted lede">
-    Every new and full Moon, eclipse, retrograde and planet changing sign{months === 12 ? " from today onwards. Tap a month to open it" : ""}.
+    Every new and full Moon, eclipse, retrograde and planet changing sign{months === 12 ? " from today onwards. Tap a month's name to open or close it" : ""}.
     Tap <em>What this means</em> on any entry for more. Times are shown in your own time zone.
   </p>
 
@@ -114,6 +114,7 @@ const FILTERS = [
   function render(section: HTMLElement) {
     const start = new Date();
     const shown = Number(section.dataset.monthsShown) || 12;
+    const shown12 = shown === 12;
     // Always work out the full year, so "until" dates are known even when fewer months are listed.
     const events = skyEvents(start, addMonths(start, 12));
     const months = section.querySelector<HTMLElement>("[data-months]")!;
@@ -164,13 +165,17 @@ const FILTERS = [
       </li>`;
 
     months.innerHTML = groups.map((g, i) => `
-      <details class="panel"${i === 0 || shown < 12 ? " open" : ""}>
+      <details class="panel"${shown < 12 ? " open" : ""}>
         <summary><span class="m-name">${g.label}</span><span class="m-sum" data-sum></span></summary>
         <ol>${g.events.map(row).join("")}</ol>
       </details>`).join("");
 
+    // Under "Everything" the first three months start open; under one kind of event every month does,
+    // since the list is short. On the home page's two months, both are always open.
+    const OPEN_EVERYTHING = 3;
     const filter = (kind: string) => {
       let any = false;
+      let opened = 0;
       months.querySelectorAll<HTMLElement>(":scope > details").forEach((d) => {
         let shown = 0;
         const counts: Record<string, number> = {};
@@ -182,6 +187,7 @@ const FILTERS = [
         });
         d.hidden = shown === 0;
         any ||= shown > 0;
+        if (shown && shown12) (d as HTMLDetailsElement).open = kind !== "all" || opened++ < OPEN_EVERYTHING;
         d.querySelector<HTMLElement>("[data-sum]")!.textContent = shown
           ? Object.keys(KIND_LABEL).filter((k) => counts[k]).map((k) => [k, counts[k]] as const).map(([k, n]) => `${n} ${KIND_LABEL[k][n === 1 ? 0 : 1]}`).join(" · ")
           : "nothing";
