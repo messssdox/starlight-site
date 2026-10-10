@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import ReadingForm from "../components/ReadingForm.astro";
 import ZodiacWheel from "../components/ZodiacWheel.astro";
 import DonationBox from "../components/DonationBox.astro";
+import KindWords from "../components/KindWords.astro";
 ---
 
 <Base title="Your stars, your numbers, your story">
@@ -37,6 +38,10 @@ import DonationBox from "../components/DonationBox.astro";
       <p class="muted">Tap any special word on the site for a quick definition.</p>
     </a>
   </section>
+
+  <div class="container block">
+    <KindWords limit={6} hideWhenEmpty invite />
+  </div>
 
   <section class="container block">
     <DonationBox />
