@@ -52,15 +52,29 @@ const articles = (await getCollection("library")).map((a) => a.id);
   .reading :global(.challenges .medallion .n) { font-size: 2.4rem; }
   .reading :global(.challenges .medallion.main) { border-color: var(--gold); }
   .reading :global(.medallion .see) { display: inline-block; margin-top: 10px; font-size: 0.85rem; }
+  .reading :global(.lp-deep > summary) { cursor: pointer; list-style: none; }
+  .reading :global(.lp-deep > summary h2) { display: inline; }
+  .reading :global(.lp-deep > summary::after) { content: " ▾"; color: var(--gold); }
+  .reading :global(.lp-deep .panel), .reading :global(.compat .panel) { margin-top: 14px; }
+  .reading :global(.lp-deep .pair), .reading :global(.compat .pair) { margin-top: 0; }
+  .reading :global(.lp-deep ul), .reading :global(.compat ul) { margin: 6px 0 0; padding-left: 20px; }
+  .reading :global(.growth) { border-color: var(--gold); }
+  .reading :global(.who) { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; }
+  .reading :global(.who img) { width: 64px; height: 64px; }
+  .reading :global(.who p) { margin: 0; }
+  .reading :global(.harmony .stars) { font-size: 1.8rem; color: var(--gold); margin: 4px 0; letter-spacing: 0.1em; }
+  .reading :global(.harmony .stars span) { font-size: 0.95rem; letter-spacing: 0; }
   .reading :global(.pair) { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 640px) { .reading :global(.pair), .reading :global(.animal) { grid-template-columns: 1fr; } }
 </style>
 
 <script>
   import { lifePath, expression, soulUrge, personality, personalYear, challenges, type Result } from "../lib/numerology.ts";
-  import { chineseSign, relationBetween, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
+  import { chineseSign, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
   import { GROUPS } from "../data/zodiac.ts";
-  import { NUMBER_MEANINGS, NUMBER_FAMILIES, CHALLENGE_MEANINGS, RELATIONSHIPS, type RelationshipId } from "../data/numbers.ts";
+  import { NUMBER_MEANINGS, NUMBER_FAMILIES, CHALLENGE_MEANINGS, LIFE_PATH_DEEP } from "../data/numbers.ts";
+  import { KINDS, relationshipById } from "../data/relationships.ts";
+  import { compare, comparisonBreakdown, elementLine, lifePathPairLine, yearTogetherLine } from "../lib/compat.ts";
   import { lifePathBreakdown, challengesBreakdown, nameBreakdown, personalYearBreakdown, chineseBreakdowns, todayIso, type Breakdown } from "../lib/explain.ts";
 
   const q = new URLSearchParams(location.search);
@@ -145,12 +159,38 @@ const articles = (await getCollection("library")).map((a) => a.id);
     nums.push(medallion(`Personal Year ${year}`, py, "how-personal-year"));
     how.push(personalYearBreakdown(date, today), ...chineseBreakdowns(date));
 
+    const compat = compatibility(how, year);
+
+    const deep = LIFE_PATH_DEEP[lp.value];
+    const list = (items: string[]) => `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
+    const lifePathDeep = deep
+      ? `
+      <section class="part">
+        <details class="lp-deep"${tier === "glance" ? "" : " open"}>
+          <summary><h2>Your Life Path ${lp.value} in depth</h2></summary>
+          <p class="lede">${esc(deep.journey)}</p>
+          <div class="pair">
+            <div class="panel"><p class="eyebrow">Your strengths</p>${list(deep.strengths)}</div>
+            <div class="panel"><p class="eyebrow">Watch out for</p>${list(deep.watchOut)}</div>
+          </div>
+          <div class="pair">
+            <div class="panel"><p class="eyebrow">In love</p><p>${esc(deep.love)}</p></div>
+            <div class="panel"><p class="eyebrow">At work</p><p>${esc(deep.work)}</p></div>
+          </div>
+          <div class="panel"><p class="eyebrow">Where a ${lp.value} often thrives</p>${list(deep.thrivesIn)}</div>
+          <div class="panel growth"><p class="eyebrow">A practice for your path</p><p>${esc(deep.growth)}</p></div>
+          ${articles.has("numerology/life-path-number") ? `<p class="muted">Read more in the Library: <a href="/library/numerology/life-path-number">The Life Path number</a>.</p>` : ""}
+        </details>
+      </section>`
+      : "";
+
     const tierName = { glance: "Quick Glance", first: "First Timers", deep: "Full Deep Dive" }[tier];
     let html = `
       <p class="eyebrow">${tierName} reading</p>
       <h1>${esc(first)}, here is your reading</h1>
       ${tier === "first" ? `<p class="muted">Welcome! Each number below comes from your name or birth date. Tap any underlined word for a quick explanation.</p>` : ""}
       <section class="part"><h2>Your numbers</h2><div class="numbers">${nums.join("")}</div></section>
+      ${lifePathDeep}
       <section class="part">
         <h2>Your challenges</h2>
         <p class="muted">Where your Life Path shows the road you walk, your four Challenge Numbers show the lessons you meet along it. The third is your main challenge, with you all through life. <a href="#how-challenges" data-open-how>See how we worked them out</a></p>
@@ -167,6 +207,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
           <p><a href="#how-animal" data-open-how>See how we found your animal and element</a></p>
         </div>
       </section>
+      ${compat}
       <section class="part">
         <details class="how" id="how"${tier === "glance" ? "" : " open"}>
           <summary>How your reading was calculated</summary>
@@ -175,39 +216,51 @@ const articles = (await getCollection("library")).map((a) => a.id);
         </details>
       </section>`;
 
-    const relId = q.get("rel") as RelationshipId | null;
-    const date2 = q.get("d2") ?? "";
-    if (relId && RELATIONSHIPS[relId] && /^\d{4}-\d{2}-\d{2}$/.test(date2)) {
-      const rel = RELATIONSHIPS[relId];
-      const name2 = (q.get("n2") ?? "").trim() || rel.them;
-      const lp2 = lifePath(date2);
-      const cn2 = chineseSign(date2);
-      const relation = relationBetween(cn.animal.id, cn2.animal.id);
-      const chineseLine = {
-        same: `You are both ${cn.animal.name}s, so you understand each other's instincts, and can also mirror each other's blind spots.`,
-        friend: `Your ${cn.animal.name} and their ${cn2.animal.name} share a friend group on the wheel: a natural, easy understanding.`,
-        secret: `Your ${cn.animal.name} and their ${cn2.animal.name} are secret friends: a quiet, loyal bond that often runs deeper than it looks.`,
-        clash: `Your ${cn.animal.name} and their ${cn2.animal.name} sit directly opposite on the wheel. That clash brings friction, and also the chance to grow through your differences.`,
-        neutral: `Your ${cn.animal.name} and their ${cn2.animal.name} are neither friends nor rivals on the wheel, so this bond is shaped most by how you choose to meet each other.`,
-      }[relation];
-      const fam = (n: number) => NUMBER_FAMILIES.find((f) => f.members.includes(n));
-      const sameFamily = fam(lp.value) && fam(lp.value) === fam(lp2.value);
-      const numberLine = sameFamily
-        ? `Your Life Paths (${lp.value} and ${lp2.value}) belong to the same family of ${fam(lp.value)!.name}, so your rhythms flow together.`
-        : `Your Life Paths (${lp.value} and ${lp2.value}) come from different number families, so you each bring what the other is still learning.`;
-      html += `
-        <section class="part">
-          <h2>${rel.bond}${relId === "friend" ? ` with ${esc(name2)}` : ""}</h2>
-          <p>${rel.bond} is influenced by both the stars and the numbers.</p>
-          <div class="pair">
-            <div class="panel"><p class="eyebrow">Chinese zodiac</p><p>${chineseLine}</p></div>
-            <div class="panel"><p class="eyebrow">Numerology</p><p>${numberLine}</p></div>
-          </div>
-          <p class="muted">How we compared you: on the zodiac wheel we look at where your two animals sit (same friend group, secret friends, directly opposite, or none of these). In numerology we check whether your Life Paths belong to the same family: 1, 5 and 7; 2, 4, 8, 11 and 22; or 3, 6, 9 and 33.${[["compatibility/chinese-zodiac-compatibility", "Chinese zodiac compatibility"], ["compatibility/numerology-compatibility", "Numerology compatibility"]].filter(([id]) => articles.has(id)).map(([id, label]) => ` <a href="/library/${id}">${label}</a>.`).join("")}</p>
-        </section>`;
-    }
-
     html += `<p class="muted" style="margin-top:28px">Your planets, Moon and Rising signs are coming soon, along with PDF downloads and shareable links.</p>`;
     return html;
+  }
+
+  /** The compatibility section, when the form included a second person. Adds its working to `how`. */
+  function compatibility(how: Breakdown[], year: number): string {
+    const rel = relationshipById(q.get("rel"));
+    const date2 = q.get("d2") ?? "";
+    if (!rel || !/^\d{4}-\d{2}-\d{2}$/.test(date2)) return "";
+    const kind = KINDS[rel.kind];
+    const given = (q.get("n2") ?? "").trim().split(/\s+/)[0];
+    const them = given ? esc(given) : rel.them;
+    const c = compare(date, date2, year);
+    how.push(comparisonBreakdown(c, given || rel.them));
+    const animalLine = kind.chinese[c.relation].replaceAll("{me}", c.me.sign.animal.name).replaceAll("{them}", c.them.sign.animal.name);
+    const stars = "★".repeat(Math.floor(c.harmony)) + (c.harmony % 1 ? "½" : "") ;
+    const fam = NUMBER_FAMILIES.find((f) => f.members.includes(c.me.lifePath));
+    const person = (who: string, p: typeof c.me) => `
+      <div class="panel who">
+        <img src="/animals/${p.sign.animal.id}.png" alt="" width="64" height="64">
+        <div>
+          <p class="eyebrow">${who}</p>
+          <p><strong>${p.sign.element} ${p.sign.animal.name}</strong><br>Life Path ${p.lifePath}, ${NUMBER_MEANINGS[p.lifePath]?.keyword ?? ""}<br>Personal Year ${p.personalYear}</p>
+        </div>
+      </div>`;
+    return `
+      <section class="part compat">
+        <p class="eyebrow">${rel.label} compatibility</p>
+        <h2>${rel.bond}${given ? ` (${them})` : ""}</h2>
+        <p>${kind.intro}</p>
+        <div class="pair">${person("You", c.me)}${person(given ? them : rel.label, c.them)}</div>
+        <div class="panel harmony">
+          <p class="eyebrow">Your harmony</p>
+          <p class="stars" aria-label="${c.harmony} out of 5">${stars}<span class="muted"> ${c.harmony} of 5</span></p>
+          <p class="muted">Worked out from the zodiac wheel, the five elements and your Life Paths. <a href="#how-compare" data-open-how>See how we scored it</a></p>
+        </div>
+        <div class="pair">
+          <div class="panel"><p class="eyebrow">On the zodiac wheel</p><p>${animalLine}</p></div>
+          <div class="panel"><p class="eyebrow">The five elements</p><p>${elementLine(c.me.sign.element, c.them.sign.element, given ? them : rel.them)}</p></div>
+        </div>
+        <div class="pair">
+          <div class="panel"><p class="eyebrow">Your Life Paths</p><p>${lifePathPairLine(c.me.lifePath, c.them.lifePath, given ? them : rel.them)} ${c.sameFamily ? kind.numbers.same : kind.numbers.different}${c.sameFamily && fam ? ` You are both ${fam.name}.` : ""}</p></div>
+          <div class="panel"><p class="eyebrow">This year together</p><p>${yearTogetherLine(c.me.personalYear, c.them.personalYear, given ? them : rel.them)}</p></div>
+        </div>
+        <div class="panel tips"><p class="eyebrow">Tips for your bond</p><ul>${kind.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>
+      </section>`;
   }
 </script>

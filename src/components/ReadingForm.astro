@@ -1,6 +1,6 @@
 ---
 // The entry form on the homepage. The more someone shares, the deeper the reading.
-import { RELATIONSHIPS } from "../data/numbers.ts";
+import { RELATIONSHIPS, RELATIONSHIP_GROUPS } from "../data/relationships.ts";
 import BirthDate from "./BirthDate.astro";
 const tiers = [
   { id: "glance", name: "Quick Glance", text: "Just the essence and your key traits." },
@@ -10,16 +10,6 @@ const tiers = [
 ---
 
 <form class="reading-form panel" action="/reading" method="get">
-  <fieldset class="tiers">
-    <legend>How deep would you like to go?</legend>
-    {tiers.map((t, i) => (
-      <label class="tier">
-        <input type="radio" name="tier" value={t.id} checked={i === 1} />
-        <span><strong>{t.name}</strong><small>{t.text}</small></span>
-      </label>
-    ))}
-  </fieldset>
-
   <div class="grid">
     <div>
       <label for="f-name">Your full birth name</label>
@@ -43,29 +33,66 @@ const tiers = [
     <p class="muted small">Your time unlocks your Moon and Rising signs. Nothing you type is stored on our side.</p>
   </details>
 
-  <details class="more">
-    <summary>Add someone for a compatibility reading</summary>
-    <div class="grid three">
+  <section class="compat-box" data-compat>
+    <div class="compat-head">
       <div>
-        <label for="f-rel">They are your…</label>
-        <select id="f-rel" name="rel">
-          <option value="">Choose…</option>
-          {Object.entries(RELATIONSHIPS).map(([id, r]) => <option value={id}>{r.label}</option>)}
-        </select>
+        <strong id="compat-title">Add someone for a compatibility reading</strong>
+        <small>A partner, family member, friend or someone you work with</small>
       </div>
-      <div>
-        <label for="f-name2">Their name</label>
-        <input id="f-name2" name="n2" />
+      <label class="switch">
+        <input type="checkbox" role="switch" id="f-compat" aria-labelledby="compat-title" aria-controls="compat-fields" />
+        <span class="track" aria-hidden="true"></span>
+      </label>
+    </div>
+    <div class="compat-fields" id="compat-fields" hidden>
+      <div class="grid">
+        <div>
+          <label for="f-rel">They are your…</label>
+          <select id="f-rel" name="rel">
+            <option value="">Choose…</option>
+            {RELATIONSHIP_GROUPS.map((g) => (
+              <optgroup label={g}>
+                {Object.entries(RELATIONSHIPS).filter(([, r]) => r.group === g).map(([id, r]) => <option value={id}>{r.label}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label for="f-name2">Their first name (optional)</label>
+          <input id="f-name2" name="n2" />
+        </div>
       </div>
       <BirthDate id="f-date2" name="d2" label="Their birth date" />
     </div>
-  </details>
+  </section>
+
+  <fieldset class="tiers">
+    <legend>How deep would you like to go?</legend>
+    {tiers.map((t, i) => (
+      <label class="tier">
+        <input type="radio" name="tier" value={t.id} checked={i === 1} />
+        <span><strong>{t.name}</strong><small>{t.text}</small></span>
+      </label>
+    ))}
+  </fieldset>
 
   <button class="btn" type="submit">Reveal my reading ✦</button>
 </form>
 
 <style>
   .reading-form { display: grid; gap: 18px; }
+  .compat-box { border: 1px solid rgba(212, 175, 90, 0.45); border-radius: 14px; padding: 14px 16px; background: rgba(212, 175, 90, 0.06); }
+  .compat-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .compat-head strong { display: block; color: var(--gold); font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+  .compat-head small { color: var(--mist); font-size: 0.82rem; }
+  .compat-fields { display: grid; gap: 14px; margin-top: 14px; }
+  .switch { position: relative; flex: none; margin: 0; cursor: pointer; }
+  .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .switch .track { display: block; width: 52px; height: 30px; border-radius: 15px; background: rgba(142, 107, 217, 0.35); transition: background 0.2s; position: relative; }
+  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--moonlight); transition: transform 0.2s; }
+  .switch input:checked + .track { background: var(--gold); }
+  .switch input:checked + .track::after { transform: translateX(22px); }
+  .switch input:focus-visible + .track { outline: 2px solid var(--orchid); outline-offset: 2px; }
   .tiers { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tiers legend { font-family: var(--font-display); color: var(--gold); margin-bottom: 10px; font-size: 1.05rem; }
   .tier { margin: 0; cursor: pointer; }
@@ -76,11 +103,29 @@ const tiers = [
   .tier input:checked + span { border-color: var(--gold); background: rgba(212, 175, 90, 0.1); box-shadow: 0 0 20px rgba(212, 175, 90, 0.15); }
   .tier input:focus-visible + span { outline: 2px solid var(--orchid); }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .grid.three { grid-template-columns: 1fr 1fr 1fr; }
   .more summary { cursor: pointer; color: var(--orchid); font-size: 0.95rem; margin-bottom: 10px; }
   .small { font-size: 0.8rem; }
   .btn { justify-self: start; }
   @media (max-width: 720px) {
-    .tiers, .grid, .grid.three { grid-template-columns: 1fr; }
+    .tiers, .grid { grid-template-columns: 1fr; }
   }
 </style>
+
+<script>
+  // The compatibility fields are only sent, and only required, while the switch is on.
+  const box = document.querySelector<HTMLElement>("[data-compat]");
+  if (box) {
+    const toggle = box.querySelector<HTMLInputElement>("#f-compat")!;
+    const fields = box.querySelector<HTMLElement>("#compat-fields")!;
+    const sync = () => {
+      fields.hidden = !toggle.checked;
+      for (const el of fields.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select")) {
+        el.disabled = !toggle.checked;
+        if (el.id === "f-rel" || el.closest("[data-birthdate]")) el.required = toggle.checked && el.type !== "hidden";
+      }
+    };
+    toggle.addEventListener("change", sync);
+    window.addEventListener("pageshow", sync);
+    sync();
+  }
+</script>
