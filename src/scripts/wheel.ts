@@ -443,15 +443,15 @@ export function initWheel(root: HTMLElement) {
     showReveal(true);
   });
 
-  // Enlarge: a big copy of the wheel to read up close; on phones it can be scrolled and pinched
+  // Enlarge: moves the wheel itself into a full-screen view, so it can still be tapped and turned there,
+  // and puts it back in its place on Close. On phones it can also be scrolled and pinched.
   const zoom = root.querySelector<HTMLDialogElement>("dialog.zoom")!;
   const stage = zoom.querySelector<HTMLElement>("[data-zoom-stage]")!;
+  let lent: { wheel: SVGSVGElement; home: HTMLElement } | null = null;
   root.querySelectorAll<HTMLButtonElement>("[data-zoom]").forEach((b) => b.addEventListener("click", () => {
-    const copy = (b.dataset.zoom === "sign" ? signSvg : svg).cloneNode(true) as SVGSVGElement;
-    copy.classList.add("no-anim");
-    copy.removeAttribute("role");
-    copy.querySelectorAll("[tabindex]").forEach((el) => el.removeAttribute("tabindex"));
-    stage.replaceChildren(copy);
+    const wheel = b.dataset.zoom === "sign" ? signSvg : svg;
+    lent = { wheel, home: wheel.parentElement! };
+    stage.replaceChildren(wheel);
     zoomLevel = 0;
     applyZoom();
     zoom.showModal();
@@ -460,11 +460,11 @@ export function initWheel(root: HTMLElement) {
   const LEVELS = [1, 1.6, 2.4, 3.4];
   let zoomLevel = 0;
   function applyZoom() {
-    const copy = stage.querySelector<SVGSVGElement>("svg");
-    if (!copy) return;
+    const wheel = stage.querySelector<SVGSVGElement>("svg");
+    if (!wheel) return;
     const cx = (stage.scrollLeft + stage.clientWidth / 2) / Math.max(stage.scrollWidth, 1);
     const cy = (stage.scrollTop + stage.clientHeight / 2) / Math.max(stage.scrollHeight, 1);
-    copy.style.setProperty("--z", String(LEVELS[zoomLevel]));
+    wheel.style.setProperty("--z", String(LEVELS[zoomLevel]));
     stage.scrollLeft = cx * stage.scrollWidth - stage.clientWidth / 2;
     stage.scrollTop = cy * stage.scrollHeight - stage.clientHeight / 2;
     zoom.querySelector<HTMLButtonElement>('[data-zoom-step="-1"]')!.disabled = zoomLevel === 0;
@@ -476,7 +476,9 @@ export function initWheel(root: HTMLElement) {
   }));
   zoom.querySelector("[data-zoom-close]")!.addEventListener("click", () => zoom.close());
   zoom.addEventListener("click", (e) => { if (e.target === zoom) zoom.close(); });
-  zoom.addEventListener("close", () => stage.replaceChildren());
+  zoom.addEventListener("close", () => {
+    if (lent) { lent.wheel.style.removeProperty("--z"); lent.home.append(lent.wheel); lent = null; }
+  });
 
   // start on this year's animal and today's sign, already turned to the top; the reading waits for Show me
   const todayIso = localToday();
