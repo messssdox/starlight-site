@@ -4,10 +4,14 @@
 // (planets, houses, Lilith) joins it in Phase 3 of the build plan.
 import Base from "../layouts/Base.astro";
 import DonationBox from "../components/DonationBox.astro";
+import { getCollection } from "astro:content";
+
+// Library article ids, so the working can link to an article only when it exists.
+const articles = (await getCollection("library")).map((a) => a.id);
 ---
 
 <Base title="Your reading">
-  <section class="container reading" data-reading>
+  <section class="container reading" data-reading data-articles={JSON.stringify(articles)}>
     <noscript><p>Your reading is calculated in your browser, so please turn on JavaScript.</p></noscript>
   </section>
   <section class="container" style="margin-top:64px">
@@ -27,15 +31,51 @@ import DonationBox from "../components/DonationBox.astro";
   .reading :global(.animal) { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: center; }
   .reading :global(.animal img) { width: 120px; height: 120px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.6)); }
   .reading :global(section.part) { margin-top: 28px; }
+  .reading :global(.how) { margin-top: 14px; }
+  .reading :global(.how > summary) { cursor: pointer; font-family: var(--font-display); color: var(--gold); font-size: 1.05rem; }
+  .reading :global(.how-card) { margin-top: 14px; }
+  .reading :global(.how-card h3) { margin: 0 0 4px; }
+  .reading :global(.how-card ol) { margin: 10px 0; padding-left: 22px; }
+  .reading :global(.how-card li) { margin: 4px 0; }
+  .reading :global(.how-card .result) { color: var(--gold); font-family: var(--font-display); margin: 8px 0 0; }
+  .reading :global(.how-card li .why) { display: block; font-size: 0.88rem; color: var(--mist); margin-top: 2px; }
+  .reading :global(.how-card .meaning) { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: rgba(212, 175, 90, 0.08); border: 1px solid rgba(212, 175, 90, 0.3); }
+  .reading :global(.how-card .meaning h4) { margin: 0 0 6px; font-family: var(--font-display); color: var(--gold); font-size: 1.1rem; }
+  .reading :global(.how-card .meaning p) { margin: 0; }
+  .reading :global(.how-card .note) { font-size: 0.9rem; border-left: 2px solid var(--orchid); padding-left: 12px; margin-top: 12px; }
+  .reading :global(.how-card .more) { font-size: 0.9rem; margin: 10px 0 0; }
+  .reading :global(.letters) { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 4px; }
+  .reading :global(.letters span) { display: inline-grid; justify-items: center; min-width: 26px; padding: 3px 4px; border-radius: 6px; border: 1px solid rgba(142, 107, 217, 0.4); font-size: 0.85rem; line-height: 1.2; }
+  .reading :global(.letters span small) { color: var(--gold); }
+  .reading :global(.letters span.off) { opacity: 0.35; }
+  .reading :global(.letters .gap) { width: 10px; border: 0; }
+  .reading :global(.challenges .medallion .n) { font-size: 2.4rem; }
+  .reading :global(.challenges .medallion.main) { border-color: var(--gold); }
+  .reading :global(.medallion .see) { display: inline-block; margin-top: 10px; font-size: 0.85rem; }
+  .reading :global(.lp-deep > summary) { cursor: pointer; list-style: none; }
+  .reading :global(.lp-deep > summary h2) { display: inline; }
+  .reading :global(.lp-deep > summary::after) { content: " ▾"; color: var(--gold); }
+  .reading :global(.lp-deep .panel), .reading :global(.compat .panel) { margin-top: 14px; }
+  .reading :global(.lp-deep .pair), .reading :global(.compat .pair) { margin-top: 0; }
+  .reading :global(.lp-deep ul), .reading :global(.compat ul) { margin: 6px 0 0; padding-left: 20px; }
+  .reading :global(.growth) { border-color: var(--gold); }
+  .reading :global(.who) { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; }
+  .reading :global(.who img) { width: 64px; height: 64px; }
+  .reading :global(.who p) { margin: 0; }
+  .reading :global(.harmony .stars) { font-size: 1.8rem; color: var(--gold); margin: 4px 0; letter-spacing: 0.1em; }
+  .reading :global(.harmony .stars span) { font-size: 0.95rem; letter-spacing: 0; }
   .reading :global(.pair) { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 640px) { .reading :global(.pair), .reading :global(.animal) { grid-template-columns: 1fr; } }
 </style>
 
 <script>
-  import { lifePath, expression, soulUrge, personality, personalYear, type Result } from "../lib/numerology.ts";
-  import { chineseSign, relationBetween, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
+  import { lifePath, expression, soulUrge, personality, personalYear, challenges, type Result } from "../lib/numerology.ts";
+  import { chineseSign, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
   import { GROUPS } from "../data/zodiac.ts";
-  import { NUMBER_MEANINGS, NUMBER_FAMILIES, RELATIONSHIPS, type RelationshipId } from "../data/numbers.ts";
+  import { NUMBER_MEANINGS, NUMBER_FAMILIES, CHALLENGE_MEANINGS, LIFE_PATH_DEEP } from "../data/numbers.ts";
+  import { KINDS, relationshipById } from "../data/relationships.ts";
+  import { compare, comparisonBreakdown, elementLine, lifePathPairLine, yearTogetherLine } from "../lib/compat.ts";
+  import { lifePathBreakdown, challengesBreakdown, nameBreakdown, personalYearBreakdown, chineseBreakdowns, todayIso, type Breakdown } from "../lib/explain.ts";
 
   const q = new URLSearchParams(location.search);
   const tier = (q.get("tier") ?? "first") as "glance" | "first" | "deep";
@@ -43,6 +83,7 @@ import DonationBox from "../components/DonationBox.astro";
   const date = q.get("d") ?? "";
   const root = document.querySelector<HTMLElement>("[data-reading]")!;
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const articles = new Set<string>(JSON.parse(root.dataset.articles ?? "[]"));
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     root.innerHTML = `<h1>Let's begin</h1><p>Please <a href="/">enter your birth date</a> to see your reading.</p>`;
@@ -50,6 +91,10 @@ import DonationBox from "../components/DonationBox.astro";
     root.innerHTML = render();
     root.setAttribute("data-glossary", "");
     document.dispatchEvent(new Event("glossary:scan"));
+    // the working is folded away in Quick Glance, so open it before jumping to a step
+    root.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("[data-open-how]")) root.querySelector<HTMLDetailsElement>("#how")!.open = true;
+    });
     // count this reading once per browser session
     if (!sessionStorage.getItem("counted")) {
       fetch("/api/counter", { method: "POST" }).catch(() => {});
@@ -57,13 +102,31 @@ import DonationBox from "../components/DonationBox.astro";
     }
   }
 
-  function medallion(what: string, r: Result) {
+  function medallion(what: string, r: Result, how: string) {
     const m = NUMBER_MEANINGS[r.value];
-    const body =
-      tier === "glance" ? `<p class="muted">${m?.essence ?? ""}</p>` :
-      tier === "first" ? `<p class="muted">${m?.gentle ?? ""}</p>` :
-      `<p class="muted">${m?.gentle ?? ""}</p><ol class="steps">${r.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>`;
-    return `<div class="medallion panel"><span class="what">${what}</span><span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}</div>`;
+    const body = tier === "glance" ? `<p class="muted">${m?.essence ?? ""}</p>` : `<p class="muted">${m?.gentle ?? ""}</p>`;
+    return `<div class="medallion panel"><span class="what">${what}</span><span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}<a class="see" href="#${how}" data-open-how>See how we worked it out</a></div>`;
+  }
+
+  /** One step-by-step card. Library links appear only for articles that exist. */
+  function howCard(b: Breakdown) {
+    const letters = b.letters
+      ? `<div class="letters" aria-hidden="true">${b.letters
+          .map((l, i) => `${i > 0 && l.wordStart ? `<span class="gap"></span>` : ""}<span class="${l.counted ? "" : "off"}">${l.letter}<small>${l.value}</small></span>`)
+          .join("")}</div>`
+      : "";
+    const links = b.articles.filter((a) => articles.has(a.id));
+    return `
+      <div class="panel how-card" id="${b.id}">
+        <h3>${esc(b.title)}</h3>
+        <p class="muted">${esc(b.intro)}</p>
+        ${letters}
+        <ol>${b.steps.map((s) => `<li>${esc(s.text)}${s.why ? `<span class="why">${esc(s.why)}</span>` : ""}</li>`).join("")}</ol>
+        <p class="result">${esc(b.result)}</p>
+        ${b.meaning ? `<div class="meaning"><h4>${esc(b.meaning.title)}</h4><p>${esc(b.meaning.text)}</p></div>` : ""}
+        ${b.note ? `<p class="note muted">${esc(b.note)}</p>` : ""}
+        ${links.length ? `<p class="more">Learn more in the Library: ${links.map((a) => `<a href="/library/${a.id}">${esc(a.label)}</a>`).join(" · ")}</p>` : ""}
+      </div>`;
   }
 
   function render() {
@@ -71,12 +134,55 @@ import DonationBox from "../components/DonationBox.astro";
     const lp = lifePath(date);
     const cn = chineseSign(date);
     const g = GROUPS[cn.animal.group];
-    const year = new Date().getFullYear();
+    const today = todayIso();
+    const year = Number(today.slice(0, 4));
     const py = personalYear(date, year);
-    const nums = [medallion("Life Path", lp)];
-    if (name) nums.push(medallion("Expression", expression(name)));
-    if (name && tier !== "glance") nums.push(medallion("Soul Urge", soulUrge(name)), medallion("Personality", personality(name)));
-    nums.push(medallion(`Personal Year ${year}`, py));
+    const nums = [medallion("Life Path", lp, "how-life-path")];
+    const how: Breakdown[] = [lifePathBreakdown(date), challengesBreakdown(date)];
+    const ch = challenges(date);
+    const challengeCards = ([
+      ["First", "early life", ch.first],
+      ["Second", "middle years", ch.second],
+      ["Third", "your main challenge", ch.third],
+      ["Fourth", "later life", ch.fourth],
+    ] as const)
+      .map(([which, when, v]) => {
+        const c = CHALLENGE_MEANINGS[v];
+        return `<div class="medallion panel${which === "Third" ? " main" : ""}"><span class="what">${which} Challenge<br>${when}</span><span class="n">${v}</span><span class="k">${c.keyword}</span>${tier === "glance" ? "" : `<p class="muted">${c.text}</p>`}</div>`;
+      })
+      .join("");
+    if (name) { nums.push(medallion("Expression", expression(name), "how-expression")); how.push(nameBreakdown(name, "expression")); }
+    if (name && tier !== "glance") {
+      nums.push(medallion("Soul Urge", soulUrge(name), "how-soul"), medallion("Personality", personality(name), "how-personality"));
+      how.push(nameBreakdown(name, "soul"), nameBreakdown(name, "personality"));
+    }
+    nums.push(medallion(`Personal Year ${year}`, py, "how-personal-year"));
+    how.push(personalYearBreakdown(date, today), ...chineseBreakdowns(date));
+
+    const compat = compatibility(how, year);
+
+    const deep = LIFE_PATH_DEEP[lp.value];
+    const list = (items: string[]) => `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
+    const lifePathDeep = deep
+      ? `
+      <section class="part">
+        <details class="lp-deep"${tier === "glance" ? "" : " open"}>
+          <summary><h2>Your Life Path ${lp.value} in depth</h2></summary>
+          <p class="lede">${esc(deep.journey)}</p>
+          <div class="pair">
+            <div class="panel"><p class="eyebrow">Your strengths</p>${list(deep.strengths)}</div>
+            <div class="panel"><p class="eyebrow">Watch out for</p>${list(deep.watchOut)}</div>
+          </div>
+          <div class="pair">
+            <div class="panel"><p class="eyebrow">In love</p><p>${esc(deep.love)}</p></div>
+            <div class="panel"><p class="eyebrow">At work</p><p>${esc(deep.work)}</p></div>
+          </div>
+          <div class="panel"><p class="eyebrow">Where a ${lp.value} often thrives</p>${list(deep.thrivesIn)}</div>
+          <div class="panel growth"><p class="eyebrow">A practice for your path</p><p>${esc(deep.growth)}</p></div>
+          ${articles.has("numerology/life-path-number") ? `<p class="muted">Read more in the Library: <a href="/library/numerology/life-path-number">The Life Path number</a>.</p>` : ""}
+        </details>
+      </section>`
+      : "";
 
     const tierName = { glance: "Quick Glance", first: "First Timers", deep: "Full Deep Dive" }[tier];
     let html = `
@@ -84,6 +190,12 @@ import DonationBox from "../components/DonationBox.astro";
       <h1>${esc(first)}, here is your reading</h1>
       ${tier === "first" ? `<p class="muted">Welcome! Each number below comes from your name or birth date. Tap any underlined word for a quick explanation.</p>` : ""}
       <section class="part"><h2>Your numbers</h2><div class="numbers">${nums.join("")}</div></section>
+      ${lifePathDeep}
+      <section class="part">
+        <h2>Your challenges</h2>
+        <p class="muted">Where your Life Path shows the road you walk, your four Challenge Numbers show the lessons you meet along it. The third is your main challenge, with you all through life. <a href="#how-challenges" data-open-how>See how we worked them out</a></p>
+        <div class="numbers challenges">${challengeCards}</div>
+      </section>
       <section class="part panel animal">
         <img src="/animals/${cn.animal.id}.png" alt="" width="120" height="120">
         <div>
@@ -92,41 +204,63 @@ import DonationBox from "../components/DonationBox.astro";
           ${cn.animal.alsoKnownAs ? `<p class="muted"><em>${cn.animal.alsoKnownAs}</em></p>` : ""}
           <p>${cn.animal.summary} Born in ${cn.zodiacYear}, a ${cn.yinYang.toLowerCase()} year, you belong to the ${g.element} friend group with ${friendsOf(cn.animal.id).map((f) => f.name).join(" and ")}.</p>
           ${tier !== "glance" ? `<p>Your secret friend is the <strong>${secretFriendOf(cn.animal.id).name}</strong>, and your clash sign is the <strong>${clashOf(cn.animal.id).name}</strong>.</p>` : ""}
+          <p><a href="#how-animal" data-open-how>See how we found your animal and element</a></p>
         </div>
+      </section>
+      ${compat}
+      <section class="part">
+        <details class="how" id="how"${tier === "glance" ? "" : " open"}>
+          <summary>How your reading was calculated</summary>
+          <p class="muted">Every result above comes from a few simple steps. Here they are with your own numbers, so you can check them yourself or work out a friend's.</p>
+          ${how.map(howCard).join("")}
+        </details>
       </section>`;
-
-    const relId = q.get("rel") as RelationshipId | null;
-    const date2 = q.get("d2") ?? "";
-    if (relId && RELATIONSHIPS[relId] && /^\d{4}-\d{2}-\d{2}$/.test(date2)) {
-      const rel = RELATIONSHIPS[relId];
-      const name2 = (q.get("n2") ?? "").trim() || rel.them;
-      const lp2 = lifePath(date2);
-      const cn2 = chineseSign(date2);
-      const relation = relationBetween(cn.animal.id, cn2.animal.id);
-      const chineseLine = {
-        same: `You are both ${cn.animal.name}s, so you understand each other's instincts, and can also mirror each other's blind spots.`,
-        friend: `Your ${cn.animal.name} and their ${cn2.animal.name} share a friend group on the wheel: a natural, easy understanding.`,
-        secret: `Your ${cn.animal.name} and their ${cn2.animal.name} are secret friends: a quiet, loyal bond that often runs deeper than it looks.`,
-        clash: `Your ${cn.animal.name} and their ${cn2.animal.name} sit directly opposite on the wheel. That clash brings friction, and also the chance to grow through your differences.`,
-        neutral: `Your ${cn.animal.name} and their ${cn2.animal.name} are neither friends nor rivals on the wheel, so this bond is shaped most by how you choose to meet each other.`,
-      }[relation];
-      const fam = (n: number) => NUMBER_FAMILIES.find((f) => f.members.includes(n));
-      const sameFamily = fam(lp.value) && fam(lp.value) === fam(lp2.value);
-      const numberLine = sameFamily
-        ? `Your Life Paths (${lp.value} and ${lp2.value}) belong to the same family of ${fam(lp.value)!.name}, so your rhythms flow together.`
-        : `Your Life Paths (${lp.value} and ${lp2.value}) come from different number families, so you each bring what the other is still learning.`;
-      html += `
-        <section class="part">
-          <h2>${rel.bond}${relId === "friend" ? ` with ${esc(name2)}` : ""}</h2>
-          <p>${rel.bond} is influenced by both the stars and the numbers.</p>
-          <div class="pair">
-            <div class="panel"><p class="eyebrow">Chinese zodiac</p><p>${chineseLine}</p></div>
-            <div class="panel"><p class="eyebrow">Numerology</p><p>${numberLine}</p></div>
-          </div>
-        </section>`;
-    }
 
     html += `<p class="muted" style="margin-top:28px">Your planets, Moon and Rising signs are coming soon, along with PDF downloads and shareable links.</p>`;
     return html;
+  }
+
+  /** The compatibility section, when the form included a second person. Adds its working to `how`. */
+  function compatibility(how: Breakdown[], year: number): string {
+    const rel = relationshipById(q.get("rel"));
+    const date2 = q.get("d2") ?? "";
+    if (!rel || !/^\d{4}-\d{2}-\d{2}$/.test(date2)) return "";
+    const kind = KINDS[rel.kind];
+    const given = (q.get("n2") ?? "").trim().split(/\s+/)[0];
+    const them = given ? esc(given) : rel.them;
+    const c = compare(date, date2, year);
+    how.push(comparisonBreakdown(c, given || rel.them));
+    const animalLine = kind.chinese[c.relation].replaceAll("{me}", c.me.sign.animal.name).replaceAll("{them}", c.them.sign.animal.name);
+    const stars = "★".repeat(Math.floor(c.harmony)) + (c.harmony % 1 ? "½" : "") ;
+    const fam = NUMBER_FAMILIES.find((f) => f.members.includes(c.me.lifePath));
+    const person = (who: string, p: typeof c.me) => `
+      <div class="panel who">
+        <img src="/animals/${p.sign.animal.id}.png" alt="" width="64" height="64">
+        <div>
+          <p class="eyebrow">${who}</p>
+          <p><strong>${p.sign.element} ${p.sign.animal.name}</strong><br>Life Path ${p.lifePath}, ${NUMBER_MEANINGS[p.lifePath]?.keyword ?? ""}<br>Personal Year ${p.personalYear}</p>
+        </div>
+      </div>`;
+    return `
+      <section class="part compat">
+        <p class="eyebrow">${rel.label} compatibility</p>
+        <h2>${rel.bond}${given ? ` (${them})` : ""}</h2>
+        <p>${kind.intro}</p>
+        <div class="pair">${person("You", c.me)}${person(given ? them : rel.label, c.them)}</div>
+        <div class="panel harmony">
+          <p class="eyebrow">Your harmony</p>
+          <p class="stars" aria-label="${c.harmony} out of 5">${stars}<span class="muted"> ${c.harmony} of 5</span></p>
+          <p class="muted">Worked out from the zodiac wheel, the five elements and your Life Paths. <a href="#how-compare" data-open-how>See how we scored it</a></p>
+        </div>
+        <div class="pair">
+          <div class="panel"><p class="eyebrow">On the zodiac wheel</p><p>${animalLine}</p></div>
+          <div class="panel"><p class="eyebrow">The five elements</p><p>${elementLine(c.me.sign.element, c.them.sign.element, given ? them : rel.them)}</p></div>
+        </div>
+        <div class="pair">
+          <div class="panel"><p class="eyebrow">Your Life Paths</p><p>${lifePathPairLine(c.me.lifePath, c.them.lifePath, given ? them : rel.them)} ${c.sameFamily ? kind.numbers.same : kind.numbers.different}${c.sameFamily && fam ? ` You are both ${fam.name}.` : ""}</p></div>
+          <div class="panel"><p class="eyebrow">This year together</p><p>${yearTogetherLine(c.me.personalYear, c.them.personalYear, given ? them : rel.them)}</p></div>
+        </div>
+        <div class="panel tips"><p class="eyebrow">Tips for your bond</p><ul>${kind.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>
+      </section>`;
   }
 </script>

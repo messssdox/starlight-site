@@ -7,6 +7,7 @@
 //   4. the years, newest on the outside, every 12 years further in
 // Directly opposite animals clash. Selecting an animal or a year turns the wheel so that animal sits at the top,
 // under the gold marker, and the three boxes below the wheel explain its friends, secret friend and clash.
+import BirthDate from "./BirthDate.astro";
 import { ANIMALS, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS } from "../data/zodiac.ts";
 
 const R = {
@@ -175,9 +176,8 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
     <p class="eyebrow">The Chinese zodiac wheel</p>
     <h2 id="wheel-title">Find your animal</h2>
     <form class="finder" autocomplete="off">
-      <label for="wheel-date">Your birth date</label>
       <div class="row">
-        <input id="wheel-date" name="date" type="date" min="1900-01-01" max="2100-12-31" required />
+        <BirthDate id="wheel-date" name="date" label="Your birth date" required />
         <button class="btn" type="submit">Show me</button>
       </div>
     </form>
@@ -262,8 +262,8 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
   .insight :global(.next) { color: var(--mist); font-size: 0.85rem; }
   @media (max-width: 520px) { .insight { grid-template-columns: 1fr; } .insight .label { padding: 8px; } }
 
-  .finder .row { display: flex; gap: 10px; }
-  .finder .row input { flex: 1; min-width: 0; }
+  .finder .row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+  .finder .row :global(.birthdate) { flex: 1 1 260px; }
   .details { margin-top: 22px; }
   .details :global(.head) { display: grid; grid-template-columns: 84px 1fr; gap: 14px; align-items: center; }
   .details :global(.head img) { width: 84px; height: 84px; }

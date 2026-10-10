@@ -115,3 +115,29 @@ export function maturity(date: string, name: string): Result {
 export function universalYear(year: number): Result {
   return reduce(year, false);
 }
+
+export interface Challenges {
+  first: number;
+  second: number;
+  third: number;
+  fourth: number;
+  /** Birth day, month and year each reduced to a single digit (no master numbers). */
+  day: number;
+  month: number;
+  year: number;
+}
+
+/**
+ * The four Challenge Numbers. Reduce the day, month and year to single digits, then
+ * take differences: first = month and day, second = day and year, third (the main
+ * challenge) = first and second, fourth = month and year. Each is 0 to 8.
+ */
+export function challenges(date: string): Challenges {
+  const [y, m, d] = date.split("-").map(Number);
+  const day = reduce(d, false).value;
+  const month = reduce(m, false).value;
+  const year = reduce(y, false).value;
+  const first = Math.abs(month - day);
+  const second = Math.abs(day - year);
+  return { first, second, third: Math.abs(first - second), fourth: Math.abs(month - year), day, month, year };
+}
