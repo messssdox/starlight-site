@@ -53,6 +53,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
   import { findPlace, type Place } from "../lib/place.ts";
   import { SIGNS, PLANET_BY_ID, HOUSES, ASPECTS, ELEMENT_MEANING, MODALITY_MEANING, type PointId, type Element, type Modality } from "../data/astrology.ts";
   import { PLACEMENTS } from "../data/placements.ts";
+  import { isPartnerReading } from "../lib/reading-ui.ts";
   import { momentBreakdown, planetsBreakdown, risingBreakdown, housesBreakdown, aspectsBreakdown, lilithBreakdown, ordinal, type BirthMoment, type ChartBreakdown } from "../lib/astro-explain.ts";
 
   const q = new URLSearchParams(location.search);
@@ -66,7 +67,8 @@ const articles = (await getCollection("library")).map((a) => a.id);
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
   const link = (id: string, label: string) => (articles.has(id) ? `<a href="/library/${id}">${esc(label)}</a>` : "");
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) start();
+  // a reading with a second person shows only the relationship, so no chart
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date) && !isPartnerReading(q)) start();
 
   async function start() {
     let place: Place | null = null;
@@ -146,8 +148,8 @@ const articles = (await getCollection("library")).map((a) => a.id);
     how.push(aspectsBreakdown(chart), lilithBreakdown(chart));
     html += `
       <section class="part">
-        <details class="how" id="how-chart"${tier === "glance" ? "" : " open"}>
-          <summary>How your birth chart was calculated</summary>
+        <details class="calc" id="how-chart">
+          <summary>How your birth chart is calculated</summary>
           <p class="muted">Every placement above comes from your birth date${time ? ", time" : ""}${place ? " and place" : ""}. Here are the steps with your own details, so you can see exactly where each one comes from.</p>
           ${how.map(howCard).join("")}
         </details>
