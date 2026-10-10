@@ -19,7 +19,7 @@ test("Life Path working uses the reader's own date", () => {
 test("Life Path working explains master numbers", () => {
   const b = lifePathBreakdown("1991-11-09");
   assert.equal(b.result, "Your Life Path is 22.");
-  assert.ok(b.steps.some((s) => s.text === "22 is a master number, so it stays 22." && s.why?.includes("master numbers")));
+  assert.ok(b.steps.some((s) => s.text === "22 is a master number, so it stays 22." && s.why?.startsWith("Master numbers are never reduced")));
   assert.equal(b.meaning!.title, "Life on the path of a 22");
   assert.ok(b.meaning!.text.startsWith("The Master Builder."));
 });
