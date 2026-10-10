@@ -1,0 +1,173 @@
+---
+// "Share your thoughts": one form for praise, feedback and contact, and the Kind words wall.
+// Messages go to functions/api/thoughts.ts; the wall comes from functions/api/kind-words.ts.
+// Both only work once the site is live on Cloudflare (see the README).
+import Base from "../../layouts/Base.astro";
+import { STAR_SIGNS, LIMITS } from "../../../server/thoughts.ts";
+---
+
+<Base title="Share your thoughts" description="Send praise, feedback or a message to Starlight, and read kind words from other visitors.">
+  <section class="container narrow intro">
+    <p class="eyebrow">Share your thoughts</p>
+    <h1>We'd love to hear from you</h1>
+    <p class="lede muted">Say something kind, tell us what could be better, or just get in touch. Every message is read by a real person.</p>
+  </section>
+
+  <section class="container narrow" id="share">
+    <form class="thoughts panel" action="/api/thoughts" method="post" data-thoughts novalidate>
+      <fieldset class="kinds">
+        <legend>What would you like to share?</legend>
+        <label class="kind"><input type="radio" name="kind" value="praise" checked /><span><strong>Praise</strong><small>Something you enjoyed</small></span></label>
+        <label class="kind"><input type="radio" name="kind" value="feedback" /><span><strong>Feedback</strong><small>Ideas, fixes or wishes</small></span></label>
+        <label class="kind"><input type="radio" name="kind" value="contact" /><span><strong>Contact</strong><small>A question or a hello</small></span></label>
+      </fieldset>
+
+      <div class="grid">
+        <div>
+          <label for="t-name">Your first name</label>
+          <input id="t-name" name="firstName" autocomplete="given-name" maxlength={LIMITS.firstName} />
+        </div>
+        <div>
+          <label for="t-sign">Your star sign (optional)</label>
+          <select id="t-sign" name="starSign">
+            <option value="">Choose…</option>
+            {STAR_SIGNS.map((s) => <option value={s}>{s}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="t-email">Your email</label>
+        <input id="t-email" name="email" type="email" autocomplete="email" maxlength={LIMITS.email} required />
+        <p class="hint">So we can reply. It is never shown on the site or shared.</p>
+      </div>
+
+      <div>
+        <label for="t-message">Your message</label>
+        <textarea id="t-message" name="message" rows="6" maxlength={LIMITS.message} required></textarea>
+      </div>
+
+      <label class="optin" data-optin>
+        <input type="checkbox" name="showPublicly" value="on" />
+        <span>I'm happy for this to be shown on the site, with my first name and star sign.</span>
+      </label>
+
+      <!-- Spam trap: people never see this box, bots fill it in. -->
+      <div class="trap" aria-hidden="true">
+        <label for="t-website">Leave this empty</label>
+        <input id="t-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+      <input type="hidden" name="t" value="" data-loaded-at />
+
+      <div class="actions">
+        <button class="btn" type="submit">Send</button>
+        <p class="status" role="status" aria-live="polite" data-status></p>
+      </div>
+      <p class="hint">Your message is saved so we can read it. Shared praise only appears after we've approved it.</p>
+    </form>
+  </section>
+
+  <section class="container wall-section" id="kind-words">
+    <p class="eyebrow">From our visitors</p>
+    <h2>Kind words</h2>
+    <div class="wall" data-wall>
+      <p class="muted">Kind words from visitors will appear here.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .narrow { max-width: 760px; }
+  .intro { padding-top: 64px; }
+  .lede { font-size: 1.1rem; }
+  .thoughts { display: grid; gap: 18px; }
+  .kinds { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .kinds legend { font-family: var(--font-display); color: var(--gold); margin-bottom: 10px; }
+  .kind { margin: 0; cursor: pointer; }
+  .kind input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .kind span { display: block; padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--orchid) 35%, transparent); height: 100%; }
+  .kind strong { display: block; color: var(--moonlight); }
+  .kind small { color: var(--mist); }
+  .kind input:checked + span { border-color: var(--gold); background: color-mix(in srgb, var(--amethyst) 35%, transparent); }
+  .kind input:focus-visible + span { outline: 2px solid var(--orchid); outline-offset: 3px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  textarea {
+    font: inherit; color: var(--moonlight); background: rgba(7, 6, 11, 0.7); width: 100%; resize: vertical;
+    border: 1px solid color-mix(in srgb, var(--orchid) 45%, transparent); border-radius: 10px; padding: 0.7em 0.9em;
+  }
+  textarea:focus { border-color: var(--gold); outline: none; }
+  .hint { font-size: 0.8rem; color: var(--mist); margin: 0.4em 0 0; }
+  .optin { display: flex; gap: 10px; align-items: flex-start; font-size: 0.92rem; color: var(--moonlight); cursor: pointer; }
+  .optin input { width: auto; margin-top: 0.3em; }
+  .optin[hidden] { display: none; }
+  .trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .status { margin: 0; font-size: 0.92rem; }
+  .status.ok { color: var(--gold); }
+  .status.err { color: var(--clash); }
+  .wall-section { margin-top: 72px; }
+  .wall { columns: 3 260px; column-gap: 16px; }
+  .wall :global(blockquote) { break-inside: avoid; margin: 0 0 16px; }
+  .wall :global(blockquote p) { font-family: var(--font-reading); font-size: 1.2rem; margin: 0 0 10px; white-space: pre-line; }
+  .wall :global(cite) { font-style: normal; font-size: 0.85rem; color: var(--antique-gold); }
+  @media (max-width: 640px) {
+    .kinds, .grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-thoughts]")!;
+  const status = form.querySelector<HTMLElement>("[data-status]")!;
+  const optin = form.querySelector<HTMLElement>("[data-optin]")!;
+  const button = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
+  form.querySelector<HTMLInputElement>("[data-loaded-at]")!.value = String(Date.now());
+
+  // The "show on the site" tick box only makes sense for praise.
+  const syncOptin = () => {
+    const kind = new FormData(form).get("kind");
+    optin.hidden = kind !== "praise";
+    if (optin.hidden) optin.querySelector("input")!.checked = false;
+  };
+  form.addEventListener("change", syncOptin);
+  syncOptin();
+
+  const say = (text: string, ok: boolean) => { status.textContent = text; status.className = `status ${ok ? "ok" : "err"}`; };
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+    button.disabled = true;
+    say("Sending…", true);
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        say(data.message, true);
+        form.querySelector<HTMLTextAreaElement>("textarea")!.value = "";
+      } else {
+        say(data.error ?? "Sorry, something went wrong. Please try again later.", false);
+      }
+    } catch {
+      say("Sorry, we couldn't reach the server. Please try again later.", false);
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  // The Kind words wall.
+  const wall = document.querySelector<HTMLElement>("[data-wall]")!;
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  fetch("/api/kind-words")
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((d: { words: { name: string; starSign: string; message: string }[] }) => {
+      if (!d.words?.length) return;
+      wall.innerHTML = d.words
+        .map((w) => `<blockquote class="panel"><p>${esc(w.message)}</p><cite>${esc(w.name)}${w.starSign ? `, ${esc(w.starSign)}` : ""}</cite></blockquote>`)
+        .join("");
+    })
+    .catch(() => {});
+</script>

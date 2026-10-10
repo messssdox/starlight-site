@@ -1,0 +1,160 @@
+---
+// The site owner's private page: approve praise for the Kind words wall and read feedback and contact messages.
+// Protected by the ADMIN_PASSWORD secret set in Cloudflare (see the README). Not linked from anywhere, and hidden from search engines.
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Admin" noindex>
+  <section class="container admin">
+    <p class="eyebrow">Private</p>
+    <h1>Messages</h1>
+
+    <form class="panel login" data-login>
+      <label for="a-pass">Admin password</label>
+      <div class="row">
+        <input id="a-pass" type="password" autocomplete="current-password" required />
+        <button class="btn" type="submit">Open</button>
+      </div>
+      <p class="note" data-login-status role="status"></p>
+    </form>
+
+    <div data-inbox hidden>
+      <div class="toolbar">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" data-tab="praise" aria-selected="true">Praise to approve</button>
+          <button type="button" role="tab" data-tab="inbox" aria-selected="false">Feedback and contact</button>
+          <button type="button" role="tab" data-tab="all" aria-selected="false">Everything</button>
+        </div>
+        <button type="button" class="btn ghost" data-logout>Lock</button>
+      </div>
+      <p class="note" data-inbox-status role="status"></p>
+      <div class="list" data-list></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .admin { padding-top: 48px; max-width: 900px; }
+  .login { max-width: 460px; }
+  .row { display: flex; gap: 10px; }
+  .note { font-size: 0.9rem; color: var(--mist); min-height: 1.4em; margin: 0.6em 0 0; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tabs button { font: inherit; font-size: 0.9rem; color: var(--mist); background: transparent; border: 1px solid color-mix(in srgb, var(--orchid) 40%, transparent); border-radius: 999px; padding: 0.4em 1em; cursor: pointer; }
+  .tabs button[aria-selected="true"] { color: var(--gold); border-color: var(--gold); }
+  .list { display: grid; gap: 14px; }
+  .list :global(.msg) { padding: 18px 20px; }
+  .list :global(.meta) { font-size: 0.82rem; color: var(--mist); display: flex; gap: 10px; flex-wrap: wrap; }
+  .list :global(.tag) { color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; }
+  .list :global(.body) { white-space: pre-wrap; margin: 10px 0; }
+  .list :global(.btns) { display: flex; gap: 8px; flex-wrap: wrap; }
+  .list :global(.btns a) { font-size: 0.85rem; padding: 0.35em 0.9em; border-radius: 999px; border: 1px solid var(--orchid); text-decoration: none; }
+  .list :global(.btns button) { font: inherit; font-size: 0.85rem; padding: 0.35em 0.9em; border-radius: 999px; cursor: pointer; border: 1px solid var(--antique-gold); background: transparent; color: var(--moonlight); }
+  .list :global(.btns button.primary) { background: var(--gold); color: #1b1206; }
+  .list :global(.btns button.danger) { border-color: var(--clash); color: var(--clash); }
+</style>
+
+<script>
+  interface Message {
+    id: number; created_at: string; kind: "praise" | "feedback" | "contact"; email: string;
+    first_name: string; star_sign: string; body: string; show_publicly: number; status: string;
+  }
+
+  const KEY = "starlight-admin";
+  const login = document.querySelector<HTMLFormElement>("[data-login]")!;
+  const loginStatus = document.querySelector<HTMLElement>("[data-login-status]")!;
+  const inbox = document.querySelector<HTMLElement>("[data-inbox]")!;
+  const inboxStatus = document.querySelector<HTMLElement>("[data-inbox-status]")!;
+  const list = document.querySelector<HTMLElement>("[data-list]")!;
+  let password = "";
+  let messages: Message[] = [];
+  let tab = "praise";
+
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const api = (init?: RequestInit) =>
+    fetch("/api/admin/messages", { ...init, headers: { authorization: `Bearer ${password}`, "content-type": "application/json" } });
+
+  async function load() {
+    const res = await api();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Couldn't load messages.");
+    messages = data.messages;
+    render();
+  }
+
+  function render() {
+    const shown = messages.filter((m) =>
+      tab === "praise" ? m.kind === "praise" && m.show_publicly === 1 && m.status !== "hidden" :
+      tab === "inbox" ? m.kind !== "praise" || m.show_publicly === 0 :
+      true);
+    const waiting = messages.filter((m) => m.kind === "praise" && m.show_publicly === 1 && m.status === "new").length;
+    inboxStatus.textContent = `${messages.length} message${messages.length === 1 ? "" : "s"} in total, ${waiting} waiting for approval.`;
+    list.innerHTML = shown.length ? shown.map(card).join("") : `<p class="muted">Nothing here yet.</p>`;
+  }
+
+  function card(m: Message) {
+    const onWall = m.status === "approved";
+    const btns = [
+      m.kind === "praise" && m.show_publicly === 1 && !onWall ? `<button class="primary" data-act="approve" data-id="${m.id}">Show on the wall</button>` : "",
+      onWall ? `<button data-act="hide" data-id="${m.id}">Take off the wall</button>` : "",
+      m.status === "new" && !(m.kind === "praise" && m.show_publicly === 1) ? `<button data-act="read" data-id="${m.id}">Mark as read</button>` : "",
+      `<a href="mailto:${esc(m.email)}">Reply by email</a>`,
+      `<button class="danger" data-act="delete" data-id="${m.id}">Delete</button>`,
+    ].join("");
+    const who = [m.first_name, m.star_sign].filter(Boolean).map(esc).join(", ") || "No name";
+    return `<article class="msg panel">
+      <div class="meta"><span class="tag">${m.kind}</span><span>${esc(who)}</span><span>${esc(m.email)}</span><span>${esc(m.created_at)} UTC</span>
+        <span>${onWall ? "On the wall" : m.status === "new" ? "New" : esc(m.status)}${m.kind === "praise" && !m.show_publicly ? " · private" : ""}</span></div>
+      <p class="body">${esc(m.body)}</p>
+      <div class="btns">${btns}</div>
+    </article>`;
+  }
+
+  login.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    password = login.querySelector<HTMLInputElement>("input")!.value;
+    await open();
+  });
+
+  async function open() {
+    loginStatus.textContent = "Opening…";
+    try {
+      await load();
+      try { sessionStorage.setItem(KEY, password); } catch {}
+      login.hidden = true;
+      inbox.hidden = false;
+    } catch (err) {
+      try { sessionStorage.removeItem(KEY); } catch {}
+      loginStatus.textContent = (err as Error).message;
+    }
+  }
+
+  document.querySelector("[data-logout]")!.addEventListener("click", () => {
+    try { sessionStorage.removeItem(KEY); } catch {}
+    location.reload();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((b) =>
+    b.addEventListener("click", () => {
+      tab = b.dataset.tab!;
+      document.querySelectorAll("[data-tab]").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+      render();
+    }),
+  );
+
+  list.addEventListener("click", async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-act]");
+    if (!b) return;
+    if (b.dataset.act === "delete" && !confirm("Delete this message for good?")) return;
+    b.disabled = true;
+    const res = await api({ method: "POST", body: JSON.stringify({ id: Number(b.dataset.id), action: b.dataset.act }) });
+    if (!res.ok) inboxStatus.textContent = (await res.json().catch(() => ({}))).error ?? "That didn't work, please try again.";
+    await load().catch((err) => (inboxStatus.textContent = err.message));
+  });
+
+  // Stay unlocked while this tab is open.
+  try {
+    const saved = sessionStorage.getItem(KEY);
+    if (saved) { password = saved; open(); }
+  } catch {}
+</script>

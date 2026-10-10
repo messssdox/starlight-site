@@ -10,14 +10,17 @@ interface Props {
   description?: string;
   /** "library" gives the calmer, archive-style look. */
   zone?: "main" | "library";
+  /** Keep this page out of search engines (used by /admin). */
+  noindex?: boolean;
 }
 
-const { title, description = "Free numerology, astrology and Chinese zodiac readings, forever.", zone = "main" } = Astro.props;
+const { title, description = "Free numerology, astrology and Chinese zodiac readings, forever.", zone = "main", noindex = false } = Astro.props;
 const nav = [
   { href: "/", label: "Home" },
   { href: "/numerology", label: "Numerology" },
   { href: "/library", label: "Library" },
   { href: "/glossary", label: "Glossary" },
+  { href: "/thoughts", label: "Your thoughts" },
   { href: "/support", label: "Support" },
 ];
 ---
@@ -29,6 +32,7 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title} · Starlight</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -54,9 +58,10 @@ const nav = [
     <footer class="site-footer">
       <div class="container">
         <p>Starlight is free, and always will be. Readings are for reflection and self-understanding, not predictions or advice.</p>
-        <p class="muted small">
-          Animal medallions made from <a href="https://game-icons.net">Game-icons.net</a> artwork (CC BY 3.0) and an <a href="https://github.com/joypixels/emojione-legacy">EmojiOne</a> dragon (CC BY 4.0).
-          Planet positions: <a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> (MIT licence).
+        <p class="muted small credit-line">
+          <span>Crafted with ✨ by Dean Theron</span>
+          <span aria-hidden="true">·</span>
+          <a href="/credits">Credits</a>
         </p>
       </div>
     </footer>
@@ -81,6 +86,7 @@ const nav = [
   main { position: relative; z-index: 1; }
   .site-footer { position: relative; z-index: 1; padding: 3rem 0; border-top: 1px solid rgba(156, 122, 60, 0.25); margin-top: 4rem; font-size: 0.9rem; }
   .small { font-size: 0.8rem; }
+  .credit-line { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
   @media (max-width: 640px) {
     nav { margin-left: 0; width: 100%; gap: 0.9rem; }
   }
