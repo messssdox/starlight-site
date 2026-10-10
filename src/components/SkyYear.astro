@@ -2,7 +2,7 @@
 // Sky now: the next 12 months in the sky: new and full Moons, eclipses, retrogrades, sign changes and the
 // solstices and equinoxes. Everything is worked out in the visitor's browser (src/lib/sky-events.ts),
 // so the list always starts from today and shows times in the visitor's own time zone.
-// The home page shows this month and next (months={2}) with a link to the full year on /sky.
+// The home page shows this month and next (months={2}), with no filters, and a link to the full year on /sky.
 interface Props {
   /** How many calendar months to list, starting with this one. */
   months?: number;
@@ -31,11 +31,13 @@ const FILTERS = [
 
   <p class="now panel" data-now hidden></p>
 
-  <div class="filters" role="radiogroup" aria-label="Show">
-    {FILTERS.map(([id, label], i) => (
-      <label class="chip"><input type="radio" name="sky-filter" value={id} checked={i === 0} /><span>{label}</span></label>
-    ))}
-  </div>
+  {months === 12 && (
+    <div class="filters" role="radiogroup" aria-label="Show">
+      {FILTERS.map(([id, label], i) => (
+        <label class="chip"><input type="radio" name="sky-filter" value={id} checked={i === 0} /><span>{label}</span></label>
+      ))}
+    </div>
+  )}
 
   <div class="months" data-months>
     <p class="muted loading">Reading the sky…</p>
