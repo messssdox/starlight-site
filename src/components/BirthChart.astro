@@ -79,6 +79,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
   const root = document.querySelector<HTMLElement>("[data-chart]")!;
   const articles = new Set<string>(JSON.parse(root.dataset.articles ?? "[]"));
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const shareAttr = (title: string, text: string) => ` data-share-title="${esc(title)}" data-share-text="${esc(text)}"`;
   const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
   const link = (id: string, label: string) => (articles.has(id) ? `<a href="/library/${id}">${esc(label)}</a>` : "");
 
@@ -260,16 +261,16 @@ const articles = (await getCollection("library")).map((a) => a.id);
   }
 
   function bigThree(chart: Chart, byId: Record<PointId, PointPosition>) {
-    const card = (what: string, glyph: string, sign: string, body: string) =>
-      `<div class="panel"><span class="w">${what}</span><span class="g">${glyph}</span><span class="s">${sign}</span>${body}</div>`;
+    const card = (what: string, glyph: string, sign: string, body: string, share = "") =>
+      `<div class="panel"${share}><span class="w">${what}</span><span class="g">${glyph}</span><span class="s">${sign}</span>${body}</div>`;
     const one = (id: "sun" | "moon") => {
       const p = byId[id];
       const deg = tier === "deep" ? ` ${formatDegree(p.degree)}` : "";
-      return card(`${PLANET_BY_ID[id].name} sign`, p.sign.glyph, `${p.sign.name}${deg}`, `<p class="muted">${PLACEMENTS[id][p.sign.id].glance}.</p>`);
+      return card(`${PLANET_BY_ID[id].name} sign`, p.sign.glyph, `${p.sign.name}${deg}`, `<p class="muted">${PLACEMENTS[id][p.sign.id].glance}.</p>`, shareAttr(`${PLANET_BY_ID[id].name} in ${p.sign.name}`, PLACEMENTS[id][p.sign.id].glance));
     };
     const asc = chart.angles?.asc;
     const rising = asc
-      ? card("Rising sign", asc.sign.glyph, `${asc.sign.name}${tier === "deep" ? ` ${formatDegree(asc.degree)}` : ""}`, `<p class="muted">${PLACEMENTS.rising[asc.sign.id].glance}.</p>`)
+      ? card("Rising sign", asc.sign.glyph, `${asc.sign.name}${tier === "deep" ? ` ${formatDegree(asc.degree)}` : ""}`, `<p class="muted">${PLACEMENTS.rising[asc.sign.id].glance}.</p>`, shareAttr(`${asc.sign.name} Rising`, PLACEMENTS.rising[asc.sign.id].glance))
       : card("Rising sign", "?", "Not yet known", `<p class="muted">Needs your birth time and town. <a href="#add-details">Add them below</a></p>`);
     return `<section class="part"><h3>Your Big Three</h3>${tier === "glance" ? "" : `<p class="muted">Your Sun is your core self, your Moon is your emotional side, and your Rising sign is the first impression you give.</p>`}<div class="big3">${one("sun")}${one("moon")}${rising}</div></section>`;
   }
