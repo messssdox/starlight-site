@@ -1,0 +1,149 @@
+---
+// Sky now: the next 12 months in the sky: new and full Moons, eclipses, retrogrades, sign changes and the
+// solstices and equinoxes. Everything is worked out in the visitor's browser (src/lib/sky-events.ts),
+// so the list always starts from today and shows times in the visitor's own time zone.
+const FILTERS = [
+  ["all", "Everything"],
+  ["moon", "New & full Moons"],
+  ["eclipse", "Eclipses"],
+  ["retrograde", "Retrogrades"],
+  ["ingress", "Sign changes"],
+  ["season", "Seasons"],
+];
+---
+
+<section class="sky-year" id="sky-now" aria-labelledby="sky-year-title" data-sky-year>
+  <p class="eyebrow">Sky now</p>
+  <h2 id="sky-year-title">The next 12 months in the sky</h2>
+  <p class="muted lede">
+    Every new and full Moon, eclipse, retrograde and planet changing sign from today onwards. Tap a month to open it.
+    Times are shown in your own time zone.
+  </p>
+
+  <p class="now panel" data-now hidden></p>
+
+  <div class="filters" role="radiogroup" aria-label="Show">
+    {FILTERS.map(([id, label], i) => (
+      <label class="chip"><input type="radio" name="sky-filter" value={id} checked={i === 0} /><span>{label}</span></label>
+    ))}
+  </div>
+
+  <div class="months" data-months>
+    <p class="muted loading">Reading the sky…</p>
+  </div>
+</section>
+
+<style>
+  .lede { max-width: 720px; }
+  .now { padding: 14px 18px; margin: 0 0 16px; font-size: 0.95rem; }
+  .now :global(strong) { color: var(--gold); }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
+  .chip { margin: 0; cursor: pointer; }
+  .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .chip span { display: inline-block; padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(142, 107, 217, 0.45); font-size: 0.88rem; transition: all 0.15s; }
+  .chip span:hover { border-color: var(--gold); }
+  .chip input:checked + span { border-color: var(--gold); background: rgba(212, 175, 90, 0.18); color: var(--gold); }
+  .chip input:focus-visible + span { outline: 2px solid var(--orchid); outline-offset: 2px; }
+
+  .months { display: grid; gap: 10px; }
+  .months :global(details) { padding: 0; }
+  .months :global(summary) { list-style: none; cursor: pointer; padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+  .months :global(summary::-webkit-details-marker) { display: none; }
+  .months :global(summary::before) { content: "▸"; color: var(--antique-gold); transition: transform 0.2s; }
+  .months :global(details[open] summary::before) { transform: rotate(90deg); }
+  .months :global(.m-name) { font-family: var(--font-display); color: var(--gold); letter-spacing: 0.04em; font-size: 1.1rem; }
+  .months :global(.m-sum) { color: var(--mist); font-size: 0.88rem; }
+  .months :global(ol) { list-style: none; margin: 0; padding: 0 18px 12px; }
+  .months :global(li) { display: grid; grid-template-columns: 92px 28px 1fr; gap: 2px 10px; padding: 10px 0; border-top: 1px solid rgba(156, 122, 60, 0.25); }
+  .months :global(li[hidden]) { display: none; }
+  .months :global(.e-date) { color: var(--mist); font-size: 0.85rem; line-height: 1.35; }
+  .months :global(.e-date b) { display: block; color: var(--moonlight); font-weight: 600; font-size: 0.95rem; }
+  .months :global(.e-icon) { color: var(--gold); font-size: 1.2rem; text-align: center; line-height: 1.3; }
+  .months :global(.e-title) { margin: 0; font-weight: 600; }
+  .months :global(.e-note) { margin: 2px 0 0; color: var(--mist); font-size: 0.9rem; }
+  .months :global(.e-note a) { white-space: nowrap; }
+  .months :global(.k-eclipse .e-title) { color: var(--gold); }
+  .months :global(.empty) { padding: 0 18px 14px; margin: 0; }
+  @media (max-width: 520px) {
+    .months :global(li) { grid-template-columns: 70px 22px 1fr; }
+  }
+</style>
+
+<script>
+  import { skyEvents, addMonths, retrogradeNow, type SkyEvent } from "../lib/sky-events.ts";
+
+  const NAMES: Record<string, string> = {
+    mercury: "Mercury", venus: "Venus", mars: "Mars", jupiter: "Jupiter", saturn: "Saturn", uranus: "Uranus", neptune: "Neptune", pluto: "Pluto",
+  };
+  const KIND_LABEL: Record<string, [string, string]> = {
+    eclipse: ["eclipse", "eclipses"], moon: ["Moon", "Moons"], retrograde: ["retrograde change", "retrograde changes"],
+    ingress: ["sign change", "sign changes"], season: ["season", "seasons"],
+  };
+
+  const section = document.querySelector<HTMLElement>("[data-sky-year]");
+  if (section) setTimeout(() => render(section), 0); // let the page paint first; the sums take a moment
+
+  function render(section: HTMLElement) {
+    const start = new Date();
+    const end = addMonths(start, 12);
+    const events = skyEvents(start, end);
+    const months = section.querySelector<HTMLElement>("[data-months]")!;
+    const day = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
+    const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const monthName = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" });
+
+    // What is retrograde right now, and when each turns direct.
+    const now = section.querySelector<HTMLElement>("[data-now]")!;
+    const rx = retrogradeNow(start).map((id) => {
+      const direct = events.find((e) => e.kind === "retrograde" && e.title.startsWith(`${NAMES[id]} turns direct`));
+      return `<strong>${NAMES[id]}</strong>${direct ? ` until ${day.format(direct.at)}` : ""}`;
+    });
+    now.innerHTML = rx.length
+      ? `<span aria-hidden="true">℞</span> Retrograde right now: ${rx.join(", ")}.`
+      : `<span aria-hidden="true">✦</span> No planets are retrograde right now.`;
+    now.hidden = false;
+
+    // Group into months, starting with the current one.
+    const groups: { label: string; events: SkyEvent[] }[] = [];
+    for (let i = 0; i <= 12; i++) {
+      const m = addMonths(new Date(start.getFullYear(), start.getMonth(), 1), i);
+      const list = events.filter((e) => e.at.getFullYear() === m.getFullYear() && e.at.getMonth() === m.getMonth());
+      if (list.length) groups.push({ label: monthName.format(m), events: list });
+    }
+
+    const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+    const row = (e: SkyEvent) => `
+      <li class="k-${e.kind}" data-kind="${e.kind}">
+        <span class="e-date"><b>${day.format(e.at)}</b>${time.format(e.at)}</span>
+        <span class="e-icon" aria-hidden="true">${e.icon}</span>
+        <div><p class="e-title">${esc(e.title)}</p><p class="e-note">${esc(e.note)}${e.link ? ` <a href="${e.link}">Learn more</a>` : ""}</p></div>
+      </li>`;
+
+    months.innerHTML = groups.map((g, i) => `
+      <details class="panel"${i === 0 ? " open" : ""}>
+        <summary><span class="m-name">${g.label}</span><span class="m-sum" data-sum></span></summary>
+        <ol>${g.events.map(row).join("")}</ol>
+        <p class="muted empty" hidden>Nothing of this kind this month.</p>
+      </details>`).join("");
+
+    const filter = (kind: string) => {
+      months.querySelectorAll<HTMLElement>("details").forEach((d) => {
+        let shown = 0;
+        const counts: Record<string, number> = {};
+        d.querySelectorAll<HTMLElement>("li").forEach((li) => {
+          const k = li.dataset.kind!;
+          const show = kind === "all" || k === kind;
+          li.hidden = !show;
+          if (show) { shown++; counts[k] = (counts[k] ?? 0) + 1; }
+        });
+        d.querySelector<HTMLElement>(".empty")!.hidden = shown > 0;
+        d.querySelector<HTMLElement>("[data-sum]")!.textContent = shown
+          ? Object.keys(KIND_LABEL).filter((k) => counts[k]).map((k) => [k, counts[k]] as const).map(([k, n]) => `${n} ${KIND_LABEL[k][n === 1 ? 0 : 1]}`).join(" · ")
+          : "nothing";
+      });
+    };
+    section.querySelectorAll<HTMLInputElement>("input[name=sky-filter]").forEach((input) =>
+      input.addEventListener("change", () => filter(input.value)));
+    filter("all");
+  }
+</script>
