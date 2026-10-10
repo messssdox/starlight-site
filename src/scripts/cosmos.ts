@@ -507,6 +507,35 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     c.restore();
   }
 
+  /** Jupiter's four big moons, orbiting at their real speeds relative to each other (sped up a lot),
+   *  seen almost edge-on so they pass in front of the planet and behind it. */
+  const GALILEAN: { orbit: number; days: number; size: number; colour: [string, string, string]; start: number }[] = [
+    { orbit: 1.6, days: 1.77, size: 0.075, colour: ["#fff2b0", "#e0b850", "#6a4a14"], start: 0.4 }, // Io
+    { orbit: 2.1, days: 3.55, size: 0.065, colour: ["#ffffff", "#d8cdb8", "#5a5040"], start: 2.2 }, // Europa
+    { orbit: 2.8, days: 7.15, size: 0.11, colour: ["#e8e0d4", "#9a8a78", "#3a3028"], start: 4.1 }, // Ganymede
+    { orbit: 3.7, days: 16.69, size: 0.1, colour: ["#b8b0a8", "#6a625a", "#24201c"], start: 5.6 }, // Callisto
+  ];
+  function moons(x: number, y: number, r: number, t: number, front: boolean) {
+    const c = ctx!;
+    const tilt = 0.05;
+    for (const mo of GALILEAN) {
+      const a = mo.start + (reduceMotion ? 0 : (t / (mo.days * 7)) * TAU);
+      const ahead = Math.sin(a) > 0; // the near half of the orbit
+      if (ahead !== front) continue;
+      const ox = Math.cos(a) * mo.orbit * r, oy = Math.sin(a) * mo.orbit * r * 0.08;
+      const mx = x + ox * Math.cos(tilt) - oy * Math.sin(tilt);
+      const my = y + ox * Math.sin(tilt) + oy * Math.cos(tilt);
+      const mr = Math.max(1.2, mo.size * r);
+      const [l, m, d] = mo.colour;
+      sphere(mx, my, mr, l, m, d);
+      // its small shadow on Jupiter's clouds when passing in front
+      if (front && Math.abs(ox) < r * 0.85) {
+        c.save(); c.globalAlpha *= 0.5; c.fillStyle = "#000";
+        c.beginPath(); c.arc(mx + r * 0.12, my + r * 0.06, mr * 0.9, 0, TAU); c.fill(); c.restore();
+      }
+    }
+  }
+
   /** `t` is seconds; `i` gives each planet its own gentle float so they never move in step. */
   function drawPlanet(p: Planet, t: number, i: number) {
     const scale = planetScale();
@@ -525,6 +554,7 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
       c.fillStyle = g; c.fillRect(x - r * 1.5, y - r * 1.5, r * 3, r * 3);
     }
     if (p.kind === "saturn") rings(x, y, r, p.tilt, Math.sin(p.lean) + 0.02, false);
+    if (p.kind === "jupiter") moons(x, y, r, t, false);
     const m = maps[p.kind], tex = textures[p.kind];
     if (m && tex) {
       let light = SUN, ambient = 0.05, turn = p.spin && !reduceMotion ? t / p.spin : 0.2;
@@ -541,6 +571,7 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
       sphere(x, y, r, a, b, d);
     }
     if (p.kind === "saturn") rings(x, y, r, p.tilt, Math.sin(p.lean) + 0.02, true);
+    if (p.kind === "jupiter") moons(x, y, r, t, true);
     c.restore();
   }
 
