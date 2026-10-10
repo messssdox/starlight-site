@@ -7,7 +7,7 @@
 //   4. the years, newest on the outside, every 12 years further in
 // Directly opposite animals clash. Selecting an animal or a year turns the wheel so that animal sits at the top,
 // under the gold marker, and the three boxes below the wheel explain its friends, secret friend and clash.
-import { ANIMALS, SECRET_FRIENDS, SEASONS } from "../data/zodiac.ts";
+import { ANIMALS, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS } from "../data/zodiac.ts";
 
 const R = {
   centre: 54,
@@ -70,15 +70,25 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
       </defs>
 
       <g class="rot">
-        <!-- outer edge: the four seasons and their elements -->
-        <g class="rim" aria-hidden="true">
+        <!-- outer edge: the four seasons and their elements, plus Earth at the turn of each season. Tap one for its meaning. -->
+        <g class="rim">
           {SEASONS.map((s) => {
             const first = ANIMALS.find((a) => a.id === s.animals[0])!.index;
             const mid = ANIMALS.find((a) => a.id === s.animals[1])!;
             return (
-              <g class="season" data-element={s.element}>
-                <path d={wedge(first, R.rimIn, R.rimOut, 3)} fill={s.colour} />
-                <text class="season-name tt" {...tt(mid.index, (R.rimIn + R.rimOut) / 2)} y="8" text-anchor="middle">{s.element.toUpperCase()}</text>
+              <g class="season elem" data-element={s.element} tabindex="0" role="button" aria-label={`${s.element}: what this element means`}>
+                <path class="band" d={wedge(first, R.rimIn, R.rimOut, 3)} fill={s.colour} />
+                <text class="season-name tt" {...tt(mid.index, (R.rimIn + R.rimOut) / 2)} y="8" text-anchor="middle">{`${ELEMENTS[s.element].glyph} ${s.element.toUpperCase()}`}</text>
+                <path class="elem-outline" d={wedge(first, R.rimIn, R.rimOut, 3)} />
+              </g>
+            );
+          })}
+          {EARTH_ANIMALS.map((id) => {
+            const a = ANIMALS.find((x) => x.id === id)!;
+            return (
+              <g class="earth-pill elem tt" data-element="Earth" {...tt(a.index, (R.rimIn + R.rimOut) / 2)} tabindex="0" role="button" aria-label="Earth: what this element means">
+                <rect x="-50" y="-13" width="100" height="26" rx="13" />
+                <text y="6" text-anchor="middle">土 EARTH</text>
               </g>
             );
           })}
@@ -149,10 +159,11 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
       <g class="centre" aria-hidden="true" pointer-events="none">
         <circle r={R.centre} />
         <image class="centre-img" href="/animals/rat.png" x="-46" y="-46" width="92" height="92" />
+        <text class="centre-glyph" y="20" text-anchor="middle"></text>
       </g>
     </svg>
 
-    <h3 class="select-title">Select an animal or year</h3>
+    <h3 class="select-title">Select an animal, year or element</h3>
     <div class="insights" data-insights>
       <div class="insight" data-kind="friends"><p class="label">Friends</p><div class="body"></div></div>
       <div class="insight" data-kind="secret"><p class="label">Secret friend</p><div class="body"></div></div>
@@ -190,13 +201,22 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
   .wheel.no-anim .rot, .wheel.no-anim .upright { transition: none; }
   @media (prefers-reduced-motion: reduce) { .wheel .rot, .wheel .upright { transition: none; } }
 
-  .wheel .season-name { font: 700 24px var(--font-display); fill: #120e1f; letter-spacing: 0.24em; }
+  .wheel .season-name { font: 700 24px var(--font-display); fill: #120e1f; letter-spacing: 0.22em; }
+  .wheel .elem { cursor: pointer; outline: none; }
+  .wheel .elem-outline { fill: none; stroke: transparent; stroke-width: 6; transition: stroke 0.3s; }
+  .wheel .season:hover .elem-outline, .wheel .season:focus-visible .elem-outline { stroke: rgba(212, 175, 90, 0.8); }
+  .wheel .season.is-on .elem-outline { stroke: #d4af5a; stroke-width: 9; filter: url(#glow); }
+  .wheel .earth-pill rect { fill: #D9B66B; stroke: #120e1f; stroke-width: 2; transition: stroke 0.3s; }
+  .wheel .earth-pill text { font: 700 14px var(--font-body); fill: #120e1f; letter-spacing: 0.1em; }
+  .wheel .earth-pill:hover rect, .wheel .earth-pill:focus-visible rect { stroke: #d4af5a; stroke-width: 3; }
+  .wheel .earth-pill.is-on rect { stroke: #d4af5a; stroke-width: 4; filter: url(#glow); }
   .wheel .num-band { fill: #faf6ee; }
   .wheel .num { font: 700 19px var(--font-display); fill: #2a2135; }
   .wheel .name { font: 700 26px var(--font-display); fill: #120e1f; letter-spacing: 0.05em; paint-order: stroke; stroke: rgba(255, 255, 255, 0.35); stroke-width: 3px; }
   .wheel .ink circle, .wheel .ink line { fill: none; stroke: #1d1729; stroke-width: 2.4; }
   .wheel .spoke { stroke: #1d1729; stroke-width: 1.6; }
   .wheel .centre circle { fill: #120e1f; stroke: #d4af5a; stroke-width: 3; }
+  .wheel .centre-glyph { font: 600 56px serif; fill: #d4af5a; }
   .wheel .marker path { fill: #d4af5a; stroke: #120e1f; stroke-width: 3; filter: url(#glow); }
 
   .wheel .seg { cursor: pointer; outline: none; }
@@ -238,6 +258,7 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
   .insight :global(.who img) { width: 40px; height: 40px; }
   .insight :global(.who strong) { color: var(--gold); font-size: 1.05rem; }
   .insight :global(p) { margin: 4px 0; }
+  .insight :global(.elem-link) { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--gold); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
   .insight :global(.next) { color: var(--mist); font-size: 0.85rem; }
   @media (max-width: 520px) { .insight { grid-template-columns: 1fr; } .insight .label { padding: 8px; } }
 
@@ -247,6 +268,11 @@ const yearLabel = (y: number, row: number) => (row < 3 ? String(y) : String(y).s
   .details :global(.head) { display: grid; grid-template-columns: 84px 1fr; gap: 14px; align-items: center; }
   .details :global(.head img) { width: 84px; height: 84px; }
   .details :global(h3) { font-size: 1.7rem; margin: 0; }
+  .details :global(.elem-link) { background: none; border: 0; padding: 0; font: inherit; color: var(--gold); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+  .details :global(.elem-chips) { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .details :global(.elem-chips button) { border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; border: 1px solid #120e1f; color: #120e1f; font-weight: 600; }
+  .details :global(.elem-chips button[aria-pressed="true"]) { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .details :global(.glyph) { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-size: 2.6rem; color: #120e1f; border: 3px solid var(--gold); font-family: serif; }
   .details :global(.aka) { margin: 4px 0 0; font-size: 0.85rem; font-style: italic; color: #e9d9b0; }
   .details :global(.sub) { margin: 2px 0 0; color: var(--mist); font-size: 0.9rem; }
   .details :global(.year-box) { border: 1px solid var(--gold); border-radius: 12px; padding: 10px 14px; margin: 0 0 16px; background: rgba(212, 175, 90, 0.08); }

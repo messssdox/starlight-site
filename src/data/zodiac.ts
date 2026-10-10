@@ -190,3 +190,71 @@ export const PROFILES: Record<string, Profile> = {
     luckyNumbers: [2, 5, 8], luckyColours: ["Yellow", "Grey", "Brown", "Gold"], luckyFlowers: ["Hydrangea", "Daisy"],
   },
 };
+
+/** The five elements (Wu Xing), shown on the wheel's outer edge and explained when tapped. */
+export interface ElementInfo {
+  id: Element;
+  glyph: string;
+  colour: string;
+  season: string;
+  direction: string;
+  colourName: string;
+  planet: string;
+  body: string;
+  essence: string;
+  personality: string;
+  strengths: string;
+  watchOut: string;
+  feeds: Element;
+  fedBy: Element;
+  controls: Element;
+  controlledBy: Element;
+  /** Last digits of the years ruled by this element. */
+  digits: [number, number];
+}
+
+export const ELEMENTS: Record<Element, ElementInfo> = {
+  Wood: {
+    id: "Wood", glyph: "木", colour: "#CFE2A2", season: "Spring", direction: "East", colourName: "Green", planet: "Jupiter", body: "Liver",
+    essence: "Wood is growth: the green shoot pushing up through the soil in spring.",
+    personality: "Wood people are generous, creative and full of plans, always reaching for something better.",
+    strengths: "Vision, kindness and the drive to build and improve.",
+    watchOut: "Taking on too much, or frustration when progress is slow.",
+    feeds: "Fire", fedBy: "Water", controls: "Earth", controlledBy: "Metal", digits: [4, 5],
+  },
+  Fire: {
+    id: "Fire", glyph: "火", colour: "#F4A3A0", season: "Summer", direction: "South", colourName: "Red", planet: "Mars", body: "Heart",
+    essence: "Fire is energy: the full warmth and light of summer.",
+    personality: "Fire people are passionate, warm and expressive, lighting up everyone around them.",
+    strengths: "Enthusiasm, courage and a gift for inspiring others.",
+    watchOut: "Burning out, or acting before thinking.",
+    feeds: "Earth", fedBy: "Wood", controls: "Metal", controlledBy: "Water", digits: [6, 7],
+  },
+  Earth: {
+    id: "Earth", glyph: "土", colour: "#D9B66B", season: "The turn of each season", direction: "Centre", colourName: "Yellow", planet: "Saturn", body: "Stomach and spleen",
+    essence: "Earth is balance: the steady ground at the centre that every season returns to.",
+    personality: "Earth people are patient, practical and nurturing, the calm centre others lean on.",
+    strengths: "Reliability, empathy and common sense.",
+    watchOut: "Worrying too much, or resisting change.",
+    feeds: "Metal", fedBy: "Fire", controls: "Water", controlledBy: "Wood", digits: [8, 9],
+  },
+  Metal: {
+    id: "Metal", glyph: "金", colour: "#BFC4CC", season: "Autumn", direction: "West", colourName: "White", planet: "Venus", body: "Lungs",
+    essence: "Metal is clarity: the crisp air of autumn and the harvest gathered in.",
+    personality: "Metal people are determined, principled and precise, with a strong sense of right and wrong.",
+    strengths: "Focus, discipline and the courage to let go of what no longer serves.",
+    watchOut: "Being rigid, or holding on to grief and high standards too tightly.",
+    feeds: "Water", fedBy: "Earth", controls: "Wood", controlledBy: "Fire", digits: [0, 1],
+  },
+  Water: {
+    id: "Water", glyph: "水", colour: "#93CBE6", season: "Winter", direction: "North", colourName: "Black and blue", planet: "Mercury", body: "Kidneys",
+    essence: "Water is wisdom: the still, deep rest of winter, gathering strength for spring.",
+    personality: "Water people are intuitive, thoughtful and adaptable, flowing around obstacles rather than fighting them.",
+    strengths: "Insight, diplomacy and a calm, reflective mind.",
+    watchOut: "Fear of the unknown, or drifting without direction.",
+    feeds: "Wood", fedBy: "Metal", controls: "Fire", controlledBy: "Earth", digits: [2, 3],
+  },
+};
+
+/** Earth has no season of its own: it sits at the turn of each season, in the last animal of each. */
+export const EARTH_ANIMALS = ["ox", "dragon", "goat", "dog"];

@@ -2,7 +2,7 @@
 // so that animal sits at the top under the gold marker, labels its friends, secret friend and clash
 // on the wheel, fills the three boxes under the wheel with what each one means, and shows the
 // animal's own profile in the side panel.
-import { ANIMALS, GROUPS, PROFILES, SECRET_FRIENDS, animalById, seasonOf, type Animal } from "../data/zodiac.ts";
+import { ANIMALS, GROUPS, PROFILES, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS, animalById, seasonOf, type Animal, type Element } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
 import {
   chineseSign, friendsOf, secretFriendOf, clashOf, relationBetween,
@@ -44,6 +44,25 @@ const FRIEND_INSIGHT: Record<string, string> = {
 
 interface Focus { date?: string; year?: number }
 
+/** How each element feeds the next (the producing cycle) and keeps another in check (the controlling cycle), in pictures. */
+const FEEDS_PICTURE: Record<Element, string> = {
+  Wood: "wood fuels a flame",
+  Fire: "fire leaves ash that becomes new earth",
+  Earth: "the earth holds metal ore deep inside it",
+  Metal: "cool metal gathers water, like morning dew",
+  Water: "water helps plants and trees grow",
+};
+const CONTROLS_PICTURE: Record<Element, string> = {
+  Wood: "roots break up and hold the soil",
+  Fire: "fire melts metal",
+  Earth: "earth banks hold back water",
+  Metal: "the axe cuts wood",
+  Water: "water puts out fire",
+};
+
+/** A tappable element name, used inside the side panel and boxes. */
+const elemLink = (e: Element) => `<button type="button" class="elem-link" data-element="${e}">${e}</button>`;
+
 export function initWheel(root: HTMLElement) {
   const svg = root.querySelector<SVGSVGElement>("svg.wheel")!;
   const details = root.querySelector<HTMLElement>("[data-details]")!;
@@ -53,6 +72,14 @@ export function initWheel(root: HTMLElement) {
   const cols = [...svg.querySelectorAll<SVGGElement>(".year-col")];
   const yearCells = [...svg.querySelectorAll<SVGGElement>(".year")];
   const texts = [...svg.querySelectorAll<SVGElement>(".tt")];
+  const elems = [...svg.querySelectorAll<SVGGElement>(".elem")];
+  const centreGlyph = svg.querySelector<SVGTextElement>(".centre-glyph")!;
+  const box = (kind: string) => insights.querySelector<HTMLElement>(`[data-kind="${kind}"]`)!;
+  const setLabels = (a: string, b: string, c: string) => {
+    box("friends").querySelector(".label")!.textContent = a;
+    box("secret").querySelector(".label")!.textContent = b;
+    box("clash").querySelector(".label")!.textContent = c;
+  };
 
   let spin = 0; // running total, so the wheel always turns the short way round
   let current = "";
@@ -104,6 +131,10 @@ export function initWheel(root: HTMLElement) {
     const other = compareWith && compareWith !== current ? animalById(compareWith) : null;
 
     turnTo(self, animate);
+    elems.forEach((e) => e.classList.remove("is-on"));
+    centreGlyph.textContent = "";
+    centreImg.style.display = "";
+    setLabels("Friends", "Secret friend", "Clash");
     segs.forEach((g) => {
       const id = g.dataset.id!;
       const isFriend = friends.some((f) => f.id === id);
@@ -131,7 +162,6 @@ export function initWheel(root: HTMLElement) {
   function renderInsights(self: Animal, friends: Animal[], secret: Animal, clash: Animal) {
     const group = GROUPS[self.group];
     const pair = SECRET_FRIENDS.find((s) => s.pair.includes(self.id))!;
-    const box = (kind: string) => insights.querySelector<HTMLElement>(`[data-kind="${kind}"]`)!;
     box("friends").style.setProperty("--c", group.colour);
     box("secret").style.setProperty("--c", pair.colour);
     box("clash").style.setProperty("--c", CLASH_RED);
@@ -170,7 +200,7 @@ export function initWheel(root: HTMLElement) {
           : `<p>You were born on ${longDate(focus.date)}.</p>`;
       }
       const el = elementOfZodiacYear(y);
-      yearBox = `<div class="year-box">${born}<p><strong>${y} is ${article(el)} ${el} ${self.name} year</strong> (${yinYangOfZodiacYear(y).toLowerCase()}).${span}</p></div>`;
+      yearBox = `<div class="year-box">${born}<p><strong>${y} is ${article(el)} ${el} ${self.name} year</strong> (${yinYangOfZodiacYear(y).toLowerCase()}).${span}</p><p>Every year also has an element, from its last digit. Tap ${elemLink(el)} to see what it brings.</p></div>`;
     }
 
     const now = new Date().getFullYear();
@@ -198,7 +228,7 @@ export function initWheel(root: HTMLElement) {
         <dt>Watch out for</dt><dd>${profile.watchOut}</dd>
         <dt>In love</dt><dd>${profile.love}</dd>
         <dt>At work</dt><dd>${profile.work}</dd>
-        <dt>Season</dt><dd>${season.season} (${season.element}) brings ${season.meaning}.</dd>
+        <dt>Elements</dt><dd>The ${self.name}'s own element is ${elemLink(self.element)}. It sits in ${season.season.toLowerCase()} on the outer edge, the season of ${elemLink(season.element)}, which brings ${season.meaning}.${EARTH_ANIMALS.includes(self.id) ? ` As the last animal of its season, it also carries ${elemLink("Earth")}, which links one season to the next.` : ""}</dd>
       </dl>
       <div class="lucky">
         <div><span>Lucky numbers</span><b>${profile.luckyNumbers.join(", ")}</b></div>
@@ -222,6 +252,71 @@ export function initWheel(root: HTMLElement) {
     document.dispatchEvent(new Event("glossary:scan"));
   }
 
+  /** Show one element: highlight it on the edge, mark its animals, and explain it in the boxes and panel. */
+  function selectElement(el: Element) {
+    const info = ELEMENTS[el];
+    const season = SEASONS.find((x) => x.element === el);
+    const seasonAnimals = (season ? season.animals : EARTH_ANIMALS).map(animalById);
+    const own = ANIMALS.filter((a) => a.element === el);
+    if (season) turnTo(animalById(season.animals[1]), true);
+
+    elems.forEach((e) => e.classList.toggle("is-on", e.dataset.element === el));
+    segs.forEach((g) => {
+      const id = g.dataset.id!;
+      const inSeason = seasonAnimals.some((a) => a.id === id);
+      g.classList.remove("is-self", "is-secret", "is-clash");
+      g.classList.toggle("is-friend", inSeason);
+      g.setAttribute("aria-pressed", "false");
+      setBadge(g, inSeason ? el.toUpperCase() : null);
+    });
+    cols.forEach((c) => c.classList.remove("is-self"));
+    yearCells.forEach((c) => c.classList.remove("is-picked"));
+    centreImg.style.display = "none";
+    centreGlyph.textContent = info.glyph;
+
+    setLabels(season ? `${info.season} animals` : "Linking animals", "Feeds", "Controls");
+    box("friends").style.setProperty("--c", info.colour);
+    box("secret").style.setProperty("--c", ELEMENTS[info.feeds].colour);
+    box("clash").style.setProperty("--c", ELEMENTS[info.controls].colour);
+    box("friends").querySelector(".body")!.innerHTML = `
+      <div class="who">${seasonAnimals.map((a) => img(a)).join("")}<strong>${list(seasonAnimals.map((a) => a.name))}</strong></div>
+      <p>${season
+        ? `These three animals make up ${info.season.toLowerCase()} on the wheel, so ${el} colours how they feel and act.`
+        : "Earth has no season of its own. It sits at the turn of every season, in the last animal of each, and links one season to the next."}
+      ${own.length ? ` The ${list(own.map((a) => a.name))} also ${own.length > 1 ? "carry" : "carries"} ${el} as ${own.length > 1 ? "their" : "its"} own element.` : ""}</p>`;
+    box("secret").querySelector(".body")!.innerHTML = `
+      <p><strong>${el} feeds ${elemLink(info.feeds)}</strong>, just as ${FEEDS_PICTURE[el]}. And ${elemLink(info.fedBy)} feeds ${el}, as ${FEEDS_PICTURE[info.fedBy]}.</p>
+      <p class="next">In people, ${el} tends to energise and support ${info.feeds}, and to be nurtured by ${info.fedBy}.</p>`;
+    box("clash").querySelector(".body")!.innerHTML = `
+      <p><strong>${el} controls ${elemLink(info.controls)}</strong>, just as ${CONTROLS_PICTURE[el]}. And ${elemLink(info.controlledBy)} controls ${el}, as ${CONTROLS_PICTURE[info.controlledBy]}.</p>
+      <p class="next">In people, ${el} can keep ${info.controls} grounded, and may feel held back or challenged by ${info.controlledBy}.</p>`;
+
+    const now = new Date().getFullYear();
+    const upcoming = Array.from({ length: 10 }, (_, k) => now + k).filter((y) => info.digits.includes(y % 10));
+    const recent = Array.from({ length: 10 }, (_, k) => now - 9 + k).filter((y) => info.digits.includes(y % 10) && !upcoming.includes(y));
+    const chips = (Object.keys(ELEMENTS) as Element[]).map(
+      (e) => `<button type="button" data-element="${e}" aria-pressed="${e === el}" style="background:${ELEMENTS[e].colour}">${ELEMENTS[e].glyph} ${e}</button>`,
+    ).join("");
+    details.innerHTML = `
+      <div class="head"><div class="glyph" style="background:${info.colour}">${info.glyph}</div><div><h3>${el}</h3>
+        <p class="sub">${info.season} · ${info.direction} · ${info.colourName} · ${info.planet}</p></div></div>
+      <p>${info.essence}</p>
+      <dl>
+        <dt>Personality</dt><dd>${info.personality}</dd>
+        <dt>Strengths</dt><dd>${info.strengths}</dd>
+        <dt>Watch out for</dt><dd>${info.watchOut}</dd>
+        <dt>${el} years</dt><dd>Years ending in ${info.digits[0]} or ${info.digits[1]}${recent.length ? `, such as ${recent.join(" and ")}` : ""}. Next: ${upcoming.join(" and ")}. (Each year starts at Lunar New Year.)</dd>
+        <dt>In the body</dt><dd>Traditional Chinese medicine links ${el} to the ${info.body.toLowerCase()}.</dd>
+      </dl>
+      <div class="compare">
+        <h4>The five elements</h4>
+        <div class="elem-chips">${chips}</div>
+        <p class="muted" style="margin-top:10px">Tap any animal on the wheel to go back to the animals.</p>
+      </div>`;
+    delete details.dataset.glossaryDone;
+    document.dispatchEvent(new Event("glossary:scan"));
+  }
+
   function select(id: string, f: Focus = {}, animate = true) {
     if (id !== current) compareWith = "";
     current = id;
@@ -236,6 +331,17 @@ export function initWheel(root: HTMLElement) {
     });
   });
   yearCells.forEach((c) => c.addEventListener("click", () => select(c.dataset.id!, { year: Number(c.dataset.year) })));
+
+  elems.forEach((g) => {
+    g.addEventListener("click", () => selectElement(g.dataset.element as Element));
+    g.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectElement(g.dataset.element as Element); }
+    });
+  });
+  root.addEventListener("click", (e) => {
+    const link = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-element]");
+    if (link) selectElement(link.dataset.element as Element);
+  });
 
   details.addEventListener("click", (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-compare]");
