@@ -19,8 +19,11 @@ const tiers = [
   </div>
 
   <section class="compat-box" data-compat>
-    <strong class="compat-title" id="compat-title">Add someone for a compatibility reading</strong>
-    <small>Optional. Pick who they are to you and you will get a reading of the two of you together.</small>
+    <button type="button" class="compat-open" id="compat-title" data-compat-open aria-expanded="false" aria-controls="compat-body">
+      <span>Add someone for a compatibility reading</span><span class="plus" aria-hidden="true">＋</span>
+    </button>
+    <div class="compat-body" id="compat-body" data-compat-body>
+    <small>Pick who they are to you and you will get a reading of the two of you together.</small>
     <div class="rel-list" data-rel-list role="radiogroup" aria-labelledby="compat-title">
       {RELATIONSHIP_GROUPS.map((g) => (
         <div class="rel-group">
@@ -47,6 +50,7 @@ const tiers = [
         <BirthDate id="f-date2" name="d2" label="Their birth date" />
       </div>
     </div>
+    </div>
   </section>
 
   <fieldset class="tiers">
@@ -65,8 +69,12 @@ const tiers = [
 <style>
   .reading-form { display: grid; gap: 18px; }
   .compat-box { border: 1px solid rgba(212, 175, 90, 0.45); border-radius: 14px; padding: 14px 16px; background: rgba(212, 175, 90, 0.06); display: grid; gap: 10px; }
-  .compat-title { display: block; color: var(--gold); font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
-  .compat-box > small { color: var(--mist); font-size: 0.82rem; margin-top: -6px; }
+  .compat-open { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; background: none; border: 0; padding: 0; text-align: left; cursor: pointer; color: var(--gold); font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+  .compat-open .plus { font-size: 1.2rem; transition: transform 0.2s; }
+  .compat-open[aria-expanded="true"] .plus { transform: rotate(45deg); }
+  .compat-open:focus-visible { outline: 2px solid var(--orchid); outline-offset: 4px; }
+  .compat-body { display: grid; gap: 10px; }
+  .compat-body > small { color: var(--mist); font-size: 0.82rem; }
   .rel-list { display: grid; gap: 8px; }
   .rel-group { display: grid; grid-template-columns: 4.5rem 1fr; gap: 8px; align-items: baseline; }
   .rel-g { color: var(--mist); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -81,7 +89,7 @@ const tiers = [
   .rel-chosen strong { color: var(--gold); }
   .link-btn { background: none; border: 0; padding: 0; color: var(--orchid); font: inherit; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
   .compat-fields { display: grid; gap: 14px; }
-  .compat-fields[hidden], .rel-chosen[hidden], .rel-list[hidden], .tiers[hidden] { display: none; }
+  .compat-fields[hidden], .rel-chosen[hidden], .rel-list[hidden], .tiers[hidden], .compat-body[hidden] { display: none; }
   .tiers { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tiers legend { font-family: var(--font-display); color: var(--gold); margin-bottom: 10px; font-size: 1.05rem; }
   .tier { margin: 0; cursor: pointer; }
@@ -100,18 +108,26 @@ const tiers = [
 </style>
 
 <script>
-  // Relationship choices show at a glance. Picking one folds the list away and shows the
-  // second person's fields, which are only sent, and only required, once someone is chosen.
+  // The compatibility box starts as one line. Tapping it opens the relationship choices;
+  // picking one folds the list away and shows the second person's fields, which are only
+  // sent, and only required, once someone is chosen.
   const box = document.querySelector<HTMLElement>("[data-compat]");
   if (box) {
+    const opener = box.querySelector<HTMLButtonElement>("[data-compat-open]")!;
+    const body = box.querySelector<HTMLElement>("[data-compat-body]")!;
     const list = box.querySelector<HTMLElement>("[data-rel-list]")!;
     const chosen = box.querySelector<HTMLElement>("[data-rel-chosen]")!;
     const fields = box.querySelector<HTMLElement>("[data-compat-fields]")!;
     const radios = [...box.querySelectorAll<HTMLInputElement>('input[name="rel"]')];
-    const sync = (showList = false) => {
+    let open = false;
+    let changing = false;
+    const sync = () => {
       const picked = radios.find((r) => r.checked);
-      list.hidden = !!picked && !showList;
-      chosen.hidden = !picked || showList;
+      if (picked) open = true;
+      opener.setAttribute("aria-expanded", String(open));
+      body.hidden = !open;
+      list.hidden = !!picked && !changing;
+      chosen.hidden = !picked || changing;
       fields.hidden = !picked;
       // a relationship reading comes in one full version, so the depth choice steps aside
       const tiers = document.querySelector<HTMLElement>(".reading-form .tiers");
@@ -121,14 +137,24 @@ const tiers = [
       }
       box.querySelector<HTMLElement>("[data-rel-label]")!.textContent = picked?.dataset.label ?? "";
       for (const el of fields.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select")) {
-        el.disabled = !picked;
+        // only the named fields are sent; the date lists stay enabled so the browser can
+        // refill them after the Back button
+        if (el.name) el.disabled = !picked;
         if (el.closest("[data-birthdate]")) el.required = !!picked && el.type !== "hidden";
       }
     };
-    for (const r of radios) r.addEventListener("change", () => sync());
-    box.querySelector("[data-rel-change]")!.addEventListener("click", () => sync(true));
+    opener.addEventListener("click", () => {
+      open = !open;
+      if (!open) for (const r of radios) r.checked = false;
+      changing = false;
+      sync();
+    });
+    for (const r of radios) r.addEventListener("change", () => { changing = false; sync(); });
+    box.querySelector("[data-rel-change]")!.addEventListener("click", () => { changing = true; sync(); });
     box.querySelector("[data-rel-clear]")!.addEventListener("click", () => {
       for (const r of radios) r.checked = false;
+      open = false;
+      changing = false;
       sync();
     });
     window.addEventListener("pageshow", () => sync());

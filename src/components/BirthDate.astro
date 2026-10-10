@@ -66,6 +66,10 @@ const months = ["January", "February", "March", "April", "May", "June", "July", 
     };
 
     for (const f of [day, month, year]) f.addEventListener("change", update);
+    // after the Back button the browser refills the lists but not the hidden date,
+    // so rebuild it whenever the page is shown and again just before sending
+    window.addEventListener("pageshow", update);
+    box.closest("form")?.addEventListener("submit", update);
     update();
   }
 </script>
