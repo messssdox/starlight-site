@@ -1,0 +1,109 @@
+---
+// "Share your reading": a tick list of the reading's highlights, so readers choose exactly
+// what to share. The highlights come from elements marked data-share-title and
+// data-share-text. The birth date and a link back (which contains it) are left out
+// unless the reader ticks them.
+---
+
+<section class="container share-wrap" data-share-wrap hidden>
+  <button class="btn" type="button" data-share-open>Share your reading ✦</button>
+  <dialog class="share-dialog panel" data-share-dialog aria-labelledby="share-title">
+    <form method="dialog">
+      <h2 id="share-title">Share your reading</h2>
+      <p class="muted">Tick what you would like to share. Nothing is sent anywhere until you choose how to share it.</p>
+      <ul class="share-list" data-share-list></ul>
+      <p class="share-done muted" data-share-done aria-live="polite"></p>
+      <div class="share-actions">
+        <button class="btn" type="button" data-share-go>Share</button>
+        <button class="btn ghost" type="button" data-share-copy>Copy text</button>
+        <button class="link-btn" value="close">Close</button>
+      </div>
+    </form>
+  </dialog>
+</section>
+
+<style>
+  .share-wrap { max-width: 900px; margin-top: 36px; }
+  .share-dialog { max-width: 560px; width: calc(100% - 32px); color: var(--moonlight); border: 1px solid rgba(212, 175, 90, 0.5); }
+  .share-dialog::backdrop { background: rgba(5, 4, 20, 0.7); }
+  .share-dialog h2 { margin-top: 0; }
+  .share-list { list-style: none; padding: 0; margin: 14px 0; display: grid; gap: 6px; max-height: 50vh; overflow-y: auto; }
+  .share-list :global(label) { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; align-items: start; margin: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(142, 107, 217, 0.3); cursor: pointer; }
+  .share-list :global(input) { margin-top: 4px; accent-color: var(--gold); width: 1rem; height: 1rem; }
+  .share-list :global(strong) { display: block; color: var(--gold); font-weight: 500; }
+  .share-list :global(small) { color: var(--mist); font-size: 0.82rem; }
+  .share-list :global(.private) { border-style: dashed; }
+  .share-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn.ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .link-btn { background: none; border: 0; color: var(--orchid); text-decoration: underline; cursor: pointer; font: inherit; }
+  .share-done { min-height: 1.2em; margin: 0 0 8px; font-size: 0.88rem; }
+</style>
+
+<script>
+  import { longDate } from "../lib/explain.ts";
+
+  const wrap = document.querySelector<HTMLElement>("[data-share-wrap]")!;
+  const dialog = wrap.querySelector<HTMLDialogElement>("[data-share-dialog]")!;
+  const list = wrap.querySelector<HTMLElement>("[data-share-list]")!;
+  const done = wrap.querySelector<HTMLElement>("[data-share-done]")!;
+  const q = new URLSearchParams(location.search);
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  interface Item { title: string; text: string; checked: boolean; private?: boolean; link?: boolean }
+  let items: Item[] = [];
+
+  // show the button once the reading has drawn something worth sharing
+  const reveal = () => { if (document.querySelector("[data-share-title]")) wrap.hidden = false; };
+  new MutationObserver(reveal).observe(document.body, { childList: true, subtree: true });
+  reveal();
+
+  wrap.querySelector("[data-share-open]")!.addEventListener("click", () => {
+    items = [...document.querySelectorAll<HTMLElement>("[data-share-title]")].map((el) => ({
+      title: el.dataset.shareTitle ?? "",
+      text: el.dataset.shareText ?? "",
+      checked: true,
+    }));
+    const d = q.get("d");
+    if (d) items.push({ title: "My birth date", text: `Born ${longDate(d)}`, checked: false, private: true });
+    items.push({ title: "A link to my full reading", text: "Anyone with the link sees your whole reading, including your name and birth date.", checked: false, private: true, link: true });
+    list.innerHTML = items.map((it, i) => `
+      <li><label class="${it.private ? "private" : ""}">
+        <input type="checkbox" data-i="${i}" ${it.checked ? "checked" : ""}>
+        <span><strong>${esc(it.title)}</strong><small>${esc(it.text)}</small></span>
+      </label></li>`).join("");
+    done.textContent = "";
+    dialog.showModal();
+  });
+  list.addEventListener("change", (e) => {
+    const box = e.target as HTMLInputElement;
+    items[Number(box.dataset.i)].checked = box.checked;
+  });
+
+  function compose() {
+    const picked = items.filter((it) => it.checked && !it.link);
+    const withLink = items.some((it) => it.link && it.checked);
+    const sentence = (t: string) => (t && !/[.!?]$/.test(t) ? `${t}.` : t);
+    const lines = picked.map((it) => (it.private ? it.text : `✦ ${it.title}${it.text ? `\n${sentence(it.text)}` : ""}`));
+    const url = withLink ? location.href : `${location.origin}/`;
+    return { text: `My Starlight reading\n\n${lines.join("\n\n")}\n\n${withLink ? "See my full reading" : "Get your own free reading"}: ${url}`, url };
+  }
+
+  wrap.querySelector("[data-share-go]")!.addEventListener("click", async () => {
+    const { text } = compose();
+    if (navigator.share) {
+      try { await navigator.share({ title: "My Starlight reading", text }); done.textContent = "Shared."; return; }
+      catch (e) { if ((e as Error).name === "AbortError") return; }
+    }
+    await copy(text);
+  });
+  wrap.querySelector("[data-share-copy]")!.addEventListener("click", () => copy(compose().text));
+
+  async function copy(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      done.textContent = "Copied. Paste it into a message or post.";
+    } catch {
+      done.textContent = "Your browser would not let us copy. Please try the Share button instead.";
+    }
+  }
+</script>

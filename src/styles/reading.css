@@ -72,3 +72,14 @@
 .reading .el-card dd { margin: 0; }
 .reading .back { font-size: 0.9rem; }
 .reading .part > .panel + .panel, .reading .part > .panel + .pair, .reading .part > .pair + .pair, .reading .part > .pair + .panel, .reading .compat > .panel, .reading .compat > .pair { margin-top: 14px; }
+
+/* Short headline-then-follow-on blocks, used by First Timers and relationship readings */
+.reading .says { display: grid; gap: 2px; }
+.reading .say { padding: 12px 0; border-bottom: 1px solid rgba(142, 107, 217, 0.2); }
+.reading .say:first-child { padding-top: 0; }
+.reading .say:last-child { border-bottom: 0; padding-bottom: 0; }
+.reading .say h3 { margin: 0 0 6px; font-size: 1.12rem; }
+.reading .say h3 .gl { color: var(--gold); margin-right: 6px; }
+.reading .say p { margin: 4px 0; }
+.reading .say .pl { color: var(--gold); }
+.reading .facts { font-size: 0.88rem; color: var(--mist); }
