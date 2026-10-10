@@ -2,6 +2,15 @@
 // Sky now: the next 12 months in the sky: new and full Moons, eclipses, retrogrades, sign changes and the
 // solstices and equinoxes. Everything is worked out in the visitor's browser (src/lib/sky-events.ts),
 // so the list always starts from today and shows times in the visitor's own time zone.
+// The home page shows this month and next (months={2}) with a link to the full year on /sky.
+interface Props {
+  /** How many calendar months to list, starting with this one. */
+  months?: number;
+  /** Use a page heading (h1) rather than a section heading (h2). */
+  page?: boolean;
+}
+const { months = 12, page = false } = Astro.props;
+const Heading = page ? "h1" : "h2";
 const FILTERS = [
   ["all", "Everything"],
   ["moon", "New & full Moons"],
@@ -12,12 +21,12 @@ const FILTERS = [
 ];
 ---
 
-<section class="sky-year" id="sky-now" aria-labelledby="sky-year-title" data-sky-year>
+<section class="sky-year" id="sky-now" aria-labelledby="sky-year-title" data-sky-year data-months-shown={months}>
   <p class="eyebrow">Sky now</p>
-  <h2 id="sky-year-title">The next 12 months in the sky</h2>
+  <Heading id="sky-year-title">{months === 12 ? "The next 12 months in the sky" : "This month and next in the sky"}</Heading>
   <p class="muted lede">
-    Every new and full Moon, eclipse, retrograde and planet changing sign from today onwards. Tap a month to open it.
-    Times are shown in your own time zone.
+    Every new and full Moon, eclipse, retrograde and planet changing sign{months === 12 ? " from today onwards. Tap a month to open it" : ""}.
+    Tap <em>What this means</em> on any entry for more. Times are shown in your own time zone.
   </p>
 
   <p class="now panel" data-now hidden></p>
@@ -31,6 +40,10 @@ const FILTERS = [
   <div class="months" data-months>
     <p class="muted loading">Reading the sky…</p>
   </div>
+
+  <p class="muted none" data-none hidden>Nothing of this kind {months === 12 ? "in the next 12 months" : "this month or next"}.</p>
+
+  {months < 12 && <p class="all"><a class="btn" href="/sky">See all 12 months ✦</a></p>}
 </section>
 
 <style>
@@ -63,9 +76,22 @@ const FILTERS = [
   .months :global(.e-note) { margin: 2px 0 0; color: var(--mist); font-size: 0.9rem; }
   .months :global(.e-note a) { white-space: nowrap; }
   .months :global(.k-eclipse .e-title) { color: var(--gold); }
-  .months :global(.empty) { padding: 0 18px 14px; margin: 0; }
+  .months :global(.e-until) { margin: 4px 0 0; font-size: 0.85rem; color: var(--antique-gold); }
+  .months :global(.more) { margin: 4px 0 0; grid-column: 3; }
+  .months :global(.more summary) { display: inline-flex; padding: 0; gap: 6px; font-size: 0.88rem; color: var(--orchid); }
+  .months :global(.more summary::before) { font-size: 0.8em; color: var(--orchid); }
+  .months :global(.more summary:hover) { color: var(--gold); }
+  .months :global(.more-body) { margin: 8px 0 4px; padding: 12px 14px; border-left: 2px solid rgba(212, 175, 90, 0.45); background: rgba(59, 31, 107, 0.18); border-radius: 0 10px 10px 0; }
+  .months :global(.more-body p) { margin: 0 0 8px; font-size: 0.92rem; line-height: 1.55; }
+  .months :global(.more-body p:last-child) { margin-bottom: 0; }
+  .months :global(.more-body strong) { color: var(--gold); font-weight: 600; }
+  .all { margin: 20px 0 0; text-align: center; }
+  .months :global(details.panel[hidden]) { display: none; }
+  .none { margin: 0; }
   @media (max-width: 520px) {
     .months :global(li) { grid-template-columns: 70px 22px 1fr; }
+    .months :global(.more) { grid-column: 1 / -1; }
+    .months :global(.more summary) { margin-left: 102px; }
   }
 </style>
 
@@ -85,8 +111,9 @@ const FILTERS = [
 
   function render(section: HTMLElement) {
     const start = new Date();
-    const end = addMonths(start, 12);
-    const events = skyEvents(start, end);
+    const shown = Number(section.dataset.monthsShown) || 12;
+    // Always work out the full year, so "until" dates are known even when fewer months are listed.
+    const events = skyEvents(start, addMonths(start, 12));
     const months = section.querySelector<HTMLElement>("[data-months]")!;
     const day = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
     const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" });
@@ -105,29 +132,44 @@ const FILTERS = [
 
     // Group into months, starting with the current one.
     const groups: { label: string; events: SkyEvent[] }[] = [];
-    for (let i = 0; i <= 12; i++) {
+    for (let i = 0; i < (shown === 12 ? 13 : shown); i++) {
       const m = addMonths(new Date(start.getFullYear(), start.getMonth(), 1), i);
       const list = events.filter((e) => e.at.getFullYear() === m.getFullYear() && e.at.getMonth() === m.getMonth());
       if (list.length) groups.push({ label: monthName.format(m), events: list });
     }
 
+    /** "3 days", "5 weeks", "4 months" */
+    const span = (a: Date, b: Date) => {
+      const days = Math.round((b.getTime() - a.getTime()) / 86_400_000);
+      if (days < 14) return `${days} day${days === 1 ? "" : "s"}`;
+      if (days < 63) return `${Math.round(days / 7)} weeks`;
+      return `${Math.round(days / 30.4)} months`;
+    };
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     const row = (e: SkyEvent) => `
       <li class="k-${e.kind}" data-kind="${e.kind}">
         <span class="e-date"><b>${day.format(e.at)}</b>${time.format(e.at)}</span>
         <span class="e-icon" aria-hidden="true">${e.icon}</span>
-        <div><p class="e-title">${esc(e.title)}</p><p class="e-note">${esc(e.note)}${e.link ? ` <a href="${e.link}">Learn more</a>` : ""}</p></div>
+        <div>
+          <p class="e-title">${esc(e.title)}</p>
+          <p class="e-note">${esc(e.note)}</p>
+          ${e.until ? `<p class="e-until">${esc(e.untilLabel ?? "Until")} ${day.format(e.until)} · ${span(e.at, e.until)}</p>` : ""}
+        </div>
+        <details class="more"><summary>What this means</summary><div class="more-body">
+            ${e.detail.map((d) => `<p>${d.h ? `<strong>${esc(d.h)}.</strong> ` : ""}${esc(d.p)}</p>`).join("")}
+            ${e.link ? `<p><a href="${e.link}">Read more in the Library</a></p>` : ""}
+        </div></details>
       </li>`;
 
     months.innerHTML = groups.map((g, i) => `
-      <details class="panel"${i === 0 ? " open" : ""}>
+      <details class="panel"${i === 0 || shown < 12 ? " open" : ""}>
         <summary><span class="m-name">${g.label}</span><span class="m-sum" data-sum></span></summary>
         <ol>${g.events.map(row).join("")}</ol>
-        <p class="muted empty" hidden>Nothing of this kind this month.</p>
       </details>`).join("");
 
     const filter = (kind: string) => {
-      months.querySelectorAll<HTMLElement>("details").forEach((d) => {
+      let any = false;
+      months.querySelectorAll<HTMLElement>(":scope > details").forEach((d) => {
         let shown = 0;
         const counts: Record<string, number> = {};
         d.querySelectorAll<HTMLElement>("li").forEach((li) => {
@@ -136,11 +178,13 @@ const FILTERS = [
           li.hidden = !show;
           if (show) { shown++; counts[k] = (counts[k] ?? 0) + 1; }
         });
-        d.querySelector<HTMLElement>(".empty")!.hidden = shown > 0;
+        d.hidden = shown === 0;
+        any ||= shown > 0;
         d.querySelector<HTMLElement>("[data-sum]")!.textContent = shown
           ? Object.keys(KIND_LABEL).filter((k) => counts[k]).map((k) => [k, counts[k]] as const).map(([k, n]) => `${n} ${KIND_LABEL[k][n === 1 ? 0 : 1]}`).join(" · ")
           : "nothing";
       });
+      section.querySelector<HTMLElement>("[data-none]")!.hidden = any;
     };
     section.querySelectorAll<HTMLInputElement>("input[name=sky-filter]").forEach((input) =>
       input.addEventListener("change", () => filter(input.value)));

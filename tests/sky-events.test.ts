@@ -33,3 +33,14 @@ test("Venus is retrograde on 10 October 2026, and Mercury is not", () => {
   assert.ok(rx.includes("venus") && rx.includes("saturn"));
   assert.ok(!rx.includes("mercury") && !rx.includes("mars"));
 });
+
+test("every entry explains what it means, and retrogrades say when they end", () => {
+  for (const e of events) assert.ok(e.detail.length > 0 && e.detail.every((d) => d.p.length > 20), `${e.title} has no detail`);
+  const rx = find("Mercury turns retrograde in Scorpio")!;
+  sameDay(rx.until, 2026, 11, 13, "Mercury retrograde ends");
+  assert.equal(rx.untilLabel, "Retrograde until");
+  assert.ok(rx.detail.some((d) => d.h === "Go easy on"));
+  const sun = find("The Sun enters Scorpio")!;
+  assert.equal(sun.untilLabel, "In Scorpio until");
+  sameDay(sun.until, 2026, 11, 22, "Sun leaves Scorpio");
+});
