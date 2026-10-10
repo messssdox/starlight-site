@@ -1,6 +1,7 @@
 ---
 // The standalone numerology area: a calculator that shows every step of the maths.
 import Base from "../layouts/Base.astro";
+import BirthDate from "../components/BirthDate.astro";
 ---
 
 <Base title="Numerology" description="Calculate your numerology numbers and see exactly how each one is worked out.">
@@ -18,10 +19,7 @@ import Base from "../layouts/Base.astro";
         <label for="nm">Full birth name</label>
         <input id="nm" name="n" placeholder="e.g. Ada Lovelace" />
       </div>
-      <div>
-        <label for="dt">Birth date</label>
-        <input id="dt" name="d" type="date" required />
-      </div>
+      <BirthDate id="dt" name="d" required />
       <button class="btn" type="submit">Calculate</button>
     </form>
 

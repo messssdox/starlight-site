@@ -1,6 +1,7 @@
 ---
 // The entry form on the homepage. The more someone shares, the deeper the reading.
 import { RELATIONSHIPS } from "../data/numbers.ts";
+import BirthDate from "./BirthDate.astro";
 const tiers = [
   { id: "glance", name: "Quick Glance", text: "Just the essence and your key traits." },
   { id: "first", name: "First Timers", text: "A friendly, gentle introduction, with everything explained." },
@@ -24,10 +25,7 @@ const tiers = [
       <label for="f-name">Your full birth name</label>
       <input id="f-name" name="n" autocomplete="name" placeholder="As on your birth certificate" required />
     </div>
-    <div>
-      <label for="f-date">Your birth date</label>
-      <input id="f-date" name="d" type="date" min="1900-01-01" max="2100-12-31" required />
-    </div>
+    <BirthDate id="f-date" name="d" label="Your birth date" required />
   </div>
 
   <details class="more">
@@ -59,10 +57,7 @@ const tiers = [
         <label for="f-name2">Their name</label>
         <input id="f-name2" name="n2" />
       </div>
-      <div>
-        <label for="f-date2">Their birth date</label>
-        <input id="f-date2" name="d2" type="date" min="1900-01-01" max="2100-12-31" />
-      </div>
+      <BirthDate id="f-date2" name="d2" label="Their birth date" />
     </div>
   </details>
 
