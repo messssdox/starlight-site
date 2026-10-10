@@ -81,7 +81,7 @@ const tiers = [
   .rel-chosen strong { color: var(--gold); }
   .link-btn { background: none; border: 0; padding: 0; color: var(--orchid); font: inherit; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
   .compat-fields { display: grid; gap: 14px; }
-  .compat-fields[hidden], .rel-chosen[hidden], .rel-list[hidden] { display: none; }
+  .compat-fields[hidden], .rel-chosen[hidden], .rel-list[hidden], .tiers[hidden] { display: none; }
   .tiers { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tiers legend { font-family: var(--font-display); color: var(--gold); margin-bottom: 10px; font-size: 1.05rem; }
   .tier { margin: 0; cursor: pointer; }
@@ -113,6 +113,12 @@ const tiers = [
       list.hidden = !!picked && !showList;
       chosen.hidden = !picked || showList;
       fields.hidden = !picked;
+      // a relationship reading comes in one full version, so the depth choice steps aside
+      const tiers = document.querySelector<HTMLElement>(".reading-form .tiers");
+      if (tiers) {
+        tiers.hidden = !!picked;
+        for (const t of tiers.querySelectorAll("input")) t.disabled = !!picked;
+      }
       box.querySelector<HTMLElement>("[data-rel-label]")!.textContent = picked?.dataset.label ?? "";
       for (const el of fields.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select")) {
         el.disabled = !picked;
