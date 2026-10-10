@@ -3,6 +3,7 @@
 // Messages go to functions/api/thoughts.ts; the wall comes from functions/api/kind-words.ts.
 // Both only work once the site is live on Cloudflare (see the README).
 import Base from "../../layouts/Base.astro";
+import KindWords from "../../components/KindWords.astro";
 import { STAR_SIGNS, LIMITS } from "../../../server/thoughts.ts";
 ---
 
@@ -10,7 +11,7 @@ import { STAR_SIGNS, LIMITS } from "../../../server/thoughts.ts";
   <section class="container narrow intro">
     <p class="eyebrow">Share your thoughts</p>
     <h1>We'd love to hear from you</h1>
-    <p class="lede muted">Say something kind, tell us what could be better, or just get in touch. Every message is read by a real person.</p>
+    <p class="lede muted">Say something kind, tell us what could be better, or just get in touch. Every message is read by a real person. <a href="#kind-words">Read kind words from other visitors ↓</a></p>
   </section>
 
   <section class="container narrow" id="share">
@@ -67,12 +68,8 @@ import { STAR_SIGNS, LIMITS } from "../../../server/thoughts.ts";
     </form>
   </section>
 
-  <section class="container wall-section" id="kind-words">
-    <p class="eyebrow">From our visitors</p>
-    <h2>Kind words</h2>
-    <div class="wall" data-wall>
-      <p class="muted">Kind words from visitors will appear here.</p>
-    </div>
+  <section class="container wall-section">
+    <KindWords />
   </section>
 </Base>
 
@@ -106,10 +103,6 @@ import { STAR_SIGNS, LIMITS } from "../../../server/thoughts.ts";
   .status.ok { color: var(--gold); }
   .status.err { color: var(--clash); }
   .wall-section { margin-top: 72px; }
-  .wall { columns: 3 260px; column-gap: 16px; }
-  .wall :global(blockquote) { break-inside: avoid; margin: 0 0 16px; }
-  .wall :global(blockquote p) { font-family: var(--font-reading); font-size: 1.2rem; margin: 0 0 10px; white-space: pre-line; }
-  .wall :global(cite) { font-style: normal; font-size: 0.85rem; color: var(--antique-gold); }
   @media (max-width: 640px) {
     .kinds, .grid { grid-template-columns: 1fr; }
   }
@@ -157,17 +150,4 @@ import { STAR_SIGNS, LIMITS } from "../../../server/thoughts.ts";
       button.disabled = false;
     }
   });
-
-  // The Kind words wall.
-  const wall = document.querySelector<HTMLElement>("[data-wall]")!;
-  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-  fetch("/api/kind-words")
-    .then((r) => (r.ok ? r.json() : Promise.reject()))
-    .then((d: { words: { name: string; starSign: string; message: string }[] }) => {
-      if (!d.words?.length) return;
-      wall.innerHTML = d.words
-        .map((w) => `<blockquote class="panel"><p>${esc(w.message)}</p><cite>${esc(w.name)}${w.starSign ? `, ${esc(w.starSign)}` : ""}</cite></blockquote>`)
-        .join("");
-    })
-    .catch(() => {});
 </script>
