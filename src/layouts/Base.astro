@@ -15,6 +15,10 @@ interface Props {
 }
 
 const { title, description = "Free numerology, astrology and Chinese zodiac readings, forever.", zone = "main", noindex = false } = Astro.props;
+// The one true address of this page, so search engines and sharing previews
+// always point at mystarlight.uk (not www or workers.dev).
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const fullTitle = `${title} · Starlight`;
 const nav = [
   { href: "/", label: "Home" },
   { href: "/sky", label: "Sky now" },
@@ -31,9 +35,18 @@ const nav = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · Starlight</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Starlight" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

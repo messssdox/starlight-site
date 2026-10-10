@@ -2,6 +2,8 @@
 
 A free-forever website for personalised numerology, astrology and Chinese zodiac readings.
 
+Live at **https://mystarlight.uk**.
+
 ## What's in here
 
 | Folder or file | What it is |
@@ -52,7 +54,7 @@ Visitors' emails are only ever shown on `/admin`. The wall shows a first name an
 - **Markdown** (`.md`) is used for Library articles.
 - **Astronomy Engine** calculates planet positions for the birth chart, in the visitor's browser (and Moon phases for the Sky Now page, coming next).
 - **Open-Meteo's place finder** turns a birth town into a map position and time zone, for the Rising sign and houses. It is free and needs no account.
-- **Cloudflare Pages** hosts the site for free and republishes it each time you push to GitHub.
+- **Cloudflare Workers** hosts the site for free at https://mystarlight.uk and republishes it each time a change lands on `main` on GitHub. Each pull request also gets its own preview link. The settings live in `wrangler.jsonc`, and the address is set once in `astro.config.mjs` (`site`).
 
 ## Credits
 
