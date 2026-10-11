@@ -88,3 +88,15 @@ export const CHEMISTRY: Record<"easy" | "magnetic" | "spark" | "slow", string> =
   spark: "{V} Venus squares {M} Mars: a spark with friction. Attraction and irritation can arrive together, so making up matters.",
   slow: "{V} Venus and {M} Mars have little in common, so attraction here builds slowly, through getting to know each other.",
 };
+
+/** Rising signs meet: only when both birth times and towns are known. */
+export const RISING_TITLE: Record<Tone, string> = { love: "First impressions and chemistry on sight", family: "How you come across to each other", friends: "First impressions", work: "How you come across at work" };
+export const RISING_LINES: Record<SignLink, string> = {
+  same: "You share a Rising sign, so you meet the world the same way and probably felt familiar to each other from the start.",
+  neighbour: "Your Rising signs sit side by side but give very different first impressions. Others may see you as a pair of contrasts.",
+  sextile: "Your Rising signs are a friendly match, so you put each other at ease quickly and come across well together.",
+  square: "Your Rising signs square each other, so your first reactions to life can clash. The friction fades once you see past the surface.",
+  trine: "Your Rising signs share an element, so you clicked on first meeting and tend to approach new situations in the same spirit.",
+  quincunx: "Your Rising signs have little in common, so first impressions may have been puzzling. You get each other better the longer you know each other.",
+  opposite: "Your Rising signs sit opposite each other, the classic partnership axis: each of you is drawn to the way the other meets the world.",
+};

@@ -55,7 +55,7 @@ export function countReading() {
 /** The same details as the current link, without the second person: someone's own reading. */
 export function soloQuery(q: URLSearchParams) {
   const solo = new URLSearchParams(q);
-  for (const k of ["rel", "n2", "d2"]) solo.delete(k);
+  for (const k of ["rel", "n2", "d2", "t2", "p2"]) solo.delete(k);
   return solo.toString();
 }
 
