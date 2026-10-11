@@ -69,6 +69,7 @@ const nav = [
     <header class="site-header">
       <div class="container bar">
         <a class="brand" href="/">✦ Starlight</a>
+        <span class="print-only print-site">mystarlight.uk</span>
         <ReadingCounter />
         <nav aria-label="Main">
           {nav.map((n) => <a href={n.href} aria-current={Astro.url.pathname === n.href ? "page" : undefined}>{n.label}</a>)}
@@ -81,6 +82,7 @@ const nav = [
     <footer class="site-footer">
       <div class="container">
         <p>Starlight is free, and always will be. Readings are for reflection and self-understanding, not predictions or advice.</p>
+        <p class="print-only">Made with Starlight. Get your own free reading at mystarlight.uk</p>
         <p class="muted small credit-line">
           <span>Crafted by Dean Theron</span>
           <span aria-hidden="true">·</span>
@@ -116,6 +118,15 @@ const nav = [
   .link-button:hover { color: var(--gold); }
   .link-button[hidden], .credit-line span[hidden] { display: none; }
   .credit-line { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  @media print {
+    .site-header { position: static; background: none; backdrop-filter: none; border-bottom: 1px solid #c9b27a; }
+    .bar { justify-content: space-between; padding: 0 0 6px; }
+    .brand { color: #8a6a1f; }
+    .print-site { color: #6b6478; font-size: 0.8rem; letter-spacing: 0.08em; }
+    nav, .credit-line a, .credit-line span[aria-hidden] { display: none !important; }
+    .site-footer { margin-top: 1rem; padding: 0.5rem 0 0; border-top: 1px solid #c9b27a; font-size: 8pt; break-inside: avoid; }
+    .site-footer p { margin: 0.2em 0; }
+  }
   @media (max-width: 640px) {
     nav { margin-left: 0; width: 100%; gap: 0.9rem; }
   }
