@@ -3,6 +3,9 @@
 {
   "name": "starlight",
   "main": "worker/index.ts",
+  // Keep any variables added in the Cloudflare dashboard when the site redeploys
+  // (without this, each deploy removes plain-text variables that aren't listed here).
+  "keep_vars": true,
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./dist",
