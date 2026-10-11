@@ -12,10 +12,10 @@ import { longitudeOf, signOf } from "./astrology.ts";
 import { SIGNS, type Sign, type PlanetId } from "../data/astrology.ts";
 import {
   PLANET_THEMES, SIGN_STAY, SIGN_STYLE, SIGN_AREA, NEW_MOON_IDEAS, RETRO, RETRO_INTRO, STATION_NOTE,
-  NEW_MOON_INTRO, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
+  NEW_MOON_INTRO, PORTAL_DATES, LIONS_GATE, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
 } from "../data/sky-meanings.ts";
 
-export type SkyKind = "moon" | "eclipse" | "season" | "retrograde" | "ingress";
+export type SkyKind = "moon" | "eclipse" | "season" | "retrograde" | "ingress" | "number";
 
 export interface SkyEvent {
   kind: SkyKind;
@@ -36,6 +36,8 @@ export interface SkyEvent {
   until?: Date;
   /** What `until` marks, such as "In Scorpio until" or "Retrograde until". */
   untilLabel?: string;
+  /** A whole-day event (the numerology dates), shown without a time. */
+  allDay?: boolean;
 }
 
 const opposite = (sign: Sign) => SIGNS[(SIGNS.indexOf(sign) + 6) % 12];
@@ -279,7 +281,45 @@ export function skyEvents(start: Date, end: Date): SkyEvent[] {
     if (p.kind === "ingress" && next) { p.until = next.at; p.untilLabel = `In ${p.title.split(" ").pop()} until`; }
     if (p.kind === "retrograde" && p.title.includes("retrograde") && next) { p.until = next.at; p.untilLabel = "Retrograde until"; }
   }
-  return [...moons, ...ecl, ...seasons(start, end), ...planets].sort((a, b) => a.at.getTime() - b.at.getTime());
+  return [...moons, ...ecl, ...seasons(start, end), ...planets, ...numberDates(start, end)].sort((a, b) => a.at.getTime() - b.at.getTime());
+}
+
+/** Starlight went live on 10 October 2026. */
+const LAUNCH_YEAR = 2026;
+const ORDINAL = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
+
+/**
+ * The special numerology dates: the repeating "portal" dates from 1/1 to 12/12, with the
+ * Lion's Gate on 8/8 and Starlight's birthday on 10/10. They are whole days in the
+ * visitor's own time zone, so they start at local midnight. Today's date is included.
+ */
+function numberDates(start: Date, end: Date): SkyEvent[] {
+  const out: SkyEvent[] = [];
+  const today = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
+    for (let m = 1; m <= 12; m++) {
+      const at = new Date(y, m - 1, m);
+      if (at < today || at >= end) continue;
+      const p = PORTAL_DATES[m];
+      const ev: SkyEvent = { kind: "number", at, allDay: true, icon: "✧", title: `${m}/${m} portal · ${p.name}`, note: p.note, detail: [{ p: p.detail }], link: "/numerology" };
+      if (m === 8) {
+        ev.title = "8/8 · The Lion's Gate";
+        ev.note = LIONS_GATE.note;
+        ev.detail = LIONS_GATE.detail.map((d) => ({ ...d }));
+        ev.until = new Date(y, 7, 12);
+        ev.untilLabel = "The Lion's Gate stays open until";
+      }
+      if (m === 10 && y > LAUNCH_YEAR) {
+        const age = y - LAUNCH_YEAR;
+        ev.title = `10/10 · Starlight's ${ORDINAL[age] ?? `${age}th`} birthday`;
+        ev.icon = "✦";
+        ev.note = STARLIGHT_BIRTHDAY;
+        ev.detail = [{ p: `Starlight went live on 10 October ${LAUNCH_YEAR}, the 10/10 portal. Ten adds up to 1, the number of beginnings, which felt like the right day to begin.` }, { p: p.detail }];
+      }
+      out.push(ev);
+    }
+  }
+  return out;
 }
 
 /** The same date, `months` months later. */

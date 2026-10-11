@@ -18,6 +18,7 @@ const FILTERS = [
   ["retrograde", "Retrogrades"],
   ["ingress", "Sign changes"],
   ["season", "Seasons"],
+  ["number", "Numerology dates"],
 ];
 ---
 
@@ -25,7 +26,7 @@ const FILTERS = [
   <p class="eyebrow">Cosmic calendar</p>
   <Heading id="sky-year-title">{months === 12 ? "The next 12 months in the stars and numbers" : "This month and next in the stars and numbers"}</Heading>
   <p class="muted lede">
-    Every new and full Moon, eclipse, retrograde and planet changing sign{months === 12 ? " from today onwards" : ""}, with the numerology of the day each one falls on.
+    Every new and full Moon, eclipse, retrograde, planet changing sign and special numerology date such as 11/11{months === 12 ? " from today onwards" : ""}, with the numerology of the day each one falls on.
     {months === 12 && " Tap a month's name to open or close it."} Tap <em>What this means</em> on any entry for more. Times are shown in your own time zone.
   </p>
 
@@ -99,7 +100,8 @@ const FILTERS = [
   .months :global(.e-title) { margin: 0; font-weight: 600; }
   .months :global(.e-note) { margin: 2px 0 0; color: var(--mist); font-size: 0.9rem; }
   .months :global(.e-note a) { white-space: nowrap; }
-  .months :global(.k-eclipse .e-title) { color: var(--gold); }
+  .months :global(.k-eclipse .e-title), .months :global(.k-number .e-title) { color: var(--gold); }
+  .months :global(.k-number .e-icon) { color: var(--orchid); }
   .months :global(.e-num) { margin: 4px 0 0; font-size: 0.85rem; color: var(--mist); }
   .months :global(.e-num b), .months :global(.e-num span) { color: var(--orchid); font-weight: 600; }
   .months :global(.master) { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--gold); color: var(--gold); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; }
@@ -136,7 +138,7 @@ const FILTERS = [
   };
   const KIND_LABEL: Record<string, [string, string]> = {
     eclipse: ["eclipse", "eclipses"], moon: ["Moon", "Moons"], retrograde: ["retrograde change", "retrograde changes"],
-    ingress: ["sign change", "sign changes"], season: ["season", "seasons"],
+    ingress: ["sign change", "sign changes"], season: ["season", "seasons"], number: ["numerology date", "numerology dates"],
   };
 
   const section = document.querySelector<HTMLElement>("[data-sky-year]");
@@ -196,7 +198,7 @@ const FILTERS = [
       const n = dayNumber(e.at);
       const echo = NUMBER_ECHOES.find((x) => x.test(e.title) && x.numbers.includes(n.value));
       return { n, html: `
-        <p class="e-num"><span aria-hidden="true">✧</span> Universal Day <b>${n.value}</b>: ${UNIVERSAL_DAY[n.value]}${MASTER_NUMBERS.includes(n.value) ? ` <span class="master">Master day</span>` : ""}</p>
+        <p class="e-num"><span aria-hidden="true">✧</span> Universal Day <b>${n.value}</b>${MASTER_NUMBERS.includes(n.value) ? ` <span class="master">Master day</span>` : ""}</p>
         <p class="e-pers" data-pers hidden></p>`,
         detail: [
           { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${n.value} (${n.steps.join(", then ")}). ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : " Let the day's number set the tone for how you work with this event."}` },
@@ -205,7 +207,7 @@ const FILTERS = [
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     const row = (e: SkyEvent) => { const num = numerology(e); return `
       <li class="k-${e.kind}" data-kind="${e.kind}" data-at="${e.at.getTime()}">
-        <span class="e-date"><b>${day.format(e.at)}</b>${time.format(e.at)}</span>
+        <span class="e-date"><b>${day.format(e.at)}</b>${e.allDay ? "All day" : time.format(e.at)}</span>
         <span class="e-icon" aria-hidden="true">${e.icon}</span>
         <div>
           <p class="e-title">${esc(e.title)}</p>

@@ -44,3 +44,16 @@ test("every entry explains what it means, and retrogrades say when they end", ()
   assert.equal(sun.untilLabel, "In Scorpio until");
   sameDay(sun.until, 2026, 11, 22, "Sun leaves Scorpio");
 });
+
+test("numerology dates: the 1/1 to 12/12 portals, the Lion's Gate and Starlight's birthday", () => {
+  const nums = events.filter((e) => e.kind === "number");
+  // From 10 October 2026 to 10 October 2027: 10/10 (launch day itself), 11/11, 12/12, then 1/1 to 9/9
+  assert.equal(nums.length, 12);
+  assert.ok(nums.every((e) => e.allDay && e.at.getDate() === e.at.getMonth() + 1));
+  const gate = nums.find((e) => e.title.includes("Lion's Gate"))!;
+  assert.equal(gate.at.getMonth(), 7);
+  assert.equal(gate.until!.getDate(), 12);
+  assert.ok(nums.some((e) => e.title.startsWith("11/11")));
+  const later = skyEvents(new Date(2027, 9, 1), new Date(2027, 10, 1));
+  assert.ok(later.some((e) => e.title === "10/10 · Starlight's first birthday"));
+});
