@@ -10,9 +10,11 @@ import {
 } from "astronomy-engine";
 import { longitudeOf, signOf } from "./astrology.ts";
 import { SIGNS, type Sign, type PlanetId } from "../data/astrology.ts";
+import { NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
+import { universalYear } from "./numerology.ts";
 import {
   PLANET_THEMES, SIGN_STAY, SIGN_STYLE, SIGN_AREA, NEW_MOON_IDEAS, RETRO, RETRO_INTRO, STATION_NOTE,
-  NEW_MOON_INTRO, PORTAL_DATES, LIONS_GATE, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
+  NEW_MOON_INTRO, NUMBER_DATES, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
 } from "../data/sky-meanings.ts";
 
 export type SkyKind = "moon" | "eclipse" | "season" | "retrograde" | "ingress" | "number";
@@ -289,32 +291,35 @@ const LAUNCH_YEAR = 2026;
 const ORDINAL = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
 
 /**
- * The special numerology dates: the repeating "portal" dates from 1/1 to 12/12, with the
- * Lion's Gate on 8/8 and Starlight's birthday on 10/10. They are whole days in the
- * visitor's own time zone, so they start at local midnight. Today's date is included.
+ * The special numerology dates, kept to a handful a year so they stand out: 1/1 (a new
+ * Universal Year begins), 2/22 (master number 22), 8/8 (the Lion's Gate), 10/10 (Starlight's
+ * birthday), 11/11 and 12/12. They are whole days in the visitor's own time zone, starting
+ * at local midnight, and today's date is included.
  */
 function numberDates(start: Date, end: Date): SkyEvent[] {
   const out: SkyEvent[] = [];
   const today = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
-    for (let m = 1; m <= 12; m++) {
-      const at = new Date(y, m - 1, m);
+    for (const [m, d] of [[1, 1], [2, 22], [8, 8], [10, 10], [11, 11], [12, 12]]) {
+      const at = new Date(y, m - 1, d);
       if (at < today || at >= end) continue;
-      const p = PORTAL_DATES[m];
-      const ev: SkyEvent = { kind: "number", at, allDay: true, icon: "✧", title: `${m}/${m} portal · ${p.name}`, note: p.note, detail: [{ p: p.detail }], link: "/numerology" };
-      if (m === 8) {
-        ev.title = "8/8 · The Lion's Gate";
-        ev.note = LIONS_GATE.note;
-        ev.detail = LIONS_GATE.detail.map((d) => ({ ...d }));
-        ev.until = new Date(y, 7, 12);
-        ev.untilLabel = "The Lion's Gate stays open until";
+      const p = NUMBER_DATES[`${m}/${d}`];
+      const ev: SkyEvent = { kind: "number", at, allDay: true, icon: "✧", title: `${m}/${d} · ${p.name}`, note: p.note, detail: p.detail.map((x) => ({ ...x })), link: "/numerology" };
+      if (m === 1) {
+        const uy = universalYear(y);
+        ev.title = `1/1 · Universal Year ${uy.value} begins`;
+        ev.note = `${y} adds up to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`;
+        ev.detail = [
+          { p: `${y} is a Universal Year ${uy.value} (${uy.steps.join(", then ")}). ${PERSONAL_YEAR_THEMES[uy.value]}` },
+          ...ev.detail,
+        ];
       }
+      if (m === 8) { ev.until = new Date(y, 7, 12); ev.untilLabel = "The Lion's Gate stays open until"; }
       if (m === 10 && y > LAUNCH_YEAR) {
         const age = y - LAUNCH_YEAR;
         ev.title = `10/10 · Starlight's ${ORDINAL[age] ?? `${age}th`} birthday`;
         ev.icon = "✦";
         ev.note = STARLIGHT_BIRTHDAY;
-        ev.detail = [{ p: `Starlight went live on 10 October ${LAUNCH_YEAR}, the 10/10 portal. Ten adds up to 1, the number of beginnings, which felt like the right day to begin.` }, { p: p.detail }];
       }
       out.push(ev);
     }

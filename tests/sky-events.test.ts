@@ -45,15 +45,14 @@ test("every entry explains what it means, and retrogrades say when they end", ()
   sameDay(sun.until, 2026, 11, 22, "Sun leaves Scorpio");
 });
 
-test("numerology dates: the 1/1 to 12/12 portals, the Lion's Gate and Starlight's birthday", () => {
+test("numerology dates are kept to a handful: 1/1, 2/22, 8/8, 10/10, 11/11 and 12/12", () => {
   const nums = events.filter((e) => e.kind === "number");
-  // From 10 October 2026 to 10 October 2027: 10/10 (launch day itself), 11/11, 12/12, then 1/1 to 9/9
-  assert.equal(nums.length, 12);
-  assert.ok(nums.every((e) => e.allDay && e.at.getDate() === e.at.getMonth() + 1));
-  const gate = nums.find((e) => e.title.includes("Lion's Gate"))!;
-  assert.equal(gate.at.getMonth(), 7);
+  // From 10 October 2026 to 10 October 2027: 10/10 (launch day), 11/11, 12/12, 1/1, 2/22 and 8/8
+  assert.deepEqual(nums.map((e) => `${e.at.getMonth() + 1}/${e.at.getDate()}`), ["10/10", "11/11", "12/12", "1/1", "2/22", "8/8"]);
+  assert.ok(nums.every((e) => e.allDay));
+  assert.equal(find("1/1")!.title, "1/1 · Universal Year 2 begins"); // 2027: 2 + 0 + 2 + 7 = 11, then 2 (years are not kept as masters on this site)
+  const gate = find("8/8")!;
   assert.equal(gate.until!.getDate(), 12);
-  assert.ok(nums.some((e) => e.title.startsWith("11/11")));
   const later = skyEvents(new Date(2027, 9, 1), new Date(2027, 10, 1));
   assert.ok(later.some((e) => e.title === "10/10 · Starlight's first birthday"));
 });

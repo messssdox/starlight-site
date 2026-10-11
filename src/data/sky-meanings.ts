@@ -225,31 +225,56 @@ export const NUMEROLOGY_INTRO =
   "In numerology every date has its own number, the same for everyone. Add up all the digits of the date and keep going until one digit is left (11, 22 and 33 are kept as master numbers). That is the Universal Day, and it colours whatever happens in the sky that day.";
 
 /**
- * The repeating "portal" dates, when the day and month share a number (1/1 to 12/12).
- * Numerology fans treat them as days when that number's energy is doubled.
+ * The special numerology dates in the calendar. Kept to a few a year on purpose, so each
+ * one feels like an occasion. 1/1 also gets the new Universal Year's own meaning.
  */
-export const PORTAL_DATES: Record<number, { name: string; note: string; detail: string }> = {
-  1: { name: "new beginnings", note: "A doubled 1 on the first day of the year: set your intentions.", detail: "One is the number of beginnings, and on 1/1 it appears twice at the very start of the year. It is the classic day to set intentions, start a habit or take a first brave step." },
-  2: { name: "partnership", note: "A doubled 2: a gentle day for love, teamwork and balance.", detail: "Two is the number of partnership and cooperation. On 2/2 it is doubled, which makes it a soft, connecting day: reach out, mend a bridge or simply listen." },
-  3: { name: "creativity", note: "A doubled 3: say it, sing it, make something.", detail: "Three is the number of creativity and self-expression, and 3 + 3 makes 6, the number of the heart. A day to share ideas, create freely and enjoy other people's company." },
-  4: { name: "foundations", note: "A doubled 4: build something steady.", detail: "Four is the number of foundations, order and hard work. On 4/4 it is doubled, so it is a good day for practical plans, organising and laying groundwork that lasts." },
-  5: { name: "change", note: "A doubled 5: welcome a shake-up.", detail: "Five is the number of freedom and change. On 5/5 it is doubled and 5 + 5 makes 10, a fresh cycle. A day to try something new, travel, or let go of a routine that has gone stale." },
-  6: { name: "love and home", note: "A doubled 6: care for the people and places you love.", detail: "Six is the number of love, home and responsibility. On 6/6 it is doubled, which makes it a warm day for family, healing and making your space beautiful." },
-  7: { name: "inner wisdom", note: "A doubled 7: a lucky, spiritual day for reflection.", detail: "Seven is the number of inner wisdom and spirituality, and many traditions see it as lucky. On 7/7 it is doubled: a day to slow down, meditate, study and trust your intuition." },
-  8: { name: "abundance", note: "A doubled 8: abundance and personal power.", detail: "Eight is the number of abundance and power." },
-  9: { name: "completion", note: "A doubled 9: finish, forgive and let go.", detail: "Nine is the number of endings and compassion. On 9/9 it is doubled, so it is a day to complete what is unfinished, clear space and forgive, ready for what comes next." },
-  10: { name: "a fresh cycle", note: "Ten becomes 1: a new cycle starts.", detail: "Ten is a 1 with a 0 beside it: a new beginning with the whole cycle's wisdom behind it. On 10/10 the energy is doubled, making it a day to start again on a higher level." },
-  11: { name: "make a wish", note: "The best-known portal: master number 11, twice over.", detail: "Eleven is a master number of intuition, inspiration and spiritual awakening. On 11/11 it is doubled, and many people make a wish at 11:11. It is the most celebrated numerology date of the year: notice signs, trust your hunches and set heartfelt intentions." },
-  12: { name: "reflection", note: "A doubled 12: look back on the year and give thanks.", detail: "Twelve adds up to 3, the number of joy and expression, and on 12/12 it is doubled as the year draws to a close. A day to look back on how far you have come, give thanks and dream about the year ahead." },
-};
-
-export const LIONS_GATE = {
-  note: "The peak of the Lion's Gate portal: abundance, courage and manifesting.",
-  detail: [
-    { p: "The Lion's Gate is a yearly \"portal\" from about 26 July to 12 August, peaking on 8/8. The Sun is in Leo, the lion, and the bright star Sirius rises again before dawn after weeks hidden in the Sun's glare. Ancient Egyptians linked Sirius's return with the flooding of the Nile and the start of their new year." },
-    { h: "The numbers", p: "Eight is the number of abundance, success and personal power. On 8/8 it is doubled, and an 8 on its side is the sign for infinity, which is why the day is linked with manifesting." },
-    { h: "Good for", p: "Setting big goals, money and career intentions, and stepping into your confidence like a lion." },
-  ],
+export const NUMBER_DATES: Record<string, { name: string; note: string; detail: { h?: string; p: string }[] }> = {
+  "1/1": {
+    name: "a new Universal Year",
+    note: "",
+    detail: [{ h: "Good for", p: "Setting intentions for the year in the spirit of its number. The double 1 of the date adds a burst of fresh-start energy." }],
+  },
+  "2/22": {
+    name: "master number 22",
+    note: "The Master Builder's day: turn a big dream into a real plan.",
+    detail: [
+      { p: "Twenty-two is the master number of the Master Builder: big visions made real through patient, practical steps. On 2/22 it appears in plain sight, with the 2s of partnership around it." },
+      { h: "Good for", p: "Writing down a long-term dream and the first practical step towards it, and building things with other people." },
+    ],
+  },
+  "8/8": {
+    name: "the Lion's Gate",
+    note: "The peak of the Lion's Gate portal: abundance, courage and manifesting.",
+    detail: [
+      { p: "The Lion's Gate is a yearly \"portal\" from about 26 July to 12 August, peaking on 8/8. The Sun is in Leo, the lion, and the bright star Sirius rises again before dawn after weeks hidden in the Sun's glare. Ancient Egyptians linked Sirius's return with the flooding of the Nile and the start of their new year." },
+      { h: "The numbers", p: "Eight is the number of abundance, success and personal power. On 8/8 it is doubled, and an 8 on its side is the sign for infinity, which is why the day is linked with manifesting." },
+      { h: "Good for", p: "Setting big goals, money and career intentions, and stepping into your confidence like a lion." },
+    ],
+  },
+  "10/10": {
+    name: "a fresh cycle",
+    note: "Ten becomes 1: a new cycle begins on a higher level.",
+    detail: [
+      { p: "Ten is a 1 with a 0 beside it: a new beginning with a whole cycle's wisdom behind it. On 10/10 it is doubled." },
+      { h: "Starlight's birthday", p: "Starlight went live on 10 October 2026, the 10/10 portal. Ten adds up to 1, the number of beginnings, which felt like the right day to begin." },
+    ],
+  },
+  "11/11": {
+    name: "make a wish",
+    note: "The best-known portal: master number 11, twice over.",
+    detail: [
+      { p: "Eleven is a master number of intuition, inspiration and spiritual awakening. On 11/11 it is doubled, and many people make a wish at 11:11. It is the most celebrated numerology date of the year." },
+      { h: "Good for", p: "Noticing signs and coincidences, trusting your hunches and setting heartfelt intentions." },
+    ],
+  },
+  "12/12": {
+    name: "reflection",
+    note: "The year's last portal: look back, give thanks and dream ahead.",
+    detail: [
+      { p: "Twelve adds up to 3, the number of joy and expression, and on 12/12 it is doubled as the year draws to a close." },
+      { h: "Good for", p: "Looking back on how far you have come, giving thanks and dreaming about the year ahead." },
+    ],
+  },
 };
 
 export const STARLIGHT_BIRTHDAY = "Starlight was born on 10/10/2026. Happy birthday to us, and thank you for visiting.";

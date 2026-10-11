@@ -26,7 +26,7 @@ const FILTERS = [
   <p class="eyebrow">Cosmic calendar</p>
   <Heading id="sky-year-title">{months === 12 ? "The next 12 months in the stars and numbers" : "This month and next in the stars and numbers"}</Heading>
   <p class="muted lede">
-    Every new and full Moon, eclipse, retrograde, planet changing sign and special numerology date such as 11/11{months === 12 ? " from today onwards" : ""}, with the numerology of the day each one falls on.
+    Every new and full Moon, eclipse, retrograde, planet changing sign and special numerology date such as 11/11 and the Lion's Gate{months === 12 ? " from today onwards" : ""}, with the numerology of the day each one falls on.
     {months === 12 && " Tap a month's name to open or close it."} Tap <em>What this means</em> on any entry for more. Times are shown in your own time zone.
   </p>
 
@@ -103,8 +103,8 @@ const FILTERS = [
   .months :global(.k-eclipse .e-title), .months :global(.k-number .e-title) { color: var(--gold); }
   .months :global(.k-number .e-icon) { color: var(--orchid); }
   .months :global(.e-num) { margin: 4px 0 0; font-size: 0.85rem; color: var(--mist); }
-  .months :global(.e-num b), .months :global(.e-num span) { color: var(--orchid); font-weight: 600; }
-  .months :global(.master) { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--gold); color: var(--gold); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; }
+  .months :global(.e-num b) { color: var(--orchid); font-weight: 600; }
+  .months :global(.master) { display: inline-block; padding: 0 8px; border-radius: 999px; border: 1px solid var(--gold); color: var(--gold); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; }
   .months :global(.e-pers) { margin: 2px 0 0; font-size: 0.85rem; color: var(--mist); }
   .months :global(.e-pers b) { color: var(--gold); }
   .months :global(.m-num) { color: var(--orchid); font-size: 0.85rem; }
@@ -198,10 +198,10 @@ const FILTERS = [
       const n = dayNumber(e.at);
       const echo = NUMBER_ECHOES.find((x) => x.test(e.title) && x.numbers.includes(n.value));
       return { n, html: `
-        <p class="e-num"><span aria-hidden="true">✧</span> Universal Day <b>${n.value}</b>${MASTER_NUMBERS.includes(n.value) ? ` <span class="master">Master day</span>` : ""}</p>
+        ${echo ? `<p class="e-num"><span class="master" title="The day's number matches this event">✧ Numbers match</span></p>` : ""}
         <p class="e-pers" data-pers hidden></p>`,
         detail: [
-          { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${n.value} (${n.steps.join(", then ")}). ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : " Let the day's number set the tone for how you work with this event."}` },
+          { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${n.value} (${n.steps.join(", then ")})${MASTER_NUMBERS.includes(n.value) ? ", a master number" : ""}. ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : ""}` },
         ] };
     }
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
