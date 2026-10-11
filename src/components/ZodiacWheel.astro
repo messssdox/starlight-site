@@ -286,6 +286,7 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   <div class="reveal" data-reveal hidden>
     <div class="reveal-boxes">
       <h3 class="select-title">Friends, secret friend and clash</h3>
+      <p class="muted match-note">Your sign and your animal each have their own matches, so signs and animals are listed separately.</p>
       <div class="insights" data-insights>
         <div class="insight" data-kind="friends"><p class="label">Friends</p><div class="body"></div></div>
         <div class="insight" data-kind="secret"><p class="label">Secret friend</p><div class="body"></div></div>
@@ -406,6 +407,9 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   .insight :global(p) { margin: 4px 0; }
   .insight :global(.elem-link) { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--gold); text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
   .insight :global(.next) { color: var(--mist); font-size: 0.85rem; }
+  .insight :global(.match + .match) { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+  .insight :global(.kind) { margin: 0 0 6px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mist); }
+  .match-note { margin: -4px 0 12px; font-size: 0.9rem; }
   @media (max-width: 520px) { .insight { grid-template-columns: 1fr; } .insight .label { padding: 8px; } }
 
   .details :global(.forecast) { margin-top: 18px; border-radius: 16px; border: 1px solid rgba(156, 122, 60, 0.4); background: rgba(18, 14, 31, 0.6); padding: 16px 18px; }
