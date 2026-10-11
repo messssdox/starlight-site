@@ -22,14 +22,21 @@ const FILTERS = [
 ---
 
 <section class="sky-year" id="sky-now" aria-labelledby="sky-year-title" data-sky-year data-months-shown={months}>
-  <p class="eyebrow">Sky now</p>
-  <Heading id="sky-year-title">{months === 12 ? "The next 12 months in the sky" : "This month and next in the sky"}</Heading>
+  <p class="eyebrow">Cosmic calendar</p>
+  <Heading id="sky-year-title">{months === 12 ? "The next 12 months in the stars and numbers" : "This month and next in the stars and numbers"}</Heading>
   <p class="muted lede">
-    Every new and full Moon, eclipse, retrograde and planet changing sign{months === 12 ? " from today onwards. Tap a month's name to open or close it" : ""}.
-    Tap <em>What this means</em> on any entry for more. Times are shown in your own time zone.
+    Every new and full Moon, eclipse, retrograde and planet changing sign{months === 12 ? " from today onwards" : ""}, with the numerology of the day each one falls on.
+    {months === 12 && " Tap a month's name to open or close it."} Tap <em>What this means</em> on any entry for more. Times are shown in your own time zone.
   </p>
 
-  <p class="now panel" data-now hidden></p>
+  <div class="now panel" data-now hidden>
+    <p data-rx></p>
+    <p data-numbers></p>
+    <details class="calc">
+      <summary>How the numbers work</summary>
+      <p data-num-intro></p>
+    </details>
+  </div>
 
   {months === 12 && (
     <div class="filters" role="radiogroup" aria-label="Show">
@@ -51,6 +58,9 @@ const FILTERS = [
 <style>
   .lede { max-width: 720px; }
   .now { padding: 14px 18px; margin: 0 0 16px; font-size: 0.95rem; }
+  .now p { margin: 0 0 6px; }
+  .now .calc summary { cursor: pointer; color: var(--orchid); font-size: 0.88rem; }
+  .now .calc p { margin: 6px 0 0; color: var(--mist); font-size: 0.9rem; }
   .now :global(strong) { color: var(--gold); }
   .filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
   .chip { margin: 0; cursor: pointer; }
@@ -78,6 +88,9 @@ const FILTERS = [
   .months :global(.e-note) { margin: 2px 0 0; color: var(--mist); font-size: 0.9rem; }
   .months :global(.e-note a) { white-space: nowrap; }
   .months :global(.k-eclipse .e-title) { color: var(--gold); }
+  .months :global(.e-num) { margin: 4px 0 0; font-size: 0.85rem; color: var(--mist); }
+  .months :global(.e-num b), .months :global(.e-num span) { color: var(--orchid); font-weight: 600; }
+  .months :global(.m-num) { color: var(--orchid); font-size: 0.85rem; }
   .months :global(.e-until) { margin: 4px 0 0; font-size: 0.85rem; color: var(--antique-gold); }
   .months :global(.more) { margin: 4px 0 0; grid-column: 3; }
   .months :global(.more summary) { display: inline-flex; padding: 0; gap: 6px; font-size: 0.88rem; color: var(--orchid); }
@@ -99,6 +112,9 @@ const FILTERS = [
 
 <script>
   import { skyEvents, addMonths, retrogradeNow, type SkyEvent } from "../lib/sky-events.ts";
+  import { universalDay, universalMonth, universalYear } from "../lib/numerology.ts";
+  import { UNIVERSAL_DAY, NUMBER_ECHOES, NUMEROLOGY_INTRO } from "../data/sky-meanings.ts";
+  import { NUMBER_MEANINGS } from "../data/numbers.ts";
 
   const NAMES: Record<string, string> = {
     mercury: "Mercury", venus: "Venus", mars: "Mars", jupiter: "Jupiter", saturn: "Saturn", uranus: "Uranus", neptune: "Neptune", pluto: "Pluto",
@@ -128,17 +144,26 @@ const FILTERS = [
       const direct = events.find((e) => e.kind === "retrograde" && e.title.startsWith(`${NAMES[id]} turns direct`));
       return `<strong>${NAMES[id]}</strong>${direct ? ` until ${day.format(direct.at)}` : ""}`;
     });
-    now.innerHTML = rx.length
+    now.querySelector("[data-rx]")!.innerHTML = rx.length
       ? `<span aria-hidden="true">℞</span> Retrograde right now: ${rx.join(", ")}.`
       : `<span aria-hidden="true">✦</span> No planets are retrograde right now.`;
+
+    // Today's numbers, worked out from the visitor's own date.
+    const y = start.getFullYear(), mo = start.getMonth() + 1;
+    const uy = universalYear(y).value, um = universalMonth(y, mo).value, ud = dayNumber(start);
+    now.querySelector("[data-numbers]")!.innerHTML =
+      `<span aria-hidden="true">✧</span> Numbers now: Universal Year <strong>${uy}</strong> (${NUMBER_MEANINGS[uy].keyword}) · ` +
+      `Universal Month <strong>${um}</strong> · today is a Universal Day <strong>${ud.value}</strong>, ${UNIVERSAL_DAY[ud.value]}.`;
+    now.querySelector("[data-num-intro]")!.textContent =
+      `${NUMEROLOGY_INTRO} The Universal Month is the month's number added to the Universal Year's, and the Universal Year is the year's digits added up (${y} makes ${uy}).`;
     now.hidden = false;
 
     // Group into months, starting with the current one.
-    const groups: { label: string; events: SkyEvent[] }[] = [];
+    const groups: { label: string; num: number; events: SkyEvent[] }[] = [];
     for (let i = 0; i < (shown === 12 ? 13 : shown); i++) {
       const m = addMonths(new Date(start.getFullYear(), start.getMonth(), 1), i);
       const list = events.filter((e) => e.at.getFullYear() === m.getFullYear() && e.at.getMonth() === m.getMonth());
-      if (list.length) groups.push({ label: monthName.format(m), events: list });
+      if (list.length) groups.push({ label: monthName.format(m), num: universalMonth(m.getFullYear(), m.getMonth() + 1).value, events: list });
     }
 
     /** "3 days", "5 weeks", "4 months" */
@@ -148,8 +173,21 @@ const FILTERS = [
       if (days < 63) return `${Math.round(days / 7)} weeks`;
       return `${Math.round(days / 30.4)} months`;
     };
+    /** The Universal Day for the date an event falls on in the visitor's own time zone. */
+    function dayNumber(d: Date) {
+      return universalDay(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    }
+    function numerology(e: SkyEvent) {
+      const n = dayNumber(e.at);
+      const echo = NUMBER_ECHOES.find((x) => x.test(e.title) && x.numbers.includes(n.value));
+      return { n, html: `
+        <p class="e-num"><span aria-hidden="true">✧</span> Universal Day <b>${n.value}</b>: ${UNIVERSAL_DAY[n.value]}</p>`,
+        detail: [
+          { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${n.value} (${n.steps.join(", then ")}). ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : " Let the day's number set the tone for how you work with this event."}` },
+        ] };
+    }
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-    const row = (e: SkyEvent) => `
+    const row = (e: SkyEvent) => { const num = numerology(e); return `
       <li class="k-${e.kind}" data-kind="${e.kind}">
         <span class="e-date"><b>${day.format(e.at)}</b>${time.format(e.at)}</span>
         <span class="e-icon" aria-hidden="true">${e.icon}</span>
@@ -157,16 +195,17 @@ const FILTERS = [
           <p class="e-title">${esc(e.title)}</p>
           <p class="e-note">${esc(e.note)}</p>
           ${e.until ? `<p class="e-until">${esc(e.untilLabel ?? "Until")} ${day.format(e.until)} · ${span(e.at, e.until)}</p>` : ""}
+          ${num.html}
         </div>
         <details class="more"><summary>What this means</summary><div class="more-body">
-            ${e.detail.map((d) => `<p>${d.h ? `<strong>${esc(d.h)}.</strong> ` : ""}${esc(d.p)}</p>`).join("")}
+            ${[...e.detail, ...num.detail].map((d) => `<p>${d.h ? `<strong>${esc(d.h)}.</strong> ` : ""}${esc(d.p)}</p>`).join("")}
             ${e.link ? `<p><a href="${e.link}">Read more in the Library</a></p>` : ""}
         </div></details>
-      </li>`;
+      </li>`; };
 
     months.innerHTML = groups.map((g, i) => `
       <details class="panel"${shown < 12 ? " open" : ""}>
-        <summary><span class="m-name">${g.label}</span><span class="m-sum" data-sum></span></summary>
+        <summary><span class="m-name">${g.label}</span><span class="m-num">Universal Month ${g.num}</span><span class="m-sum" data-sum></span></summary>
         <ol>${g.events.map(row).join("")}</ol>
       </details>`).join("");
 

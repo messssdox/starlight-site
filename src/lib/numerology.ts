@@ -116,6 +116,24 @@ export function universalYear(year: number): Result {
   return reduce(year, false);
 }
 
+/** Universal Month: the month's number added to the Universal Year (October 2026 → 10 + 1 = 11 → 2). */
+export function universalMonth(year: number, month: number): Result {
+  const uy = universalYear(year).value;
+  const r = reduce(month + uy, false);
+  return { value: r.value, steps: [`Month ${month} + Universal Year ${uy} = ${month + uy}`, ...r.steps] };
+}
+
+/**
+ * Universal Day: every digit of the full date added together, keeping master numbers
+ * (11 October 2026 → 1 + 1 + 1 + 0 + 2 + 0 + 2 + 6 = 13 → 4). The same for everyone on that day.
+ */
+export function universalDay(year: number, month: number, day: number): Result {
+  const digits = `${day}${month}${year}`.split("");
+  const total = digits.reduce((t, d) => t + Number(d), 0);
+  const r = reduce(total);
+  return { value: r.value, steps: [`${digits.join(" + ")} = ${total}`, ...r.steps] };
+}
+
 export interface Challenges {
   first: number;
   second: number;

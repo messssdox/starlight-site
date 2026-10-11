@@ -1,4 +1,4 @@
-// The words behind the Sky now calendar: what each planet governs, how each sign colours it,
+// The words behind the Cosmic calendar (the /sky page): what each planet governs, how each sign colours it,
 // what a retrograde is and how it tends to feel, and what the Moon's phases, eclipses and
 // seasons mean. src/lib/sky-events.ts puts these together into the "What this means" text.
 
@@ -185,3 +185,41 @@ export const SEASON_DETAIL: Record<string, string> = {
   "September equinox": "Day and night are equal again. The Sun enters Libra, the sign of balance, which makes it a time for gratitude, fairness and relationships. Autumn begins in the north and spring in the south.",
   "December solstice": "The shortest day in the north and the longest in the south, when the light begins to return. The Sun enters Capricorn, a good time to rest, reflect and plan the year ahead.",
 };
+
+/**
+ * Numerology for the calendar: the energy of each Universal Day number (the whole date
+ * added up), which every event inherits from the day it falls on.
+ */
+export const UNIVERSAL_DAY: Record<number, string> = {
+  1: "a day for beginnings, courage and taking the lead",
+  2: "a day for patience, partnership and quiet diplomacy",
+  3: "a day for joy, creativity and saying what you feel",
+  4: "a day for steady work, order and practical progress",
+  5: "a day for change, movement and the unexpected",
+  6: "a day for home, family, love and taking care",
+  7: "a day for reflection, rest and inner wisdom",
+  8: "a day for ambition, money matters and personal power",
+  9: "a day for endings, letting go and kindness",
+  11: "a master day of intuition, inspiration and spiritual insight",
+  22: "a master day for turning big dreams into something real",
+  33: "a master day of compassion, healing and service",
+};
+
+/**
+ * The numbers that echo each kind of event. When an event lands on one of its own
+ * numbers, the calendar points out that the two line up.
+ */
+export const NUMBER_ECHOES: { test: (title: string) => boolean; numbers: number[]; why: string }[] = [
+  { test: (t) => t.startsWith("New Moon"), numbers: [1, 11], why: "both the New Moon and this number are about fresh starts, so intentions set today carry extra weight" },
+  { test: (t) => t.startsWith("Full Moon"), numbers: [9, 33], why: "both the Full Moon and this number are about completion, so it is an especially good day to let go" },
+  { test: (t) => /solar eclipse/.test(t), numbers: [1, 8, 11, 22], why: "the number amplifies the eclipse's new chapter, so changes started now can be big ones" },
+  { test: (t) => /lunar eclipse/.test(t), numbers: [7, 9, 11], why: "the number deepens the eclipse's endings and revelations, so listen to what comes up" },
+  { test: (t) => t.includes("turns retrograde"), numbers: [7, 2], why: "this quiet, inward number suits a retrograde's time of review" },
+  { test: (t) => t.includes("turns direct"), numbers: [1, 5, 8], why: "this forward-moving number matches the planet picking up speed again" },
+  { test: (t) => / enters /.test(t) || t.includes("moves back into"), numbers: [5], why: "five is the number of change, which suits a planet moving into a new sign" },
+  { test: (t) => /equinox/.test(t), numbers: [2, 6], why: "this number of balance and harmony echoes day and night being equal" },
+  { test: (t) => /solstice/.test(t), numbers: [1, 9], why: "this number of endings and beginnings echoes the turning point of the year" },
+];
+
+export const NUMEROLOGY_INTRO =
+  "In numerology every date has its own number, the same for everyone. Add up all the digits of the date and keep going until one digit is left (11, 22 and 33 are kept as master numbers). That is the Universal Day, and it colours whatever happens in the sky that day.";
