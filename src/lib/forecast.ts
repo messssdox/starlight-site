@@ -391,7 +391,89 @@ const PLANET_NAME: Record<PlanetId, string> = {
 export interface PairMonthForecast extends MonthForecast {
   signStars: number;
   mercuryRetrograde: boolean;
+  /** Why each best day and each care day stands out, keyed by date. */
+  bestNotes: Record<string, string>;
+  careNotes: Record<string, string>;
+  /** A short tip for each best day and each care day, keyed by date. */
+  bestTips: Record<string, string>;
+  careTips: Record<string, string>;
 }
+
+/** Tips for a bright day when the Moon is in a sign of your element. */
+const MOON_TIPS: Record<Sign["element"], string[]> = {
+  Fire: [
+    "Start the thing you have been putting off, while your energy is up.",
+    "Say yes to an invitation or a small adventure.",
+    "Pitch an idea or put yourself forward for something.",
+    "Get moving: a long walk, a dance in the kitchen or a game with friends.",
+    "Be bold with a first step you have been nervous about.",
+  ],
+  Earth: [
+    "Sort out money or paperwork, as it should go smoothly.",
+    "Begin a good habit or open a savings pot.",
+    "Cook something hearty and share it with someone.",
+    "Tackle a practical job you have been avoiding.",
+    "Tidy one corner of your home and enjoy the calm it brings.",
+  ],
+  Air: [
+    "Send the message or make the call you have been meaning to.",
+    "Ask the question on your mind, or learn something new.",
+    "Meet up with friends or say hello to someone new.",
+    "Jot down your ideas, as they come easily today.",
+    "Talk a plan through out loud and it will take shape.",
+  ],
+  Water: [
+    "Have the heart-to-heart you have been saving.",
+    "Trust your gut on a decision.",
+    "Make time for rest, a long bath or a creative hobby.",
+    "Reach out to someone you love, just to say hi.",
+    "Let yourself daydream; a good idea may surface.",
+  ],
+};
+/** Tips for a bright day that comes from the day animal alone. */
+const ANIMAL_TIPS: Record<Relation, string[]> = {
+  secret: ["Ask for a favour, as someone is quietly on your side.", "Accept help when it is offered today."],
+  friend: ["Team up with others, as shared plans go well.", "Say thank you to someone who backs you."],
+  same: ["Back yourself and do things your own way.", "Play to your strengths today."],
+  neutral: ["Make steady progress on your own goals.", "Finish something you started."],
+  clash: [],
+};
+const CLASH_TIPS = [
+  "Hold off big decisions and keep plans simple.",
+  "Let small irritations pass rather than argue.",
+  "Double-check details before you sign, buy or send.",
+  "Keep spending light and skip risky bets.",
+  "Leave extra time for travel and expect small delays.",
+  "Pick your battles and save your energy.",
+];
+const MOON_OPPOSITE_TIPS = [
+  "Feelings may run high, so pause before you react.",
+  "Give others space and try not to take things personally.",
+  "Have a quiet evening and get to bed early.",
+  "Listen more than you speak today.",
+  "Look after yourself first: eat well and rest.",
+  "Meet people halfway rather than digging in.",
+];
+
+/** Picks a tip for each date from its pool, avoiding repeats within the month while the pool lasts. */
+function tipsFor(dates: string[], pool: (d: string) => string[], seed: string): Record<string, string> {
+  const used = new Set<string>();
+  return Object.fromEntries(dates.map((d) => {
+    const xs = pool(d);
+    const start = hash(`${seed}:${d}`) % xs.length;
+    const free = [...xs.slice(start), ...xs.slice(0, start)].find((t) => !used.has(t)) ?? xs[start];
+    used.add(free);
+    return [d, free];
+  }));
+}
+
+const DAY_RELATION: Record<Relation, string> = {
+  secret: "your secret friend",
+  friend: "one of your friend animals",
+  same: "your own animal",
+  neutral: "a calm animal for you",
+  clash: "your clash animal",
+};
 
 /** This month for a sign and animal together. `iso` is today, which also sets where the planets are. */
 export function pairMonthlyForecast(signId: SignId, animalId: string, iso: string): PairMonthForecast {
@@ -414,14 +496,38 @@ export function pairMonthlyForecast(signId: SignId, animalId: string, iso: strin
   const moons = new Map(dates.map((d) => [d, moonEl(d)]));
   const best = dates.filter((d) => dayScore(animalId, d) >= 4 && moons.get(d)!.element === mine.element);
   const opposite = SIGNS[(SIGNS.indexOf(mine) + 6) % 12];
+  const bestDays = best.length ? best : base.bestDays;
+  const careDays = dates.filter((d) => base.careDays.includes(d) || moons.get(d)!.id === opposite.id);
+  const myElement = ELEMENTS[self.element];
+  /** "A Rabbit day, one of your friend animals, with Water feeding your Wood." */
+  const animalNote = (d: string, withElement = true) => {
+    const day = dayPillar(d);
+    const el = !withElement ? "" : day.element === self.element ? `, and a ${day.element} day like you`
+      : day.element === myElement.fedBy ? `, with ${day.element} feeding your ${self.element}` : "";
+    return `${/^[AEIOU]/.test(day.animal.name) ? "An" : "A"} ${day.animal.name} day, ${DAY_RELATION[relationBetween(animalId, day.animal.id)]}${el}.`;
+  };
+  const moonNote = (d: string) => `The Moon is ${inSign(mine, moons.get(d)!)}.`;
+  const bestNotes = Object.fromEntries(bestDays.map((d) => [d, best.length ? `${animalNote(d)} ${moonNote(d)}` : animalNote(d)]));
+  const careNotes = Object.fromEntries(careDays.map((d) => [d,
+    [base.careDays.includes(d) ? animalNote(d, false) : "", moons.get(d)!.id === opposite.id ? moonNote(d) : ""].filter(Boolean).join(" ")]));
+  const seed = `${signId}:${animalId}:${base.year}-${base.month}`;
+  const bestTips = tipsFor(bestDays, (d) => [
+    ...(best.length ? MOON_TIPS[moons.get(d)!.element] : []),
+    ...ANIMAL_TIPS[relationBetween(animalId, dayPillar(d).animal.id)],
+  ], `${seed}:best`);
+  const careTips = tipsFor(careDays, (d) => [
+    ...(base.careDays.includes(d) ? CLASH_TIPS : []),
+    ...(moons.get(d)!.id === opposite.id ? MOON_OPPOSITE_TIPS : []),
+  ], `${seed}:care`);
   return {
     ...base,
     stars, signStars,
     headline: t === "bright" ? `A bright month for the ${mine.name} ${self.name}` : t === "steady" ? "A steady month: what you put in comes back" : "A month to go gently and pick your battles",
     intro: [`Most of ${monthName} is the ${base.animal.name}'s month in the Chinese calendar, ${RELATION_SHORT[base.relation](self)}.`],
     topics,
-    bestDays: best.length ? best : base.bestDays,
-    careDays: dates.filter((d) => base.careDays.includes(d) || moons.get(d)!.id === opposite.id),
+    bestDays,
+    careDays,
+    bestNotes, careNotes, bestTips, careTips,
     mercuryRetrograde: retrogradeNow(at(iso).date).includes("mercury"),
   };
 }

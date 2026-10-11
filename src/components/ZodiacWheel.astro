@@ -434,6 +434,12 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   .details :global(.fc-body .fc-lucky li) { font-size: 0.82rem; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(212, 175, 90, 0.45); color: #e9d9b0; }
   .details :global(.fc-body .good) { color: #8fd3a5; }
   .details :global(.fc-body .hard) { color: #ff8a8f; }
+  .details :global(.fc-body .fc-days-head) { margin-bottom: 0.3rem; }
+  .details :global(.fc-body .fc-days) { list-style: none; margin: 0 0 0.9rem; padding: 0; display: grid; gap: 0.45rem; }
+  .details :global(.fc-body .fc-days li) { padding-left: 0.7rem; border-left: 2px solid rgba(255, 255, 255, 0.15); }
+  .details :global(.fc-body .fc-days b) { display: block; font-weight: 600; }
+  .details :global(.fc-body .fc-days span) { display: block; color: var(--mist); font-size: 0.88rem; line-height: 1.4; }
+  .details :global(.fc-body .fc-days em) { display: block; margin-top: 2px; font-style: normal; font-size: 0.88rem; line-height: 1.4; color: #e9d9b0; }
   .details :global(.fc-note) { margin: 12px 0 0; font-size: 0.78rem; color: var(--mist); }
 
   @media (max-width: 520px) { .details :global(.fc-body .topics) { grid-template-columns: 1fr; } }

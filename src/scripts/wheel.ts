@@ -54,15 +54,21 @@ function forecastHtml(sign: Sign, self: Animal, scope: Scope): string {
   const today = localToday();
   if (scope === "month") {
     const f = pairMonthlyForecast(sign.id, self.id, today);
-    const days = (xs: string[]) => xs.map((d) => shortDate(d)).join(", ");
+    // Only days still to come, each with why it stands out and a tip.
+    const days = (xs: string[], notes: Record<string, string>, tips: Record<string, string>) =>
+      `<ul class="fc-days">${xs.filter((d) => d >= today).map((d) =>
+        `<li><b>${d === today ? `Today, ${shortDate(d)}` : shortDate(d)}</b><span>${notes[d]}</span><em>Tip: ${tips[d]}</em></li>`).join("")}</ul>`;
+    const upcoming = (xs: string[]) => xs.some((d) => d >= today);
     return `
       <p class="fc-when">${MONTHS[f.month - 1]} ${f.year}</p>
       <div class="fc-headline"><h4>${f.headline}</h4>${stars(f.stars)}</div>
       <p class="ruler">${img(f.animal, 34)}<span>${f.intro[0]}</span></p>
       ${topicsHtml(f.topics)}
       ${f.mercuryRetrograde ? "<p>Mercury is retrograde right now, so double-check plans and messages.</p>" : ""}
-      <p><strong class="good">Your brightest days:</strong> ${f.bestDays.length ? days(f.bestDays) : "none stand out this month, so steady effort wins"}.</p>
-      <p><strong class="hard">Days to take care:</strong> ${days(f.careDays)} (${clashName(self)} days, and days the Moon sits opposite ${sign.name}).</p>`;
+      <p class="fc-days-head"><strong class="good">Your brightest days${upcoming(f.bestDays) ? " still to come" : ""}:</strong>${upcoming(f.bestDays) ? "" : f.bestDays.length ? " the best ones have passed for this month, so steady effort wins." : " none stand out this month, so steady effort wins."}</p>
+      ${upcoming(f.bestDays) ? days(f.bestDays, f.bestNotes, f.bestTips) : ""}
+      <p class="fc-days-head"><strong class="hard">Days to take care${upcoming(f.careDays) ? " still to come" : ""}:</strong>${upcoming(f.careDays) ? "" : " none left this month."}</p>
+      ${upcoming(f.careDays) ? days(f.careDays, f.careNotes, f.careTips) : ""}`;
   }
   const f = pairYearlyForecast(sign.id, self.id, today);
   const end = LUNAR_NEW_YEAR[f.zodiacYear + 1];

@@ -75,3 +75,16 @@ test("every friend, secret friend and clash has its own line, and no two lines r
   for (const t of [L.SIGN_FRIEND_LINES, L.SIGN_SECRET_LINES, L.SIGN_CLASH_LINES, L.ANIMAL_FRIEND_LINES, L.ANIMAL_SECRET_LINES, L.ANIMAL_CLASH_LINES]) all.push(...Object.values(t));
   assert.equal(new Set(all).size, all.length);
 });
+
+test("every brightest and care day says why it stands out", () => {
+  for (const [sign, animal] of [["leo", "pig"], ["cancer", "horse"], ["aries", "ox"]] as const) {
+    for (const month of ["01", "04", "10"]) {
+      const f = pairMonthlyForecast(sign, animal, `2026-${month}-11`);
+      for (const d of f.bestDays) assert.match(f.bestNotes[d], /^An? \w+ day, .*\.$/);
+      for (const d of f.careDays) assert.match(f.careNotes[d], /(your clash animal|opposite [A-Z]\w+)\.$/);
+      for (const d of [...f.bestDays, ...f.careDays]) assert.match(f.bestTips[d] ?? f.careTips[d], /^[A-Z].*\.$/);
+      const best = f.bestDays.map((d) => f.bestTips[d]);
+      if (best.length <= 5) assert.equal(new Set(best).size, best.length, "brightest-day tips repeat");
+    }
+  }
+});
