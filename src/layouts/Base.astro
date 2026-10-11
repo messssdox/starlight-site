@@ -4,6 +4,7 @@ import "../styles/global.css";
 import Cosmos from "../components/Cosmos.astro";
 import ReadingCounter from "../components/ReadingCounter.astro";
 import Glossary from "../components/Glossary.astro";
+import InstallApp from "../components/InstallApp.astro";
 
 interface Props {
   title: string;
@@ -48,6 +49,14 @@ const nav = [
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Lets phones install Starlight as an app (see InstallApp.astro). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="theme-color" content="#07060b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Starlight" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -76,10 +85,13 @@ const nav = [
           <span>Crafted by Dean Theron</span>
           <span aria-hidden="true">·</span>
           <a href="/credits">Credits</a>
+          <span aria-hidden="true" data-install-footer hidden>·</span>
+          <button class="link-button" type="button" data-install-open data-install-footer hidden>Install the app</button>
         </p>
       </div>
     </footer>
     <Glossary />
+    <InstallApp />
   </body>
 </html>
 
@@ -100,6 +112,9 @@ const nav = [
   main { position: relative; z-index: 1; }
   .site-footer { position: relative; z-index: 1; padding: 3rem 0; border-top: 1px solid rgba(156, 122, 60, 0.25); margin-top: 4rem; font-size: 0.9rem; }
   .small { font-size: 0.8rem; }
+  .link-button { background: none; border: 0; padding: 0; font: inherit; color: var(--orchid); text-decoration: underline; cursor: pointer; }
+  .link-button:hover { color: var(--gold); }
+  .link-button[hidden], .credit-line span[hidden] { display: none; }
   .credit-line { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
   @media (max-width: 640px) {
     nav { margin-left: 0; width: 100%; gap: 0.9rem; }

@@ -1,0 +1,13 @@
+---
+// Shown by the installed app when there's no signal and the page wasn't saved yet.
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="You're offline" noindex>
+  <section class="container" style="padding-top:64px;max-width:760px">
+    <p class="eyebrow">No signal</p>
+    <h1>You're offline</h1>
+    <p>This page hasn't been saved on your phone yet. Pages you've opened before still work, and everything else comes back as soon as you're connected again.</p>
+    <p><a class="btn" href="/">Back to the homepage</a></p>
+  </section>
+</Base>

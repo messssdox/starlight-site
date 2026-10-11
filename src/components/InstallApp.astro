@@ -1,0 +1,170 @@
+---
+// "Install the app": a button in the footer, plus a small bar at the bottom of the
+// screen the first time someone visits. Android and computers get the browser's own
+// install window; iPhones can't do that, so they get the Share > Add to Home Screen steps.
+// Nothing shows once Starlight is already open as an app.
+---
+
+<div class="install-bar" data-install-bar hidden role="region" aria-label="Install Starlight">
+  <img src="/icons/icon-192.png" alt="" width="40" height="40" />
+  <p><strong>Get the Starlight app</strong><span>Free, no app store, opens from your home screen.</span></p>
+  <button class="btn" type="button" data-install-open>Install</button>
+  <button class="close" type="button" data-install-later aria-label="Not now">✕</button>
+</div>
+
+<dialog class="install-help panel" data-install-help aria-labelledby="install-help-title">
+  <h2 id="install-help-title">Add Starlight to your home screen</h2>
+  <ol data-steps-ios hidden>
+    <li data-in-app-browser hidden>First open <strong>mystarlight.uk</strong> in <strong>Safari</strong> (this app's browser can't add it).</li>
+    <li>Tap the <strong>Share</strong> button <span class="share-icon" aria-hidden="true">⬆︎</span> at the bottom of Safari (at the top on iPad).</li>
+    <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+    <li>Tap <strong>Add</strong> in the top corner. Starlight appears with your other apps.</li>
+  </ol>
+  <ol data-steps-other hidden>
+    <li>Open your browser's menu: the <strong>⋮</strong> or <strong>☰</strong> button by the address bar.</li>
+    <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+    <li>Tap <strong>Install</strong> or <strong>Add</strong> to confirm.</li>
+  </ol>
+  <p class="note">If you've already installed it, open Starlight from your home screen.</p>
+  <form method="dialog"><button class="btn ghost" type="submit">Got it</button></form>
+</dialog>
+
+<script>
+  const LATER_KEY = "starlight-install-later";
+  const LATER_DAYS = 30;
+
+  type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
+
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
+  const ua = navigator.userAgent;
+  const isIOS = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+  const inAppBrowser = /FBAN|FBAV|Instagram|Line\/|TikTok|Snapchat/i.test(ua);
+
+  const bar = document.querySelector<HTMLElement>("[data-install-bar]");
+  const help = document.querySelector<HTMLDialogElement>("[data-install-help]");
+  const footerButtons = document.querySelectorAll<HTMLElement>("[data-install-footer]");
+  let deferred: InstallPromptEvent | null = null;
+
+  function laterActive() {
+    try {
+      const until = Number(localStorage.getItem(LATER_KEY));
+      return until > Date.now();
+    } catch {
+      return false;
+    }
+  }
+
+  function remindLater() {
+    try {
+      localStorage.setItem(LATER_KEY, String(Date.now() + LATER_DAYS * 864e5));
+    } catch {}
+    if (bar) bar.hidden = true;
+  }
+
+  function show(withBar: boolean) {
+    footerButtons.forEach((b) => (b.hidden = false));
+    if (withBar && bar && !laterActive()) bar.hidden = false;
+  }
+
+  function hideAll() {
+    footerButtons.forEach((b) => (b.hidden = true));
+    if (bar) bar.hidden = true;
+  }
+
+  function showSteps() {
+    if (!help) return;
+    help.querySelector<HTMLElement>("[data-steps-ios]")!.hidden = !isIOS;
+    help.querySelector<HTMLElement>("[data-steps-other]")!.hidden = isIOS;
+    help.querySelector<HTMLElement>("[data-in-app-browser]")!.hidden = !inAppBrowser;
+    help.showModal();
+  }
+
+  async function install() {
+    if (deferred) {
+      // The browser's own "Install Starlight?" window.
+      const prompt = deferred;
+      deferred = null;
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === "accepted") hideAll();
+      else if (bar) bar.hidden = true;
+    } else {
+      showSteps();
+    }
+  }
+
+  if (!standalone) {
+    document.querySelectorAll("[data-install-open]").forEach((b) => b.addEventListener("click", install));
+    document.querySelector("[data-install-later]")?.addEventListener("click", remindLater);
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferred = e as InstallPromptEvent;
+      show(true);
+    });
+    window.addEventListener("appinstalled", hideAll);
+
+    if (isIOS) {
+      show(true);
+    } else if (/android/i.test(ua)) {
+      // Browsers without their own install window (or where it's already installed)
+      // still get the footer button with the menu steps, but no pop-up bar.
+      window.setTimeout(() => {
+        if (!deferred) show(false);
+      }, 3000);
+    }
+  }
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    });
+  }
+</script>
+
+<style>
+  .install-bar {
+    position: fixed;
+    left: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 40;
+    width: min(520px, calc(100% - 24px));
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.8rem;
+    background: color-mix(in srgb, var(--night) 94%, transparent);
+    border: 1px solid color-mix(in srgb, var(--antique-gold) 60%, transparent);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+  }
+  .install-bar[hidden] { display: none; }
+  .install-bar img { border-radius: 10px; flex: none; }
+  .install-bar p { margin: 0; flex: 1; line-height: 1.3; font-size: 0.9rem; }
+  .install-bar p span { display: block; color: var(--mist); font-size: 0.8rem; }
+  .install-bar .btn { padding: 0.55em 1.1em; flex: none; }
+  .install-bar .close {
+    flex: none;
+    background: none;
+    border: 0;
+    color: var(--mist);
+    font-size: 1rem;
+    padding: 0.4rem;
+    cursor: pointer;
+  }
+  .install-help {
+    color: var(--moonlight);
+    width: min(440px, calc(100% - 32px));
+    max-height: calc(100% - 32px);
+  }
+  .install-help::backdrop { background: rgba(7, 6, 11, 0.75); }
+  .install-help h2 { font-size: 1.3rem; }
+  .install-help ol { padding-left: 1.2rem; }
+  .install-help li { margin-bottom: 0.6rem; }
+  .install-help li[hidden], .install-help ol[hidden] { display: none; }
+  .install-help .note { color: var(--mist); font-size: 0.85rem; }
+  .share-icon { color: var(--orchid); }
+  .install-help form { margin: 0; }
+</style>
