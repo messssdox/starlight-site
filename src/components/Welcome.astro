@@ -1,0 +1,72 @@
+---
+// A short welcome the first time someone visits: what Starlight is and how it works.
+// One tap anywhere closes it, and it never comes back on that phone or computer.
+---
+
+<dialog class="welcome panel" data-welcome aria-labelledby="welcome-title">
+  <p class="eyebrow">Welcome to</p>
+  <h2 id="welcome-title">✦ Starlight</h2>
+  <p class="lede">Free personal readings from numerology, astrology and the Chinese zodiac, all explained in plain English.</p>
+  <ol>
+    <li><strong>Enter your name and birth date</strong> and choose how deep you'd like to go.</li>
+    <li><strong>Get your reading:</strong> your numbers, your signs and your Chinese zodiac animal, with how each one is worked out.</li>
+    <li><strong>Add someone you love</strong> to see how your energies meet, or spin the wheels to find your sign and animal.</li>
+  </ol>
+  <p class="note">Your details are never stored, and everything is free. Tap any word with a dotted gold line under it for a quick meaning.</p>
+  <button class="btn" type="button">Start exploring</button>
+  <p class="tap">Tap anywhere to close</p>
+</dialog>
+
+<script>
+  const KEY = "starlight-welcomed";
+  const welcome = document.querySelector<HTMLDialogElement>("[data-welcome]");
+
+  function seen() {
+    try {
+      return localStorage.getItem(KEY) === "1";
+    } catch {
+      return true; // if we can't remember it, don't risk showing it on every page
+    }
+  }
+
+  // Not shown inside the installed app, where people have already found their way around.
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
+
+  if (welcome && !seen() && !standalone) {
+    const close = () => {
+      try {
+        localStorage.setItem(KEY, "1");
+      } catch {}
+      welcome.close();
+    };
+    // one tap anywhere, on the card or around it, closes it straight away
+    welcome.addEventListener("click", close);
+    welcome.addEventListener("cancel", close);
+    welcome.showModal();
+    welcome.querySelector("button")?.focus();
+  }
+</script>
+
+<style>
+  .welcome {
+    color: var(--moonlight);
+    width: min(460px, calc(100% - 32px));
+    max-height: calc(100% - 32px);
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(212, 175, 90, 0.15);
+  }
+  .welcome[open] { animation: welcome-in 0.35s ease-out; }
+  .welcome::backdrop { background: rgba(7, 6, 11, 0.78); backdrop-filter: blur(3px); }
+  .welcome .eyebrow { margin: 0; }
+  .welcome h2 { margin: 0.2rem 0 0.6rem; font-size: 1.8rem; color: var(--gold); }
+  .welcome .lede { margin: 0 0 1rem; font-size: 1rem; }
+  .welcome ol { text-align: left; padding-left: 1.3rem; margin: 0 0 1rem; font-size: 0.92rem; }
+  .welcome li { margin-bottom: 0.55rem; }
+  .welcome li::marker { color: var(--gold); font-weight: 700; }
+  .welcome .note { color: var(--mist); font-size: 0.85rem; margin: 0 0 1.1rem; }
+  .welcome .tap { margin: 0.7rem 0 0; color: var(--mist); font-size: 0.75rem; letter-spacing: 0.04em; }
+  @keyframes welcome-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } }
+  @media (prefers-reduced-motion: reduce) { .welcome[open] { animation: none; } }
+</style>

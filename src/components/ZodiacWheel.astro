@@ -14,6 +14,7 @@ import BirthDate from "./BirthDate.astro";
 import { ANIMALS, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS } from "../data/zodiac.ts";
 import { SIGNS, PLANETS } from "../data/astrology.ts";
 import { SIGN_PARTS, SIGN_ELEMENT_COLOURS, SIGN_SEASONS } from "../data/pairs.ts";
+import { topArc, bottomArc, pillArc, arcId } from "../lib/arc.ts";
 
 const R = {
   centre: 54,
@@ -33,11 +34,20 @@ const along = (i: number) => {
   const a = angleOf(i);
   return Math.sin(rad(a)) > 0.01 ? a - 90 : a + 90;
 };
-/** Attributes for a piece of text laid along the ring at segment position i. */
-const tt = (i: number, r: number) => {
-  const [x, y] = pt(i, r);
-  return { "data-i": i, "data-x": x, "data-y": y, transform: `translate(${x} ${y}) rotate(${along(i)})` };
+/** Attributes for a label curved along the ring at segment position i. Its letters run on one of the wheel's
+ *  shared arcs (see `tp`); this turns that arc to the segment. The script redoes it as the wheel turns. */
+const tt = (i: number) => ({ "data-i": i, "data-x": 0, "data-y": 0, transform: `rotate(${along(i)})` });
+/** The arcs each wheel's labels use, keyed by radius, drawn once in that wheel's <defs>. */
+const arcs: Record<string, Set<number>> = { aw: new Set(), sw: new Set() };
+/** Attributes for the <textPath> of a label at ring radius r on `wheel`. `dy` moves the letters' baseline so they sit
+ *  centred on the ring: inwards on the top half (letters point out), outwards on the bottom half (letters point in). */
+const tp = (wheel: "aw" | "sw", i: number, r: number, dy: number) => {
+  const top = arcId(wheel, r - dy, "t"), bot = arcId(wheel, r + dy, "b");
+  arcs[wheel].add(r - dy).add(r + dy);
+  return { href: `#${Math.sin(rad(angleOf(i))) > 0.01 ? bot : top}`, "data-top": top, "data-bot": bot, startOffset: "50%" };
 };
+/** A curved pill behind a label: `w` and `h` are the straight pill's width and height. */
+const pill = (i: number, r: number, w: number, h: number) => pillArc(r, angleOf(i), w - h);
 
 function wedge(i: number, r0: number, r1: number, span = 1) {
   const a0 = rad(angleOf(i) - 15), a1 = rad(angleOf(i) - 15 + 30 * span);
@@ -108,7 +118,7 @@ const tagW = (name: string) => name.length * 15.5 + 22;
             return (
               <g class="season elem" data-element={s.element} tabindex="0" role="button" aria-label={`${s.element}: what this element means`}>
                 <path class="band" d={wedge(first, R.rimIn, R.rimOut, 3)} fill={s.colour} />
-                <text class="season-name tt" {...tt(mid.index, (R.rimIn + R.rimOut) / 2)} y="8" text-anchor="middle">{`${ELEMENTS[s.element].glyph} ${s.element.toUpperCase()}`}</text>
+                <text class="season-name tt" {...tt(mid.index)} text-anchor="middle"><textPath {...tp("aw", mid.index, (R.rimIn + R.rimOut) / 2, 8)}>{`${ELEMENTS[s.element].glyph} ${s.element.toUpperCase()}`}</textPath></text>
                 <path class="elem-outline" d={wedge(first, R.rimIn, R.rimOut, 3)} />
               </g>
             );
@@ -116,9 +126,10 @@ const tagW = (name: string) => name.length * 15.5 + 22;
           {EARTH_ANIMALS.map((id) => {
             const a = ANIMALS.find((x) => x.id === id)!;
             return (
-              <g class="earth-pill elem tt" data-element="Earth" {...tt(a.index, (R.rimIn + R.rimOut) / 2)} tabindex="0" role="button" aria-label="Earth: what this element means">
-                <rect x="-58" y="-15" width="116" height="30" rx="15" />
-                <text y="6" text-anchor="middle">土 EARTH</text>
+              <g class="earth-pill elem" data-element="Earth" tabindex="0" role="button" aria-label="Earth: what this element means">
+                <path class="pill-edge" d={pill(a.index, (R.rimIn + R.rimOut) / 2, 116, 30)} />
+                <path class="pill" d={pill(a.index, (R.rimIn + R.rimOut) / 2, 116, 30)} />
+                <text class="tt" {...tt(a.index)} text-anchor="middle"><textPath {...tp("aw", a.index, (R.rimIn + R.rimOut) / 2, 6)}>土 EARTH</textPath></text>
               </g>
             );
           })}
@@ -130,16 +141,17 @@ const tagW = (name: string) => name.length * 15.5 + 22;
           return (
             <g class="seg" data-id={a.id} tabindex="0" role="button" aria-label={`${a.name}: turn the wheel to the ${a.name}`}>
               <path class="num-band" d={wedge(a.index, R.numIn, R.numOut)} />
-              <text class="num tt" {...tt(a.index, (R.numIn + R.numOut) / 2)} y="7" text-anchor="middle">{a.index + 1}</text>
+              <text class="num tt" {...tt(a.index)} text-anchor="middle"><textPath {...tp("aw", a.index, (R.numIn + R.numOut) / 2, 7)}>{a.index + 1}</textPath></text>
               <path class="animal" d={wedge(a.index, R.animalIn, R.animalOut)} fill={`url(#g-${a.id})`} />
               <path class="secret" d={wedge(a.index, R.secretIn, R.secretOut)} fill={secretColour(a.id)} />
               <g transform={`translate(${ix} ${iy})`}><g class="upright">
                 <image class="render" href={`/animals/${a.id}.png`} x="-40" y="-40" width="80" height="80" filter="url(#lift)" />
               </g></g>
-              <g class="name-tag tt" {...tt(a.index, 408)}><rect x={-tagW(a.name) / 2} y="-16" width={tagW(a.name)} height="32" rx="16" /><text class="name" y="8" text-anchor="middle">{a.name.toUpperCase()}</text></g>
-              <g class="badge tt" {...tt(a.index, 300)} aria-hidden="true">
-                <rect x="-60" y="-13" width="120" height="26" rx="13" />
-                <text y="6" text-anchor="middle"></text>
+              <g class="name-tag"><path class="pill-edge" d={pill(a.index, 408, tagW(a.name), 32)} /><path class="pill" d={pill(a.index, 408, tagW(a.name), 32)} /><text class="name tt" {...tt(a.index)} text-anchor="middle"><textPath {...tp("aw", a.index, 408, 8)}>{a.name.toUpperCase()}</textPath></text></g>
+              <g class="badge" data-r="300" data-angle={angleOf(a.index)} aria-hidden="true">
+                <path class="pill-edge" />
+                <path class="pill" />
+                <text class="tt" {...tt(a.index)} text-anchor="middle"><textPath {...tp("aw", a.index, 300, 6)}></textPath></text>
               </g>
               <path class="outline" d={wedge(a.index, R.secretIn, R.numOut)} />
             </g>
@@ -157,7 +169,7 @@ const tagW = (name: string) => name.length * 15.5 + 22;
                 return (
                   <g class="year" data-year={y} data-id={a.id} role="button" aria-label={`${y}, year of the ${a.name}`}>
                     <path class="cell" d={wedge(a.index, r - YEAR_ROW_GAP / 2, r + YEAR_ROW_GAP / 2)} />
-                    <text class="tt" {...tt(a.index, r)} y="6" text-anchor="middle">{yearLabel(y, row)}</text>
+                    <text class="tt" {...tt(a.index)} text-anchor="middle"><textPath {...tp("aw", a.index, r, 6)}>{yearLabel(y, row)}</textPath></text>
                   </g>
                 );
               })}
@@ -191,6 +203,7 @@ const tagW = (name: string) => name.length * 15.5 + 22;
         <image class="centre-img" href="/animals/rat.png" x="-46" y="-46" width="92" height="92" />
         <text class="centre-glyph" y="20" text-anchor="middle"></text>
       </g>
+      <defs>{[...arcs.aw].map((r) => [<path id={arcId("aw", r, "t")} d={topArc(r)} />, <path id={arcId("aw", r, "b")} d={bottomArc(r)} />])}</defs>
     </svg>
     </div>
     <div class="wheel-col">
@@ -210,7 +223,7 @@ const tagW = (name: string) => name.length * 15.5 + 22;
               {SIGN_SEASONS.map((x) => (
                 <g>
                   <path class="band" d={wedge(x.first, S.rimIn, S.rimOut, 3)} fill={x.colour} />
-                  <text class="season-name tt" {...tt(x.first + 1, (S.rimIn + S.rimOut) / 2)} y="8" text-anchor="middle">{x.season.toUpperCase()}</text>
+                  <text class="season-name tt" {...tt(x.first + 1)} text-anchor="middle"><textPath {...tp("sw", x.first + 1, (S.rimIn + S.rimOut) / 2, 8)}>{x.season.toUpperCase()}</textPath></text>
                 </g>
               ))}
             </g>
@@ -220,20 +233,21 @@ const tagW = (name: string) => name.length * 15.5 + 22;
               return (
                 <g class="seg" data-sign={g.id} tabindex="0" role="button" aria-label={`${g.name}: turn the wheel to ${g.name}`}>
                   <path class="num-band" d={wedge(i, S.dateIn, S.dateOut)} />
-                  <text class="date tt" {...tt(i, (S.dateIn + S.dateOut) / 2)} y="6" text-anchor="middle">{SIGN_PARTS[g.id].dates.toUpperCase()}</text>
+                  <text class="date tt" {...tt(i)} text-anchor="middle"><textPath {...tp("sw", i, (S.dateIn + S.dateOut) / 2, 6)}>{SIGN_PARTS[g.id].dates.toUpperCase()}</textPath></text>
                   <path class="animal" d={wedge(i, S.signIn, S.signOut)} fill={`url(#gs-${g.element})`} />
                   <path class="cell" d={wedge(i, S.centre, S.planetOut)} />
                   <g transform={`translate(${mx} ${my})`}><g class="upright">
                     <circle class="medal" r="36" />
                     <text class="medal-glyph" y="14" text-anchor="middle">{g.glyph}</text>
                   </g></g>
-                  <g class="name-tag tt" {...tt(i, 396)}><rect x={-tagW(g.name) / 2} y="-16" width={tagW(g.name)} height="32" rx="16" /><text class="name" y="8" text-anchor="middle">{g.name.toUpperCase()}</text></g>
-                  <text class="ruler-glyph tt" {...tt(i, 206)} y="12" text-anchor="middle">{RULER_GLYPH[rulerName(g.ruler)]}</text>
-                  <text class="ruler-name tt" {...tt(i, 168)} y="6" text-anchor="middle">{rulerName(g.ruler).toUpperCase()}</text>
-                  <text class="elem-name tt" {...tt(i, 118)} y="5" text-anchor="middle">{g.element.toUpperCase()}</text>
-                  <g class="badge tt" {...tt(i, 280)} aria-hidden="true">
-                    <rect x="-60" y="-13" width="120" height="26" rx="13" />
-                    <text y="6" text-anchor="middle"></text>
+                  <g class="name-tag"><path class="pill-edge" d={pill(i, 396, tagW(g.name), 32)} /><path class="pill" d={pill(i, 396, tagW(g.name), 32)} /><text class="name tt" {...tt(i)} text-anchor="middle"><textPath {...tp("sw", i, 396, 8)}>{g.name.toUpperCase()}</textPath></text></g>
+                  <text class="ruler-glyph tt" {...tt(i)} text-anchor="middle"><textPath {...tp("sw", i, 206, 12)}>{RULER_GLYPH[rulerName(g.ruler)]}</textPath></text>
+                  <text class="ruler-name tt" {...tt(i)} text-anchor="middle"><textPath {...tp("sw", i, 168, 6)}>{rulerName(g.ruler).toUpperCase()}</textPath></text>
+                  <text class="elem-name tt" {...tt(i)} text-anchor="middle"><textPath {...tp("sw", i, 118, 5)}>{g.element.toUpperCase()}</textPath></text>
+                  <g class="badge" data-r="280" data-angle={angleOf(i)} aria-hidden="true">
+                    <path class="pill-edge" />
+                    <path class="pill" />
+                    <text class="tt" {...tt(i)} text-anchor="middle"><textPath {...tp("sw", i, 280, 6)}></textPath></text>
                   </g>
                   <path class="outline" d={wedge(i, S.signIn, S.dateOut)} />
                 </g>
@@ -255,6 +269,7 @@ const tagW = (name: string) => name.length * 15.5 + 22;
             <circle r={S.centre} />
             <text class="centre-glyph sign-centre" y="20" text-anchor="middle"></text>
           </g>
+          <defs>{[...arcs.sw].map((r) => [<path id={arcId("sw", r, "t")} d={topArc(r)} />, <path id={arcId("sw", r, "b")} d={bottomArc(r)} />])}</defs>
         </svg>
     </div>
   </div>
@@ -331,13 +346,17 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   .wheel .elem-outline { fill: none; stroke: transparent; stroke-width: 6; transition: stroke 0.3s; }
   .wheel .season:hover .elem-outline, .wheel .season:focus-visible .elem-outline { stroke: rgba(212, 175, 90, 0.8); }
   .wheel .season.is-on .elem-outline { stroke: #d4af5a; stroke-width: 9; filter: url(#glow); }
-  .wheel .earth-pill rect { fill: #D9B66B; stroke: #120e1f; stroke-width: 2; transition: stroke 0.3s; }
+  /* curved pills behind labels: a thick round-ended stroke along the ring, over a slightly thicker one for the edge */
+  .wheel .pill, .wheel .pill-edge { fill: none; stroke-linecap: round; }
+  .wheel .earth-pill .pill { stroke: #D9B66B; stroke-width: 30; }
+  .wheel .earth-pill .pill-edge { stroke: #120e1f; stroke-width: 34; transition: stroke 0.3s; }
   .wheel .earth-pill text { font: 700 17px var(--font-body); fill: #120e1f; letter-spacing: 0.06em; }
-  .wheel .earth-pill:hover rect, .wheel .earth-pill:focus-visible rect { stroke: #d4af5a; stroke-width: 3; }
-  .wheel .earth-pill.is-on rect { stroke: #d4af5a; stroke-width: 4; filter: url(#glow); }
+  .wheel .earth-pill:hover .pill-edge, .wheel .earth-pill:focus-visible .pill-edge { stroke: #d4af5a; stroke-width: 36; }
+  .wheel .earth-pill.is-on .pill-edge { stroke: #d4af5a; stroke-width: 38; filter: url(#glow); }
   .wheel .num-band { fill: #faf6ee; }
   .wheel .num { font: 700 23px var(--font-display); fill: #120e1f; }
-  .wheel .name-tag rect { fill: rgba(250, 246, 238, 0.94); stroke: #120e1f; stroke-width: 1.5; }
+  .wheel .name-tag .pill { stroke: #f8f4ec; stroke-width: 32; }
+  .wheel .name-tag .pill-edge { stroke: #120e1f; stroke-width: 35; }
   .wheel .name { font: 700 22px var(--font-body); fill: #120e1f; letter-spacing: 0.05em; }
   .wheel .ink circle, .wheel .ink line { fill: none; stroke: #1d1729; stroke-width: 2.4; }
   .wheel .spoke { stroke: #1d1729; stroke-width: 1.6; }
@@ -357,8 +376,9 @@ const tagW = (name: string) => name.length * 15.5 + 22;
 
   .wheel .badge { display: none; }
   .wheel .badge.is-on { display: inline; }
-  .wheel .badge rect { fill: #120e1f; stroke: #d4af5a; stroke-width: 1.5; }
-  .wheel .badge.k-clash rect { stroke: #ff6b70; }
+  .wheel .badge .pill { stroke: #120e1f; stroke-width: 26; }
+  .wheel .badge .pill-edge { stroke: #d4af5a; stroke-width: 29; }
+  .wheel .badge.k-clash .pill-edge { stroke: #ff6b70; }
   .wheel .badge text { font: 700 13px var(--font-body); fill: #ffffff; letter-spacing: 0.03em; }
 
   .wheel .year { cursor: pointer; outline: none; }

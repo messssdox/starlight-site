@@ -555,6 +555,12 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     }
     if (p.kind === "saturn") rings(x, y, r, p.tilt, Math.sin(p.lean) + 0.02, false);
     if (p.kind === "jupiter") moons(x, y, r, t, false);
+    // The planets are drawn see-through (faintly on the library pages), so first block out their disc with the
+    // night sky: the far side of Saturn's rings, Jupiter's moons behind it and the stars stay hidden behind the planet.
+    c.save();
+    c.globalAlpha = 1; c.fillStyle = "#07060b";
+    c.beginPath(); c.arc(x, y, r * 0.98, 0, TAU); c.fill();
+    c.restore();
     const m = maps[p.kind], tex = textures[p.kind];
     if (m && tex) {
       let light = SUN, ambient = 0.05, turn = p.spin && !reduceMotion ? t / p.spin : 0.2;
