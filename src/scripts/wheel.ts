@@ -5,7 +5,7 @@
 import { ANIMALS, GROUPS, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS, animalById, seasonOf, type Animal, type Element } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
 import { SIGNS, type Sign, type SignId } from "../data/astrology.ts";
-import { SIGN_FRIEND, ANIMAL_FRIEND, SIGN_SECRET } from "../data/pairs.ts";
+import { SIGN_FRIEND_LINES, SIGN_SECRET_LINES, SIGN_CLASH_LINES, ANIMAL_FRIEND_LINES, ANIMAL_SECRET_LINES, ANIMAL_CLASH_LINES, matchKey } from "../data/matches.ts";
 import { chineseSign, animalOfZodiacYear, elementOfZodiacYear, yinYangOfZodiacYear } from "../lib/chinese.ts";
 import { pairMonthlyForecast, pairYearlyForecast, luckyAnimals, animalHours } from "../lib/forecast.ts";
 import { pairProfile, pairMatches, sunSignOn, signById, poss, type PairMatch } from "../lib/pair.ts";
@@ -212,7 +212,7 @@ export function initWheel(root: HTMLElement) {
   const row = (label: string, pics: string, names: string, why: string, next: string) => `
       <div class="match"><p class="kind">${label}</p>
         <div class="who">${pics}<strong>${names}</strong></div>
-        <p>${why}</p><p class="next">${next}</p></div>`;
+        ${why}<p class="next">${next}</p></div>`;
 
   /** The three boxes. Signs and animals are matched separately, each on its own wheel, so every box
    * lists its signs and its animals as two rows rather than joining them into made-up people. */
@@ -225,26 +225,27 @@ export function initWheel(root: HTMLElement) {
 
     const fs = m.friends.map((f) => f.sign);
     const fa = m.friends.map((f) => f.animal);
+    const line = (lines: Record<string, string>, a: string, b: string) => `<p>${lines[matchKey(a, b)]}</p>`;
     box("friends").querySelector(".body")!.innerHTML =
       row("Friendly signs", fs.map(signGlyph).join(""), list(fs.map((f) => f.name)),
-        `${SIGN_FRIEND[sg.element]}.`,
-        `${list(fs.map((f) => f.name))} share ${poss(sg.name)} colour on the sign wheel.`) +
+        fs.map((f) => line(SIGN_FRIEND_LINES, sg.id, f.id)).join(""),
+        `${list(fs.map((f) => f.name))} share ${poss(sg.name)} ${sg.element} colour on the sign wheel.`) +
       row("Friendly animals", fa.map((f) => img(f)).join(""), list(fa.map((f) => f.name)),
-        `The ${list(fa.map((f) => f.name))} ${ANIMAL_FRIEND[self.group]}.`,
+        fa.map((f) => line(ANIMAL_FRIEND_LINES, self.id, f.id)).join(""),
         `They share the ${poss(self.name)} colour on the animal wheel. Next friend years: ${fa.map((f) => [nextYearOf(f), f.name] as const).sort((x, y) => x[0] - y[0]).map(([y, n]) => `${y} (${n})`).join(", ")}.`);
     box("secret").querySelector(".body")!.innerHTML =
       row("Secret friend sign", signGlyph(m.secret.sign), m.secret.sign.name,
-        `${SIGN_SECRET[sg.element]}.`,
+        line(SIGN_SECRET_LINES, sg.id, m.secret.sign.id),
         `Two signs on from ${sg.name}.`) +
       row("Secret friend animal", img(m.secret.animal), `The ${m.secret.animal.name}`,
-        `Your hidden ally. The ${m.secret.animal.name} brings what the ${self.name} lacks: a quiet, loyal bond.`,
+        line(ANIMAL_SECRET_LINES, self.id, m.secret.animal.id),
         `The same colour on the animal wheel's inner ring. Next ${m.secret.animal.name} year: ${nextYearOf(m.secret.animal)}.`);
     box("clash").querySelector(".body")!.innerHTML =
       row("Clashing sign", signGlyph(m.clash.sign), m.clash.sign.name,
-        `${m.clash.sign.name} and ${sg.name} face each other, so you often see things from opposite sides.`,
+        line(SIGN_CLASH_LINES, sg.id, m.clash.sign.id),
         `Directly opposite ${sg.name} on the sign wheel.`) +
       row("Clashing animal", img(m.clash.animal), `The ${m.clash.animal.name}`,
-        `The ${self.name} and ${m.clash.animal.name} want different things, so this bond takes patience. Learn from each other rather than compete.`,
+        line(ANIMAL_CLASH_LINES, self.id, m.clash.animal.id),
         `Directly opposite the ${self.name} on the animal wheel. Next ${m.clash.animal.name} year, a year to take extra care: ${nextYearOf(m.clash.animal)}.`);
     delete insights.dataset.glossaryDone;
   }
