@@ -197,8 +197,9 @@ const FILTERS = [
     function numerology(e: SkyEvent) {
       const n = dayNumber(e.at);
       const echo = NUMBER_ECHOES.find((x) => x.test(e.title) && x.numbers.includes(n.value));
+      const master = MASTER_NUMBERS.includes(n.value) && e.kind !== "number"; // numerology dates already say so
       return { n, html: `
-        ${echo ? `<p class="e-num"><span class="master" title="The day's number matches this event">✧ Numbers match</span></p>` : ""}
+        ${echo || master ? `<p class="e-num">${master ? `<span class="master">Master day ${n.value}</span> ` : ""}${echo ? `<span class="master" title="The day's number matches this event">✧ Numbers match</span>` : ""}</p>` : ""}
         <p class="e-pers" data-pers hidden></p>`,
         detail: [
           { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${n.value} (${n.steps.join(", then ")})${MASTER_NUMBERS.includes(n.value) ? ", a master number" : ""}. ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : ""}` },
@@ -206,7 +207,7 @@ const FILTERS = [
     }
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     const row = (e: SkyEvent) => { const num = numerology(e); return `
-      <li class="k-${e.kind}" data-kind="${e.kind}" data-at="${e.at.getTime()}">
+      <li class="k-${e.kind}" data-kind="${e.kind}"${e.minor ? " data-minor" : ""} data-at="${e.at.getTime()}">
         <span class="e-date"><b>${day.format(e.at)}</b>${e.allDay ? "All day" : time.format(e.at)}</span>
         <span class="e-icon" aria-hidden="true">${e.icon}</span>
         <div>
@@ -238,7 +239,8 @@ const FILTERS = [
         const counts: Record<string, number> = {};
         d.querySelectorAll<HTMLElement>("li").forEach((li) => {
           const k = li.dataset.kind!;
-          const show = kind === "all" || k === kind;
+          // Lesser numerology dates only show under their own filter, to keep "Everything" uncluttered.
+          const show = kind === "all" ? !("minor" in li.dataset) : k === kind;
           li.hidden = !show;
           if (show) { shown++; counts[k] = (counts[k] ?? 0) + 1; }
         });

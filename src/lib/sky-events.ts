@@ -40,6 +40,8 @@ export interface SkyEvent {
   untilLabel?: string;
   /** A whole-day event (the numerology dates), shown without a time. */
   allDay?: boolean;
+  /** A lesser numerology date: shown under the "Numerology dates" filter but not under "Everything". */
+  minor?: boolean;
 }
 
 const opposite = (sign: Sign) => SIGNS[(SIGNS.indexOf(sign) + 6) % 12];
@@ -291,31 +293,32 @@ const LAUNCH_YEAR = 2026;
 const ORDINAL = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
 
 /**
- * The special numerology dates, kept to a handful a year so they stand out: 1/1 (a new
- * Universal Year begins), 2/22 (master number 22), 8/8 (the Lion's Gate), 10/10 (Starlight's
- * birthday), 11/11 and 12/12. They are whole days in the visitor's own time zone, starting
- * at local midnight, and today's date is included.
+ * The numerology dates: the repeating "portal" dates 1/1 to 12/12, the master-number dates
+ * (22/2, 22/11, 29/11) and the mirror dates (11/1, 1/11), written day/month as in the UK.
+ * The six best known (1/1, 22/2, 8/8, 10/10, 11/11, 12/12) are headline dates, shown
+ * everywhere; the rest appear under the "Numerology dates" filter. They are whole days in
+ * the visitor's own time zone, starting at local midnight, and today's date is included.
  */
 function numberDates(start: Date, end: Date): SkyEvent[] {
   const out: SkyEvent[] = [];
   const today = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
-    for (const [m, d] of [[1, 1], [2, 22], [8, 8], [10, 10], [11, 11], [12, 12]]) {
+    for (const [key, p] of Object.entries(NUMBER_DATES)) {
+      const [d, m] = key.split("/").map(Number);
       const at = new Date(y, m - 1, d);
       if (at < today || at >= end) continue;
-      const p = NUMBER_DATES[`${m}/${d}`];
-      const ev: SkyEvent = { kind: "number", at, allDay: true, icon: "✧", title: `${m}/${d} · ${p.name}`, note: p.note, detail: p.detail.map((x) => ({ ...x })), link: "/numerology" };
-      if (m === 1) {
+      const ev: SkyEvent = {
+        kind: "number", at, allDay: true, minor: !p.headline, icon: "✧", title: `${key} · ${p.name}`, note: p.note,
+        detail: p.detail.map((x) => ({ ...x })), link: "/numerology",
+      };
+      if (key === "1/1") {
         const uy = universalYear(y);
         ev.title = `1/1 · Universal Year ${uy.value} begins`;
         ev.note = `${y} adds up to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`;
-        ev.detail = [
-          { p: `${y} is a Universal Year ${uy.value} (${uy.steps.join(", then ")}). ${PERSONAL_YEAR_THEMES[uy.value]}` },
-          ...ev.detail,
-        ];
+        ev.detail = [{ p: `${y} is a Universal Year ${uy.value} (${uy.steps.join(", then ")}). ${PERSONAL_YEAR_THEMES[uy.value]}` }, ...ev.detail];
       }
-      if (m === 8) { ev.until = new Date(y, 7, 12); ev.untilLabel = "The Lion's Gate stays open until"; }
-      if (m === 10 && y > LAUNCH_YEAR) {
+      if (key === "8/8") { ev.until = new Date(y, 7, 12); ev.untilLabel = "The Lion's Gate stays open until"; }
+      if (key === "10/10" && y > LAUNCH_YEAR) {
         const age = y - LAUNCH_YEAR;
         ev.title = `10/10 · Starlight's ${ORDINAL[age] ?? `${age}th`} birthday`;
         ev.icon = "✦";

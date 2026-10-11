@@ -225,51 +225,90 @@ export const NUMEROLOGY_INTRO =
   "In numerology every date has its own number, the same for everyone. Add up all the digits of the date and keep going until one digit is left (11, 22 and 33 are kept as master numbers). That is the Universal Day, and it colours whatever happens in the sky that day.";
 
 /**
- * The special numerology dates in the calendar. Kept to a few a year on purpose, so each
- * one feels like an occasion. 1/1 also gets the new Universal Year's own meaning.
+ * The numerology dates in the calendar, keyed day/month as written in the UK. `headline`
+ * dates show everywhere; the rest only under the "Numerology dates" filter, so the main
+ * list stays uncluttered.
  */
-export const NUMBER_DATES: Record<string, { name: string; note: string; detail: { h?: string; p: string }[] }> = {
+export const NUMBER_DATES: Record<string, { name: string; note: string; headline?: boolean; detail: { h?: string; p: string }[] }> = {
   "1/1": {
-    name: "a new Universal Year",
-    note: "",
+    name: "a new Universal Year", note: "", headline: true,
     detail: [{ h: "Good for", p: "Setting intentions for the year in the spirit of its number. The double 1 of the date adds a burst of fresh-start energy." }],
   },
-  "2/22": {
-    name: "master number 22",
-    note: "The Master Builder's day: turn a big dream into a real plan.",
+  "11/1": {
+    name: "mirror date", note: "11 January: the first master-number date of the year.",
+    detail: [{ p: "Written 11/1, the date shows master number 11 beside a 1, and its digits add up to 3. Numerology fans call these mirror or \"angel number\" dates: a nudge to notice signs and trust your intuition as the year gets going." }],
+  },
+  "2/2": {
+    name: "partnership portal", note: "A doubled 2: a gentle day for love, teamwork and balance.",
+    detail: [{ p: "Two is the number of partnership and cooperation. On 2/2 it is doubled, which makes it a soft, connecting day: reach out, mend a bridge or simply listen." }],
+  },
+  "22/2": {
+    name: "master number 22", note: "The Master Builder's day: turn a big dream into a real plan.", headline: true,
     detail: [
-      { p: "Twenty-two is the master number of the Master Builder: big visions made real through patient, practical steps. On 2/22 it appears in plain sight, with the 2s of partnership around it." },
+      { p: "Twenty-two is the master number of the Master Builder: big visions made real through patient, practical steps. On 22 February (22/2, or 2/22 in the US) it appears in plain sight, with the 2s of partnership around it." },
       { h: "Good for", p: "Writing down a long-term dream and the first practical step towards it, and building things with other people." },
     ],
   },
+  "3/3": {
+    name: "creativity portal", note: "A doubled 3: say it, sing it, make something.",
+    detail: [{ p: "Three is the number of creativity and self-expression, and 3 + 3 makes 6, the number of the heart. A day to share ideas, create freely and enjoy other people's company." }],
+  },
+  "4/4": {
+    name: "foundations portal", note: "A doubled 4: build something steady.",
+    detail: [{ p: "Four is the number of foundations, order and hard work. On 4/4 it is doubled, so it is a good day for practical plans, organising and laying groundwork that lasts." }],
+  },
+  "5/5": {
+    name: "change portal", note: "A doubled 5: welcome a shake-up.",
+    detail: [{ p: "Five is the number of freedom and change. On 5/5 it is doubled and 5 + 5 makes 10, a fresh cycle. A day to try something new, travel, or let go of a routine that has gone stale." }],
+  },
+  "6/6": {
+    name: "love and home portal", note: "A doubled 6: care for the people and places you love.",
+    detail: [{ p: "Six is the number of love, home and responsibility. On 6/6 it is doubled, which makes it a warm day for family, healing and making your space beautiful." }],
+  },
+  "7/7": {
+    name: "inner wisdom portal", note: "A doubled 7: a lucky, spiritual day for reflection.",
+    detail: [{ p: "Seven is the number of inner wisdom and spirituality, and many traditions see it as lucky. On 7/7 it is doubled: a day to slow down, meditate, study and trust your intuition." }],
+  },
   "8/8": {
-    name: "the Lion's Gate",
-    note: "The peak of the Lion's Gate portal: abundance, courage and manifesting.",
+    name: "the Lion's Gate", note: "The peak of the Lion's Gate portal: abundance, courage and manifesting.", headline: true,
     detail: [
       { p: "The Lion's Gate is a yearly \"portal\" from about 26 July to 12 August, peaking on 8/8. The Sun is in Leo, the lion, and the bright star Sirius rises again before dawn after weeks hidden in the Sun's glare. Ancient Egyptians linked Sirius's return with the flooding of the Nile and the start of their new year." },
       { h: "The numbers", p: "Eight is the number of abundance, success and personal power. On 8/8 it is doubled, and an 8 on its side is the sign for infinity, which is why the day is linked with manifesting." },
       { h: "Good for", p: "Setting big goals, money and career intentions, and stepping into your confidence like a lion." },
     ],
   },
+  "9/9": {
+    name: "completion portal", note: "A doubled 9: finish, forgive and let go.",
+    detail: [{ p: "Nine is the number of endings and compassion. On 9/9 it is doubled, so it is a day to complete what is unfinished, clear space and forgive, ready for what comes next." }],
+  },
   "10/10": {
-    name: "a fresh cycle",
-    note: "Ten becomes 1: a new cycle begins on a higher level.",
+    name: "a fresh cycle", note: "Ten becomes 1: a new cycle begins on a higher level.", headline: true,
     detail: [
       { p: "Ten is a 1 with a 0 beside it: a new beginning with a whole cycle's wisdom behind it. On 10/10 it is doubled." },
       { h: "Starlight's birthday", p: "Starlight went live on 10 October 2026, the 10/10 portal. Ten adds up to 1, the number of beginnings, which felt like the right day to begin." },
     ],
   },
+  "1/11": {
+    name: "mirror date", note: "1 November: the doorway to the master month of 11s.",
+    detail: [{ p: "Written 1/11, the date mirrors 11/1 in January and opens November, the eleventh month, with its run of master-number dates. A day to set an intention you want to grow through the month." }],
+  },
   "11/11": {
-    name: "make a wish",
-    note: "The best-known portal: master number 11, twice over.",
+    name: "make a wish", note: "The best-known portal: master number 11, twice over.", headline: true,
     detail: [
       { p: "Eleven is a master number of intuition, inspiration and spiritual awakening. On 11/11 it is doubled, and many people make a wish at 11:11. It is the most celebrated numerology date of the year." },
       { h: "Good for", p: "Noticing signs and coincidences, trusting your hunches and setting heartfelt intentions." },
     ],
   },
+  "22/11": {
+    name: "master numbers 22 and 11", note: "Two master numbers side by side: vision meets intuition.",
+    detail: [{ p: "On 22 November (22/11, or 11/22 in the US) the Master Builder 22 sits beside the intuitive 11. Numerology fans see it as a day to let inspiration guide something practical and lasting." }],
+  },
+  "29/11": {
+    name: "a double 11", note: "29 adds up to 11, beside the 11th month: a quiet master-number day.",
+    detail: [{ p: "Twenty-nine adds up to 11 (2 + 9), and November is the 11th month, so 29/11 (11/29 in the US) carries master number 11 twice, a little hidden. A gentle day for intuition and spiritual insight." }],
+  },
   "12/12": {
-    name: "reflection",
-    note: "The year's last portal: look back, give thanks and dream ahead.",
+    name: "reflection", note: "The year's last portal: look back, give thanks and dream ahead.", headline: true,
     detail: [
       { p: "Twelve adds up to 3, the number of joy and expression, and on 12/12 it is doubled as the year draws to a close." },
       { h: "Good for", p: "Looking back on how far you have come, giving thanks and dreaming about the year ahead." },
