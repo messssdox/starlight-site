@@ -141,6 +141,7 @@ export function initWheel(root: HTMLElement) {
   const insights = root.querySelector<HTMLElement>("[data-insights]")!;
   const reveal = root.querySelector<HTMLElement>("[data-reveal]")!;
   const signPick = root.querySelector<HTMLSelectElement>("#wheel-sign")!;
+  const animalPick = root.querySelector<HTMLSelectElement>("#wheel-animal")!;
   const centreImg = svg.querySelector<SVGImageElement>(".centre-img")!;
   const segs = [...svg.querySelectorAll<SVGGElement>(".seg")];
   const signSegs = [...signSvg.querySelectorAll<SVGGElement>(".seg")];
@@ -403,7 +404,7 @@ export function initWheel(root: HTMLElement) {
 
   /** Change the animal and/or sign. Before Show me, this only turns the wheels. */
   function select(next: { animal?: string; sign?: SignId; focus?: Focus }, animate = true) {
-    if (next.animal) current = next.animal;
+    if (next.animal) { current = next.animal; animalPick.value = current; }
     if (next.sign) { sign = next.sign; signPick.value = sign; }
     if (next.focus) focus = next.focus;
     paint(animate);
@@ -411,17 +412,18 @@ export function initWheel(root: HTMLElement) {
   }
 
   segs.forEach((g) => {
-    const go = () => select({ animal: g.dataset.id!, focus: {} });
+    const go = () => { clearDate(); select({ animal: g.dataset.id!, focus: {} }); };
     g.addEventListener("click", go);
     g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
   });
   signSegs.forEach((g) => {
-    const go = () => select({ sign: g.dataset.sign as SignId });
+    const go = () => { clearDate(); select({ sign: g.dataset.sign as SignId }); };
     g.addEventListener("click", go);
     g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
   });
-  yearCells.forEach((c) => c.addEventListener("click", () => select({ animal: c.dataset.id!, focus: { year: Number(c.dataset.year) } })));
-  signPick.addEventListener("change", () => select({ sign: signPick.value as SignId }));
+  yearCells.forEach((c) => c.addEventListener("click", () => { clearDate(); select({ animal: c.dataset.id!, focus: { year: Number(c.dataset.year) } }); }));
+  signPick.addEventListener("change", () => { clearDate(); select({ sign: signPick.value as SignId }); });
+  animalPick.addEventListener("change", () => { clearDate(); select({ animal: animalPick.value, focus: {} }); });
 
   elems.forEach((g) => {
     g.addEventListener("click", () => selectElement(g.dataset.element as Element));
@@ -441,29 +443,41 @@ export function initWheel(root: HTMLElement) {
     renderForecast();
   });
 
-  // the sun sign fills itself in from the birth date (day and month are enough), and can still be changed
-  const part = (k: string) => Number(root.querySelector<HTMLSelectElement>(`#wheel-date-${k}`)!.value);
+  // A birth date turns both wheels and sets the sign and animal boxes: the day and month are enough for the
+  // sign, the animal also needs the year. Picking a sign or animal by hand clears the date, which no longer fits.
+  const dateParts = ["day", "month", "year"].map((k) => root.querySelector<HTMLSelectElement>(`#wheel-date-${k}`)!);
+  const part = (k: number) => Number(dateParts[k].value);
   /** The date as YYYY-MM-DD, using a stand-in year when only the day and month are chosen. */
   const isoFrom = (stand?: number) => {
-    const d = part("day"), mo = part("month"), y = part("year") || stand;
+    const d = part(0), mo = part(1), y = part(2) || stand;
     if (!d || !mo || !y || new Date(Date.UTC(y, mo - 1, d)).getUTCDate() !== d) return "";
     return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   };
-  const fillSign = () => {
-    const iso = isoFrom(2001);
-    if (iso) signPick.value = sunSignOn(iso).id;
-  };
-  for (const k of ["day", "month", "year"]) root.querySelector(`#wheel-date-${k}`)!.addEventListener("change", fillSign);
-
-  root.querySelector<HTMLFormElement>("form.finder")!.addEventListener("submit", (e) => {
-    e.preventDefault();
+  function clearDate() {
+    focus = { year: focus.year }; // the year still fits the animal, the birthday no longer does
+    if (dateParts.every((f) => !f.value)) return;
+    for (const f of dateParts) f.value = "";
+    dateParts[0].dispatchEvent(new Event("change")); // lets the date field reset its own checks
+  }
+  const fromDate = () => {
     const date = isoFrom();
     if (date) {
       const cs = chineseSign(date);
-      current = cs.animal.id;
-      focus = { date, year: cs.zodiacYear };
+      select({ sign: sunSignOn(date).id, animal: cs.animal.id, focus: { date, year: cs.zodiacYear } });
+      return;
     }
+    const dayMonth = isoFrom(2001);
+    if (dayMonth) select({ sign: sunSignOn(dayMonth).id });
+  };
+  for (const f of dateParts) f.addEventListener("change", fromDate);
+
+  root.querySelector<HTMLFormElement>("form.finder")!.addEventListener("submit", (e) => {
+    e.preventDefault();
+    // the boxes always hold the pair to show; a full date also brings its year into the reading
+    current = animalPick.value;
     sign = signPick.value as SignId;
+    const date = isoFrom();
+    if (date) focus = { date, year: chineseSign(date).zodiacYear };
     paint(true, 1);
     showReveal(true);
   });
@@ -511,6 +525,7 @@ export function initWheel(root: HTMLElement) {
   current = today.animal.id;
   sign = sunSignOn(todayIso).id;
   signPick.value = sign;
+  animalPick.value = current;
   focus = { year: today.zodiacYear };
   paint(false);
   requestAnimationFrame(() => { svg.classList.remove("no-anim"); signSvg.classList.remove("no-anim"); });
