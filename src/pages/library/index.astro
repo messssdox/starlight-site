@@ -1,48 +1,148 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { getCollection } from "astro:content";
+import { SIGNS, PLANETS } from "../../data/astrology";
 
-const CATEGORIES: Record<string, string> = {
-  "start-here": "Start Here",
-  numerology: "Numerology",
-  "sun-moon-rising": "Sun, Moon and Rising",
-  planets: "Planets and Points",
-  "houses-aspects": "Houses and Aspects",
-  "chinese-zodiac": "Chinese Zodiac",
-  elements: "Elements and Energy",
-  "moon-sky": "Moon and Sky",
-  compatibility: "Compatibility",
-  events: "Events Library",
-};
+// Each category lists its "guides" first, in reading order, then any natural set
+// (the twelve signs, the twelve animals, numbers 1 to 9, the planets) as small tiles.
+// Slugs are the file names in src/content/library/<category>/. Anything not listed
+// here still shows, at the end of its category's guides, in A to Z order.
+interface Category { id: string; label: string; guides: string[]; set?: { label: string; slugs: string[] } }
+
+const CATEGORIES: Category[] = [
+  { id: "start-here", label: "Start Here", guides: ["welcome-to-starlight", "what-you-need-for-a-reading", "three-traditions-one-reading", "how-to-use-astrology-wisely"] },
+  {
+    id: "sun-moon-rising", label: "Sun, Moon and Rising",
+    guides: ["your-big-three", "sun-sign", "moon-sign", "rising-sign"],
+    set: { label: "The twelve signs", slugs: SIGNS.map((s) => s.id) },
+  },
+  {
+    id: "chinese-zodiac", label: "Chinese Zodiac",
+    guides: ["how-your-animal-is-chosen", "the-great-race", "friend-groups-secret-friends-and-clashes", "year-elements-and-the-60-year-cycle", "ben-ming-nian-your-own-animal-year"],
+    set: { label: "The twelve animals", slugs: ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"] },
+  },
+  {
+    id: "numerology", label: "Numerology",
+    guides: ["what-is-numerology", "life-path-number", "your-name-numbers", "personal-year-number", "master-numbers"],
+    set: { label: "The numbers 1 to 9", slugs: ["number-1", "number-2", "number-3", "number-4", "number-5", "number-6", "number-7", "number-8", "number-9"] },
+  },
+  {
+    id: "planets", label: "Planets and Points",
+    guides: ["the-planets-in-your-chart"],
+    set: { label: "In order from the Sun, then three special points", slugs: ["mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto", "chiron", "the-moons-nodes", "dark-moon-lilith"] },
+  },
+  { id: "houses-aspects", label: "Houses and Aspects", guides: ["how-to-read-a-birth-chart", "the-twelve-houses", "the-major-aspects"] },
+  { id: "elements", label: "Elements and Energy", guides: ["fire-earth-air-and-water", "cardinal-fixed-and-mutable", "yin-and-yang", "the-five-elements-wu-xing"] },
+  { id: "moon-sky", label: "Moon and Sky", guides: ["moon-phases", "transits-the-sky-now", "retrograde-planets", "eclipses"] },
+  { id: "compatibility", label: "Compatibility", guides: ["how-starlight-compatibility-works", "synastry-comparing-two-charts", "chinese-zodiac-compatibility", "numerology-compatibility"] },
+  { id: "events", label: "Events Library", guides: ["lunar-new-year", "solstices-and-equinoxes", "full-moon-names", "meteor-showers", "mercury-retrograde-survival-guide"] },
+];
+
 const articles = await getCollection("library");
+const slugOf = (id: string) => id.split("/").pop()!;
+const glyphs: Record<string, string> = {
+  ...Object.fromEntries(SIGNS.map((s) => [s.id, s.glyph])),
+  ...Object.fromEntries(PLANETS.filter((p) => p.article).map((p) => [slugOf(p.article!), p.glyph])),
+  chiron: "⚷", "the-moons-nodes": "☊",
+};
+
+// A tile shows a short name and one short line, both taken from the title
+// ("Aries ♈: The Ram" becomes "Aries" / "The Ram").
+function tile(a: (typeof articles)[number]) {
+  const slug = slugOf(a.id);
+  const [head, ...rest] = a.data.title.split(":");
+  const name = head.replace(/[♈-♓]\s*$/u, "").replace(/\s*\(.*\)$/, "").replace(/^The /, "").trim();
+  const line = rest.join(":").trim();
+  if (a.data.category === "chinese-zodiac") return { slug, name, line, img: `/animals/${slug}.png` };
+  if (a.data.category === "numerology") return { slug, name: line, line: "", mark: name.replace("Number ", "") };
+  return { slug, name, line, mark: glyphs[slug] };
+}
+
+const sections = CATEGORIES.map((c) => {
+  const inCat = articles.filter((a) => a.data.category === c.id);
+  const bySlug = new Map(inCat.map((a) => [slugOf(a.id), a]));
+  const setSlugs = c.set?.slugs ?? [];
+  const extras = inCat
+    .filter((a) => !c.guides.includes(slugOf(a.id)) && !setSlugs.includes(slugOf(a.id)))
+    .sort((x, y) => x.data.title.localeCompare(y.data.title));
+  const guides = [...c.guides.map((s) => bySlug.get(s)).filter((a) => a !== undefined), ...extras];
+  const set = setSlugs.map((s) => bySlug.get(s)).filter((a) => a !== undefined).map(tile);
+  return { ...c, guides, tiles: set, count: inCat.length };
+});
 ---
 
 <Base title="The Library" zone="library">
   <section class="container lib">
     <p class="eyebrow">The Library</p>
     <h1>Everything, explained</h1>
-    <p class="lede">Every planet, sign, animal, element and number used on Starlight has its own article, written in plain English. Search coming soon.</p>
-    <div class="cats">
-      {Object.entries(CATEGORIES).map(([id, label]) => {
-        const inCat = articles.filter((a) => a.data.category === id);
-        return (
-          <section class="cat panel">
-            <h2>{label}</h2>
-            {inCat.length === 0 ? <p class="muted">Articles coming soon.</p> : (
-              <ul>{inCat.map((a) => <li><a href={`/library/${a.id}`}>{a.data.title}</a><p class="muted">{a.data.summary}</p></li>)}</ul>
+    <p class="lede">Every planet, sign, animal, element and number used on Starlight has its own article, written in plain English.</p>
+
+    <nav class="jump" aria-label="Library sections">
+      {sections.map((s) => <a href={`#${s.id}`}>{s.label}</a>)}
+    </nav>
+
+    {sections.map((s) => (
+      <section class="cat" id={s.id}>
+        <h2>{s.label} <span class="count">{s.count}</span></h2>
+        {s.count === 0 ? <p class="muted">Articles coming soon.</p> : (
+          <>
+            {s.guides.length > 0 && (
+              <ul class="guides">
+                {s.guides.map((a) => <li><a href={`/library/${a.id}`} title={a.data.summary}>{a.data.title}</a></li>)}
+              </ul>
             )}
-          </section>
-        );
-      })}
-    </div>
+            {s.tiles.length > 0 && (
+              <>
+                <h3 class="set-label">{s.set!.label}</h3>
+                <ul class:list={["tiles", s.id]}>
+                  {s.tiles.map((t) => (
+                    <li>
+                      <a href={`/library/${s.id}/${t.slug}`}>
+                        {t.img ? <img src={t.img} alt="" width="40" height="40" loading="lazy" /> : t.mark && <span class="mark" aria-hidden="true">{t.mark}</span>}
+                        <span class="text"><span class="name">{t.name}</span>{t.line && <span class="line">{t.line}</span>}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
+        )}
+      </section>
+    ))}
   </section>
 </Base>
 
 <style>
-  .lib { padding-top: 48px; }
+  .lib { padding-top: 48px; padding-bottom: 48px; }
   .lede { font-family: var(--font-reading); font-size: 1.2rem; color: var(--mist); max-width: 720px; }
-  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 28px; }
-  .cat h2 { font-size: 1.2rem; }
-  .cat ul { list-style: none; padding: 0; margin: 0; }
-  .cat li p { font-size: 0.88rem; margin: 4px 0 0; }
+
+  .jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 8px; }
+  .jump a { font-size: 0.85rem; padding: 5px 12px; border: 1px solid rgba(156, 122, 60, 0.45); border-radius: 999px; text-decoration: none; color: var(--moonlight); background: rgba(18, 14, 31, 0.6); }
+  .jump a:hover { border-color: var(--gold); color: var(--gold); }
+
+  .cat { padding: 22px 0 6px; border-top: 1px solid rgba(156, 122, 60, 0.25); margin-top: 18px; scroll-margin-top: 80px; }
+  .cat h2 { font-size: 1.3rem; margin: 0 0 10px; }
+  .count { font: 500 0.75rem var(--font-body); color: var(--mist); border: 1px solid rgba(167, 159, 184, 0.35); border-radius: 999px; padding: 1px 8px; vertical-align: middle; }
+
+  .guides { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2px 24px; }
+  .guides li { padding: 5px 0 5px 16px; position: relative; }
+  .guides li::before { content: "✦"; position: absolute; left: 0; top: 7px; font-size: 0.6rem; color: var(--antique-gold); }
+  .guides a { text-decoration: none; }
+  .guides a:hover { text-decoration: underline; }
+
+  .set-label { font: 600 0.72rem var(--font-body); text-transform: uppercase; letter-spacing: 0.14em; color: var(--mist); margin: 16px 0 8px; }
+  .tiles { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .tiles a { display: flex; align-items: center; gap: 10px; height: 100%; padding: 8px 10px; border: 1px solid rgba(156, 122, 60, 0.3); border-radius: 10px; background: rgba(18, 14, 31, 0.55); text-decoration: none; color: var(--moonlight); transition: border-color 0.15s, transform 0.15s; }
+  .tiles a:hover { border-color: var(--gold); transform: translateY(-1px); }
+  .tiles img { width: 40px; height: 40px; flex: none; object-fit: contain; }
+  .mark { flex: none; width: 34px; text-align: center; font: 600 1.5rem/1 var(--font-display); color: var(--gold); }
+  .text { display: flex; flex-direction: column; min-width: 0; }
+  .name { font-family: var(--font-display); font-size: 0.95rem; color: var(--moonlight); }
+  .line { font-size: 0.74rem; color: var(--mist); line-height: 1.3; }
+  .tiles a:hover .name { color: var(--gold); }
+
+  @media (max-width: 520px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
