@@ -3,7 +3,7 @@
 // reveal panel, and src/lib/pair.ts joins them, so every line speaks for both at once while
 // staying about as long as the animal-only line it replaced.
 import type { SignId, Element as WesternElement } from "./astrology.ts";
-import type { Element as ChineseElement, GroupId } from "./zodiac.ts";
+import type { Element as ChineseElement } from "./zodiac.ts";
 
 export interface SignPart {
   /** Approximate dates, for the sign wheel's date band. */
@@ -97,30 +97,6 @@ export const ELEMENT_BLEND: Record<WesternElement, Record<ChineseElement, string
     Metal: "The {A}'s Metal feeds your Water, so intuition comes with clarity.",
     Water: "That is a double dose of Water: intuitive, deep and adaptable.",
   },
-};
-
-/** Why fellow signs of the same element suit you (the sign half of the Friends box). */
-export const SIGN_FRIEND: Record<WesternElement, string> = {
-  Fire: "Fellow Fire signs match your enthusiasm",
-  Earth: "Fellow Earth signs share your common sense",
-  Air: "Fellow Air signs keep up with your ideas",
-  Water: "Fellow Water signs understand your feelings",
-};
-
-/** Why the animal's friend group suits it (the animal half of the Friends box). */
-export const ANIMAL_FRIEND: Record<GroupId, string> = {
-  water: "think as fast as you do",
-  metal: "share your sense of duty",
-  fire: "stand up for what is right with you",
-  wood: "share your kindness and love of peace",
-};
-
-/** The secret-friend sign is two signs on, an element that completes yours. */
-export const SIGN_SECRET: Record<WesternElement, string> = {
-  Fire: "Air feeds your Fire with ideas",
-  Air: "Fire brings your ideas to life",
-  Earth: "Water softens your Earth",
-  Water: "Earth gives your Water a safe shore",
 };
 
 /** Colours for the sign wheel: same colour = same element = friends. */

@@ -57,3 +57,21 @@ test("pair forecasts stay in range and are the same on reload", () => {
   assert.match(y.jupiter, /^Jupiter, the planet of luck, is in /);
   for (const m of [...y.bestMonths, ...y.careMonths]) assert.ok(m >= 1 && m <= 12);
 });
+
+test("every friend, secret friend and clash has its own line, and no two lines repeat", async () => {
+  const L = await import("../src/data/matches.ts");
+  const all: string[] = [];
+  for (const s of SIGNS) for (const a of ANIMALS) {
+    const m = pairMatches(s.id, a.id);
+    for (const f of m.friends) {
+      assert.ok(L.SIGN_FRIEND_LINES[L.matchKey(s.id, f.sign.id)], `${s.id} + ${f.sign.id}`);
+      assert.ok(L.ANIMAL_FRIEND_LINES[L.matchKey(a.id, f.animal.id)], `${a.id} + ${f.animal.id}`);
+    }
+    assert.ok(L.SIGN_SECRET_LINES[L.matchKey(s.id, m.secret.sign.id)], `${s.id} secret ${m.secret.sign.id}`);
+    assert.ok(L.ANIMAL_SECRET_LINES[L.matchKey(a.id, m.secret.animal.id)], `${a.id} secret ${m.secret.animal.id}`);
+    assert.ok(L.SIGN_CLASH_LINES[L.matchKey(s.id, m.clash.sign.id)], `${s.id} clash ${m.clash.sign.id}`);
+    assert.ok(L.ANIMAL_CLASH_LINES[L.matchKey(a.id, m.clash.animal.id)], `${a.id} clash ${m.clash.animal.id}`);
+  }
+  for (const t of [L.SIGN_FRIEND_LINES, L.SIGN_SECRET_LINES, L.SIGN_CLASH_LINES, L.ANIMAL_FRIEND_LINES, L.ANIMAL_SECRET_LINES, L.ANIMAL_CLASH_LINES]) all.push(...Object.values(t));
+  assert.equal(new Set(all).size, all.length);
+});
