@@ -240,7 +240,10 @@ export const NUMBER_DATES: Record<string, { name: string; note: string; headline
   },
   "2/2": {
     name: "partnership portal", note: "A doubled 2: a gentle day for love, teamwork and balance.",
-    detail: [{ p: "Two is the number of partnership and cooperation. On 2/2 it is doubled, which makes it a soft, connecting day: reach out, mend a bridge or simply listen." }],
+    detail: [
+      { p: "Two is the number of partnership and cooperation. On 2/2 it is doubled, which makes it a soft, connecting day: reach out, mend a bridge or simply listen." },
+      { h: "Around the world", p: "2 February is also Candlemas, an old Christian feast of light at the midpoint of winter, and the day after the Celtic festival of Imbolc, which welcomes the first stirrings of spring." },
+    ],
   },
   "22/2": {
     name: "master number 22", note: "The Master Builder's day: turn a big dream into a real plan.", headline: true,
@@ -251,7 +254,10 @@ export const NUMBER_DATES: Record<string, { name: string; note: string; headline
   },
   "3/3": {
     name: "creativity portal", note: "A doubled 3: say it, sing it, make something.",
-    detail: [{ p: "Three is the number of creativity and self-expression, and 3 + 3 makes 6, the number of the heart. A day to share ideas, create freely and enjoy other people's company." }],
+    detail: [
+      { p: "Three is the number of creativity and self-expression, and 3 + 3 makes 6, the number of the heart. A day to share ideas, create freely and enjoy other people's company." },
+      { h: "Around the world", p: "In Japan 3 March is Hinamatsuri, the Doll Festival, one of the five sekku: seasonal festivals that fall on doubled odd numbers (3/3, 5/5, 7/7 and 9/9). In old Chinese thought odd numbers are yang, so a doubled odd date was a turning point when people cleansed and rebalanced themselves." },
+    ],
   },
   "4/4": {
     name: "foundations portal", note: "A doubled 4: build something steady.",
@@ -259,7 +265,10 @@ export const NUMBER_DATES: Record<string, { name: string; note: string; headline
   },
   "5/5": {
     name: "change portal", note: "A doubled 5: welcome a shake-up.",
-    detail: [{ p: "Five is the number of freedom and change. On 5/5 it is doubled and 5 + 5 makes 10, a fresh cycle. A day to try something new, travel, or let go of a routine that has gone stale." }],
+    detail: [
+      { p: "Five is the number of freedom and change. On 5/5 it is doubled and 5 + 5 makes 10, a fresh cycle. A day to try something new, travel, or let go of a routine that has gone stale." },
+      { h: "Around the world", p: "In Japan 5 May is Children's Day (Tango no Sekku), when families fly carp-shaped streamers and take iris baths to ward off bad luck." },
+    ],
   },
   "6/6": {
     name: "love and home portal", note: "A doubled 6: care for the people and places you love.",
@@ -267,35 +276,45 @@ export const NUMBER_DATES: Record<string, { name: string; note: string; headline
   },
   "7/7": {
     name: "inner wisdom portal", note: "A doubled 7: a lucky, spiritual day for reflection.",
-    detail: [{ p: "Seven is the number of inner wisdom and spirituality, and many traditions see it as lucky. On 7/7 it is doubled: a day to slow down, meditate, study and trust your intuition." }],
+    detail: [
+      { p: "Seven is the number of inner wisdom and spirituality, and many traditions see it as lucky. On 7/7 it is doubled: a day to slow down, meditate, study and trust your intuition." },
+      { h: "Around the world", p: "In Japan 7 July is Tanabata, the Star Festival. The legend says two lovers, the stars Vega and Altair, are parted by the Milky Way and may meet only on this night. People write wishes on strips of coloured paper and hang them on bamboo." },
+    ],
   },
   "8/8": {
     name: "the Lion's Gate", note: "The peak of the Lion's Gate portal: abundance, courage and manifesting.", headline: true,
     detail: [
-      { p: "The Lion's Gate is a yearly \"portal\" from about 26 July to 12 August, peaking on 8/8. The Sun is in Leo, the lion, and the bright star Sirius rises again before dawn after weeks hidden in the Sun's glare. Ancient Egyptians linked Sirius's return with the flooding of the Nile and the start of their new year." },
+      { p: "The Lion's Gate is a yearly \"portal\" from late July to 12 August, peaking on 8/8. The Sun is in Leo, the lion, and Sirius, the brightest star in the night sky, rises again before dawn after weeks hidden in the Sun's glare. Ancient Egyptians watched for that return because it came as the Nile began to flood, and it marked their new year. The portal itself is a modern spiritual tradition built on that old star lore." },
       { h: "The numbers", p: "Eight is the number of abundance, success and personal power. On 8/8 it is doubled, and an 8 on its side is the sign for infinity, which is why the day is linked with manifesting." },
       { h: "Good for", p: "Setting big goals, money and career intentions, and stepping into your confidence like a lion." },
+      { h: "Around the world", p: "Eight is the luckiest number in China because it sounds like the word for wealth. The Beijing Olympics opened on 8/8/2008 at 8:08 in the evening." },
     ],
   },
   "9/9": {
     name: "completion portal", note: "A doubled 9: finish, forgive and let go.",
-    detail: [{ p: "Nine is the number of endings and compassion. On 9/9 it is doubled, so it is a day to complete what is unfinished, clear space and forgive, ready for what comes next." }],
+    detail: [
+      { p: "Nine is the number of endings and compassion. On 9/9 it is doubled, so it is a day to complete what is unfinished, clear space and forgive, ready for what comes next." },
+      { h: "Around the world", p: "In Japan 9 September is Chōyō, the Chrysanthemum Festival, the last of the five sekku. Nine is the highest single digit, and the day has long been linked with long life." },
+    ],
   },
   "10/10": {
     name: "a fresh cycle", note: "Ten becomes 1: a new cycle begins on a higher level.", headline: true,
     detail: [
-      { p: "Ten is a 1 with a 0 beside it: a new beginning with a whole cycle's wisdom behind it. On 10/10 it is doubled." },
+      { p: "Ten is a 1 with a 0 beside it: a new beginning with a whole cycle's wisdom behind it. On 10/10 it is doubled, so numerology fans treat it as a day for self-belief and taking the lead in your own life." },
+      { h: "Around the world", p: "10 October is also World Mental Health Day, a fitting day to check in with yourself and the people you love." },
       { h: "Starlight's birthday", p: "Starlight went live on 10 October 2026, the 10/10 portal. Ten adds up to 1, the number of beginnings, which felt like the right day to begin." },
     ],
   },
   "1/11": {
-    name: "mirror date", note: "1 November: the doorway to the master month of 11s.",
+    name: "mirror date", note: "1 November: a quieter date that opens the master month of 11s.",
     detail: [{ p: "Written 1/11, the date mirrors 11/1 in January and opens November, the eleventh month, with its run of master-number dates. A day to set an intention you want to grow through the month." }],
   },
   "11/11": {
     name: "make a wish", note: "The best-known portal: master number 11, twice over.", headline: true,
     detail: [
       { p: "Eleven is a master number of intuition, inspiration and spiritual awakening. On 11/11 it is doubled, and many people make a wish at 11:11. It is the most celebrated numerology date of the year." },
+      { h: "Where it comes from", p: "Seeing 11:11 on a clock as a sign grew out of the New Age movement in the late 1980s and 1990s, and the wish-at-11:11 habit spread from there. There is no proof of magic in it, but it is a lovely reminder to pause and notice." },
+      { h: "Remembrance", p: "In the UK and many other countries 11 November is also Remembrance Day. The guns of the First World War fell silent at 11am on 11/11/1918, and many people keep two minutes' silence at 11 o'clock." },
       { h: "Good for", p: "Noticing signs and coincidences, trusting your hunches and setting heartfelt intentions." },
     ],
   },
