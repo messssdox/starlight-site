@@ -217,11 +217,13 @@ export const SUN_MOON_MIX: Record<`${WesternElement}|${WesternElement}`, Two> = 
   "Water|Water": ["so you feel everything, deeply, and read people like a book", "so your inner world is rich, deep and wonderfully intuitive"],
 };
 
-/** When the Sun and Moon share a sign. {Sun} is the sign. */
-export const SAME_SIGN: Two = [
-  "Your Moon is in {Sun} too, so who you are and what you feel are one and the same: there is no hidden side to you.",
-  "With your Moon also in {Sun}, you are {Sun} through and through, and people get exactly what they see.",
-];
+/** When the Sun and Moon share a sign. {Sun} is the sign and {img} a picture of that Moon. */
+export const SAME_SIGN: string[] = [
+  "Your Moon is in {Sun} too, so who you are and what you feel are one and the same, like {img}.",
+  "With your Moon also in {Sun}, you are {Sun} through and through: {img}, inside and out.",
+  "Your Moon shares your Sun's sign, so the private you is {img} too, with no hidden side.",
+  "Sun and Moon both in {Sun} means people get exactly what they see: {img}, all the way down.",
+]
 
 export interface LifePathSpot {
   flavour: Two;
@@ -305,20 +307,33 @@ export const LIFE_PATH_SPOT: Record<number, LifePathSpot> = {
   },
 };
 
-/** The Sun's element with the Life Path's number family. {n} is the Life Path. */
+/** The Sun's element with the Life Path's number family, as a clause after "Your Libra Sun and Life Path 3". */
 export const SUN_FAMILY: Record<string, string> = {
-  "Fire|independent minds": "Your Fire Sun and Life Path {n} are both made to go their own way, so you trust your gut and rarely wait for permission.",
-  "Fire|steady builders": "Your Fire Sun brings the spark and your {n} brings the structure, so your enthusiasm actually gets things built.",
-  "Fire|creative hearts": "Your Fire Sun and a creative {n} make you a natural performer: big feelings, big ideas and the nerve to share them.",
-  "Earth|independent minds": "Your Earth Sun keeps your independent {n} grounded, so your own-way thinking turns into practical results.",
-  "Earth|steady builders": "Your Earth Sun and a builder's {n} pull in exactly the same direction: patient, practical and made to last.",
-  "Earth|creative hearts": "Your Earth Sun gives your creative {n} a pair of capable hands, so your ideas become things people can hold.",
-  "Air|independent minds": "Your Air Sun and an independent {n} make a free-thinking mind that loves to question everything.",
-  "Air|steady builders": "Your Air Sun brings the ideas and your {n} brings the follow-through, a rare and useful mix.",
-  "Air|creative hearts": "Your Air Sun and a creative {n} make words your superpower: you think, talk and create in the same breath.",
-  "Water|independent minds": "Your Water Sun feels deeply while your {n} wants to stand alone, so you need both close people and time to yourself.",
-  "Water|steady builders": "Your Water Sun brings the feeling and your {n} brings the steadiness, so you care in ways that genuinely last.",
-  "Water|creative hearts": "Your Water Sun and a creative {n} make you deeply expressive: feelings flow straight into art, words and care.",
+  "Fire|independent minds": "are both made to go their own way, so you trust your gut and rarely wait for permission",
+  "Fire|steady builders": "give you spark and structure, so your enthusiasm actually gets things built",
+  "Fire|creative hearts": "make you a natural performer, with big feelings, big ideas and the nerve to share them",
+  "Earth|independent minds": "keep your own-way thinking grounded, so it turns into practical results",
+  "Earth|steady builders": "pull in exactly the same direction, towards things that are patient, practical and made to last",
+  "Earth|creative hearts": "give your ideas a pair of capable hands, so they become things people can hold",
+  "Air|independent minds": "make a free-thinking mind that loves to question everything",
+  "Air|steady builders": "bring the ideas and the follow-through, a rare and useful mix",
+  "Air|creative hearts": "make words your superpower, so you think, talk and create in the same breath",
+  "Water|independent minds": "pull between closeness and freedom, so you need both your people and time alone",
+  "Water|steady builders": "bring feeling and steadiness together, so you care in ways that genuinely last",
+  "Water|creative hearts": "make you deeply expressive, with feelings flowing straight into art, words and care",
+};
+
+/** A Personal Year in a few words: follows "a year of" or "so expect". */
+export const PY_SHORT: Record<number, string[]> = {
+  1: ["fresh starts and brave first steps", "planting seeds for the next nine years", "beginning the thing you keep putting off", "new doors and a clean slate"],
+  2: ["patience, partnership and quiet growth", "slowing down and letting things ripen", "teamwork and listening closely", "small steps and good company"],
+  3: ["fun, friends and creative sparks", "saying yes to invitations", "sharing your ideas and being seen", "laughter and a fuller diary"],
+  4: ["hard work that lasts", "routines, plans and solid foundations", "getting organised and building steadily", "rolled-up sleeves and real progress"],
+  5: ["change, travel and surprises", "shake-ups and new people", "freedom and a change of scene", "the unexpected, in a good way"],
+  6: ["home, family and love", "looking after people and being looked after", "commitments of the heart", "making your space feel like home"],
+  7: ["rest, reflection and big questions", "quiet study and inner answers", "time alone to think", "trusting your gut"],
+  8: ["harvest, results and recognition", "money matters and stepping up", "reaping what you have sown", "confidence and ambition"],
+  9: ["endings, clearing out and forgiving", "finishing what needs finishing", "letting go to make room", "wrapping up a nine-year chapter"],
 };
 
 export interface AnimalSpot {
@@ -356,55 +371,146 @@ export const YEAR_ELEMENT_TWIST: Record<ChineseElement, Two> = {
  * East meets West: the Chinese year element with the Sun sign's element. Keyed "Chinese|Western".
  * {Sun} is the sign and {Animal} the animal. They are never joined into one name like "Libra Horse".
  */
-export const EAST_WEST: Record<`${ChineseElement}|${WesternElement}`, string> = {
-  "Wood|Fire": "East and West agree here: Wood feeds Fire, so your {Sun} spark has endless fuel.",
-  "Wood|Earth": "Your Wood year wants to grow while your {Sun} Sun wants to be sure, so you grow slowly, strongly and for good.",
-  "Wood|Air": "Wood and Air make a kind, idea-filled mix: your {Sun} mind keeps finding new ways to help things grow.",
-  "Wood|Water": "East and West agree here: Water feeds Wood, so your {Sun} feelings nourish everything you grow.",
-  "Fire|Fire": "Fire in the East and Fire in the West: your {Animal} and your {Sun} Sun give you warmth and passion twice over, so pace yourself.",
-  "Fire|Earth": "Fire warms Earth, so your Fire year brings heat and drive to your patient {Sun} nature.",
-  "Fire|Air": "Your Fire year and Air Sun feed each other, so your {Sun} side has charm, energy and plenty to say.",
-  "Fire|Water": "A Fire year and a Water Sun make steam: your {Sun} side feels deeply while your {Animal} acts boldly, often at the same time.",
-  "Earth|Fire": "Your Earth year steadies your Fire Sun, so your {Sun} enthusiasm has somewhere solid to land.",
-  "Earth|Earth": "Earth in the East and Earth in the West: your {Animal} and your {Sun} Sun make you grounded twice over and reliable to the core.",
-  "Earth|Air": "Your Earth year gives your airy {Sun} ideas a firm footing, so your thoughts turn into things.",
-  "Earth|Water": "Earth gives Water a shape, so your Earth year gives your deep {Sun} feelings a safe riverbank.",
-  "Metal|Fire": "Your Metal year adds edge and discipline to your Fire Sun, so your {Sun} passion comes with precision.",
-  "Metal|Earth": "Earth feeds Metal, so your {Sun} patience and your Metal year's focus make you formidable once you commit.",
-  "Metal|Air": "Metal gives your airy {Sun} ideas a sharp edge and a strong spine, so you want freedom and fairness in equal measure.",
-  "Metal|Water": "Metal feeds Water, so your Metal year's strength quietly supports your deep {Sun} feelings.",
-  "Water|Fire": "Your Water year cools and deepens your Fire Sun, so your {Sun} side acts boldly but feels things through.",
-  "Water|Earth": "Water and Earth make fertile ground: your Water year softens your practical {Sun} side and makes it wiser.",
-  "Water|Air": "Your Water year adds depth to your airy {Sun} mind, so you understand people as well as ideas.",
-  "Water|Water": "Water in the East and Water in the West: your {Animal} and your {Sun} Sun make you intuitive twice over, and you read people effortlessly.",
+export const EAST_WEST: Record<`${ChineseElement}|${WesternElement}`, string[]> = {
+  "Wood|Fire": [
+    "East and West agree here: Wood feeds Fire, so your {Sun} spark has endless fuel.",
+    "Your Wood year is kindling and your {Sun} Sun is the flame, so once you get going you are hard to put out.",
+    "Wood and Fire: your {Animal} keeps feeding your {Sun} enthusiasm, like logs on a winter fire.",
+  ],
+  "Wood|Earth": [
+    "Your Wood year wants to grow while your {Sun} Sun wants to be sure, so you grow slowly, strongly and for good.",
+    "Wood roots into Earth, so your {Animal} side keeps reaching for growth while your {Sun} side holds the ground.",
+    "Your Wood year and {Sun} Sun are a sapling in a good field: slow to show, impossible to uproot.",
+  ],
+  "Wood|Air": [
+    "Wood and Air make a kind, idea-filled mix: your {Sun} mind keeps finding new ways to help things grow.",
+    "Wind spreads seeds, so your {Sun} ideas carry your Wood year's kindness a long way.",
+    "Your Wood year gives your {Sun} chatter a purpose: you talk to help things grow.",
+  ],
+  "Wood|Water": [
+    "East and West agree here: Water feeds Wood, so your {Sun} feelings nourish everything you grow.",
+    "Your {Sun} Sun waters your Wood year, so the people around you seem to grow when you are near.",
+    "Water and Wood: your {Sun} feelings are the rain and your {Animal} is the garden that thrives on it.",
+  ],
+  "Fire|Fire": [
+    "Fire in the East and Fire in the West: your {Animal} and your {Sun} Sun give you warmth and passion twice over, so pace yourself.",
+    "Your Fire year and {Sun} Sun make a bonfire, not a candle, so pace yourself and keep some logs back.",
+    "Double Fire from your {Animal} and your {Sun} Sun: you light up a room, and you can burn out just as fast.",
+  ],
+  "Fire|Earth": [
+    "Fire warms Earth, so your Fire year brings heat and drive to your patient {Sun} nature.",
+    "Your Fire year is the oven and your {Sun} Sun is the bread, so warmth turns into something solid.",
+    "Fire bakes Earth hard, so your {Animal} drive makes your {Sun} plans set like brick.",
+  ],
+  "Fire|Air": [
+    "Your Fire year and Air Sun feed each other, so your {Sun} side has charm, energy and plenty to say.",
+    "Air feeds fire, so every {Sun} idea gets a gust of your {Animal} energy behind it.",
+    "Your Fire year and {Sun} Sun are a kite in a warm wind: up fast and fun to watch.",
+  ],
+  "Fire|Water": [
+    "A Fire year and a Water Sun make steam: your {Sun} side feels deeply while your {Animal} acts boldly, often at the same time.",
+    "Your Fire year boils while your {Sun} Sun simmers, so you can be bold and soft in the same breath.",
+    "Fire and Water make a hot bath: your {Animal} brings the heat and your {Sun} side makes it soothing.",
+  ],
+  "Earth|Fire": [
+    "Your Earth year steadies your Fire Sun, so your {Sun} enthusiasm has somewhere solid to land.",
+    "Your Earth year is the fireplace and your {Sun} Sun is the fire, so your passion stays safe and useful.",
+    "Earth holds Fire, so your {Animal} gives your {Sun} spark a place to burn without burning out.",
+  ],
+  "Earth|Earth": [
+    "Earth in the East and Earth in the West: your {Animal} and your {Sun} Sun make you grounded twice over and reliable to the core.",
+    "Your Earth year and {Sun} Sun are bedrock: storms pass over you and you are still there in the morning.",
+    "Double Earth from your {Animal} and your {Sun} Sun: you are the one everyone leans on when things wobble.",
+  ],
+  "Earth|Air": [
+    "Your Earth year gives your airy {Sun} ideas a firm footing, so your thoughts turn into things.",
+    "Your Earth year ties a string to your {Sun} kite, so you can fly high and still come home.",
+    "Earth and Air: your {Animal} keeps your feet on the floor while your {Sun} head is in the clouds.",
+  ],
+  "Earth|Water": [
+    "Earth gives Water a shape, so your Earth year gives your deep {Sun} feelings a safe riverbank.",
+    "Your Earth year is a riverbank for your {Sun} Sun, so big feelings flow somewhere useful.",
+    "Earth and Water make good soil: your {Animal} steadiness and {Sun} feeling grow things together.",
+  ],
+  "Metal|Fire": [
+    "Your Metal year adds edge and discipline to your Fire Sun, so your {Sun} passion comes with precision.",
+    "Fire shapes Metal, so your {Sun} passion forges your Metal year into something sharp and useful.",
+    "Your Metal year and {Sun} Sun are a blacksmith's forge: heat plus discipline.",
+  ],
+  "Metal|Earth": [
+    "Earth feeds Metal, so your {Sun} patience and your Metal year's focus make you formidable once you commit.",
+    "Your Metal year is the blade and your {Sun} Sun the whetstone, so patience only makes you sharper.",
+    "Earth makes Metal, so your {Sun} steadiness quietly strengthens your {Animal} backbone.",
+  ],
+  "Metal|Air": [
+    "Metal gives your airy {Sun} ideas a sharp edge and a strong spine, so you want freedom and fairness in equal measure.",
+    "Your Metal year is a bell and your {Sun} Sun the air it rings through, so when you speak, people hear it.",
+    "Metal and Air: your {Animal} brings the principles and your {Sun} side brings the words for them.",
+  ],
+  "Metal|Water": [
+    "Metal feeds Water, so your Metal year's strength quietly supports your deep {Sun} feelings.",
+    "Your Metal year is the cup and your {Sun} Sun the water, so your feelings have something strong to hold them.",
+    "Metal feeds Water, so your {Animal} backbone lets your {Sun} heart go deep without going under.",
+  ],
+  "Water|Fire": [
+    "Your Water year cools and deepens your Fire Sun, so your {Sun} side acts boldly but feels things through.",
+    "Your Water year and {Sun} Sun make steam: real power when it is channelled, a fog when it isn't.",
+    "Water calms Fire, so your {Animal} helps your {Sun} heat cool into wisdom.",
+  ],
+  "Water|Earth": [
+    "Water and Earth make fertile ground: your Water year softens your practical {Sun} side and makes it wiser.",
+    "Your Water year is rain on your {Sun} field, so your patience grows into something green.",
+    "Water and Earth: your {Animal} brings the flow and your {Sun} side builds the banks.",
+  ],
+  "Water|Air": [
+    "Your Water year adds depth to your airy {Sun} mind, so you understand people as well as ideas.",
+    "Your Water year and {Sun} Sun are sea and sky: one feels, one thinks, and they meet at the horizon.",
+    "Water and Air: your {Animal} intuition puts real feeling behind your {Sun} ideas.",
+  ],
+  "Water|Water": [
+    "Water in the East and Water in the West: your {Animal} and your {Sun} Sun make you intuitive twice over, and you read people effortlessly.",
+    "Your Water year and {Sun} Sun make a deep ocean: calm on top, a whole world underneath.",
+    "Double Water from your {Animal} and your {Sun} Sun: you can read the mood of a group chat from one emoji.",
+  ],
 };
 
-export const YIN_YANG: Record<"Yin" | "Yang", Two> = {
-  Yang: ["A yang year means you meet life head on and tend to act first.", "Yours is a yang year, so you lean outward: bold, active and quick to start."],
-  Yin: ["A yin year means you watch first, feel deeply and act with care.", "Yours is a yin year, so you lean inward: thoughtful, receptive and quietly strong."],
+/** How the animal's yin or yang year shows: follows "you". */
+export const ANIMAL_POLARITY: Record<string, string[]> = {
+  rat: ["move first and think on your feet", "jump on a chance before anyone else has spotted it", "keep busy, keep curious and keep a plan B"],
+  ox: ["watch, wait and then move with total commitment", "prove yourself quietly rather than loudly", "save your energy for what really matters"],
+  tiger: ["throw yourself in and sort out the details later", "meet a challenge head on, chin up", "act on instinct and trust it"],
+  rabbit: ["read the room long before you speak", "win people over gently rather than loudly", "protect your peace and pick your moments"],
+  dragon: ["walk in and take up space without apologising", "start big and expect things to work out", "lead from the front and pull others along"],
+  snake: ["think three moves ahead and say less than you know", "keep your cards close and your timing perfect", "move quietly and act at exactly the right moment"],
+  horse: ["are already moving while others are still deciding", "need movement, plans and fresh air to feel like yourself", "act first and enjoy the ride"],
+  goat: ["feel your way into things rather than rushing", "do your best in a calm, kind setting", "take things in deeply before you respond"],
+  monkey: ["try things out loud and learn by doing", "jump in, play with it and find the clever route", "keep things moving with quick ideas"],
+  rooster: ["prepare carefully and turn up ready", "notice the details and quietly put them right", "watch first, then speak with confidence"],
+  dog: ["stand up for people straight away", "act the moment something feels unfair", "throw your energy behind the people you love"],
+  pig: ["take life at a kind, unhurried pace", "enjoy the moment rather than chase the next one", "give generously and without fuss"],
 };
 
 /** When three or more of the five personal planets share an element. */
-export const ELEMENT_LEADS: Record<WesternElement, Two> = {
-  Fire: ["With most of your personal planets in Fire, you run on enthusiasm, courage and instinct.", "Fire leads your chart, so energy and confidence are your default settings."],
-  Earth: ["With most of your personal planets in Earth, you are practical, patient and good at making things real.", "Earth leads your chart, so common sense and steadiness are your default settings."],
-  Air: ["With most of your personal planets in Air, you live in ideas, conversation and connection.", "Air leads your chart, so thinking, talking and connecting are your default settings."],
-  Water: ["With most of your personal planets in Water, feeling and intuition guide almost everything you do.", "Water leads your chart, so empathy and intuition are your default settings."],
+export const ELEMENT_LEADS: Record<WesternElement, string[]> = {
+  Fire: ["With most of your personal planets in Fire, you run on enthusiasm, courage and instinct.", "Fire leads your chart, so energy and confidence are your default settings.", "Three or more of your personal planets are in Fire, so you warm up any room and get bored of waiting fast.", "Fire runs through most of your chart: you are the one who says \"why not today?\""],
+  Earth: ["With most of your personal planets in Earth, you are practical, patient and good at making things real.", "Earth leads your chart, so common sense and steadiness are your default settings.", "Most of your personal planets sit in Earth, so you trust what you can see, touch and count.", "Earth runs through most of your chart: you are the one who actually books the table and turns up."],
+  Air: ["With most of your personal planets in Air, you live in ideas, conversation and connection.", "Air leads your chart, so thinking, talking and connecting are your default settings.", "Most of your personal planets sit in Air, so a good conversation does more for you than almost anything.", "Air runs through most of your chart: you are the one keeping the group chat alive."],
+  Water: ["With most of your personal planets in Water, feeling and intuition guide almost everything you do.", "Water leads your chart, so empathy and intuition are your default settings.", "Most of your personal planets sit in Water, so you feel the mood of a room the moment you walk in.", "Water runs through most of your chart: you are the one who knows something is wrong before anyone says a word."],
 };
 
-/** When none of the five personal planets is in an element. */
-export const ELEMENT_MISSING: Record<WesternElement, string> = {
-  Fire: "With no Fire among your personal planets, you may need a push to start things, and enthusiastic people are good for you.",
-  Earth: "With no Earth among your personal planets, routines and practical details may take effort, and grounded friends help.",
-  Air: "With no Air among your personal planets, you may feel things before you can put them into words, and that is fine.",
-  Water: "With no Water among your personal planets, feelings may be easier to act on than to talk about.",
+/** When none of the five personal planets is in an element: a clause. */
+export const ELEMENT_MISSING: Record<WesternElement, string[]> = {
+  Fire: ["you may need a push to start things, and enthusiastic people are good for you", "you rarely rush in, so a friend who drags you out on a whim can be a gift", "motivation can take a while to warm up, so set yourself small, fun deadlines"],
+  Earth: ["routines and practical details may take effort, and grounded friends help", "budgets and to-do lists may not come naturally, so keep them simple", "your body may need reminding to eat, sleep and slow down"],
+  Air: ["you may feel things before you can put them into words, and that is fine", "talking things through may feel awkward, so writing it down can help", "you act on instinct more than overthinking, which keeps you honest"],
+  Water: ["feelings may be easier to act on than to talk about", "you may need a moment to notice what you feel, so check in with yourself", "other people's moods can puzzle you, so asking directly beats guessing"],
 };
 
-/** When three or more of the five personal planets share a modality. */
-export const MODALITY_LEADS: Record<Modality, string> = {
-  Cardinal: "You are a natural starter: most of your planets sit in cardinal signs, the ones that get things moving.",
-  Fixed: "You are a natural finisher: most of your planets sit in fixed signs, steady and hard to shift.",
-  Mutable: "You are a natural adapter: most of your planets sit in mutable signs, flexible and good with change.",
+/** When three or more of the five personal planets share a modality. {planets} is "your Sun, Moon and Mars". */
+export const MODALITY_LEADS: Record<Modality, string[]> = {
+  Cardinal: ["You are a natural starter: {planets} all sit in cardinal signs, the ones that get things moving.", "With {planets} in cardinal signs, you would rather start the new thing than maintain the old one.", "{Planets} all sit in cardinal signs, so you are usually the one who gets the ball rolling."],
+  Fixed: ["You are a natural finisher: {planets} all sit in fixed signs, steady and hard to shift.", "With {planets} in fixed signs, once you are in, you are in for good.", "{Planets} all sit in fixed signs, so you see things through long after others have wandered off."],
+  Mutable: ["You are a natural adapter: {planets} all sit in mutable signs, flexible and good with change.", "With {planets} in mutable signs, you bend rather than break when plans change.", "{Planets} all sit in mutable signs, so a change of plan rarely throws you."],
 };
 
 /** Three or more personal planets in one sign. {Count} is "Three", "Four" or "All five". */
@@ -413,24 +519,19 @@ export const STELLIUM: Two = [
   "With {count} personal planets in {Sign}, {native} runs through everything you do.",
 ];
 
-/** Venus (what you love) against Mars (how you chase it), by how their signs meet. {V} and {M} are the signs. */
-export const VENUS_MARS: Record<"easy" | "care" | "mixed", Two> = {
-  easy: [
-    "Your Venus in {V} and Mars in {M} get on well, so what you love and how you chase it pull the same way.",
-    "Venus in {V} and Mars in {M} work together, so your heart and your drive rarely argue.",
-  ],
-  care: [
-    "Venus in {V} and Mars in {M} pull in different directions, so what you long for and how you go after it can clash, and learning to blend them is part of your story.",
-    "Your Venus in {V} and Mars in {M} don't always agree, which gives your love life spark and the odd inner tug of war.",
-  ],
-  mixed: [
-    "Venus in {V} and Mars in {M} sit side by side but speak different languages, so you might want one thing and chase another.",
-    "Your Venus in {V} and Mars in {M} are neighbours with different styles, which makes you more complex than you first seem.",
-  ],
+/** Venus (what you love) against Mars (how you chase it), by how their signs meet. A clause after the two pictures. */
+export const VENUS_MARS: Record<"easy" | "care" | "mixed", string[]> = {
+  easy: ["and the two get on, so what you love and how you chase it pull the same way", "and they work together, so your heart and your drive rarely argue", "and they are on the same side, so you go after what you want without second-guessing it"],
+  care: ["and the two pull in different directions, so what you long for and how you chase it can clash", "and they don't always agree, which gives your love life spark and the odd inner tug of war", "and they argue now and then, so you can want closeness and then push it away"],
+  mixed: ["and they speak different languages, so you might want one thing and chase another", "and they are neighbours with different styles, which makes you more complex than you first seem", "and they sit side by side without quite matching, so your heart and your drive take turns"],
 };
 
-/** Mercury beside the Sun. {Sun} and {Mer} are signs, {aKw} Mercury's sign keywords with "a" or "an". */
-export const MERCURY_SUN: { same: Two; other: Two } = {
-  same: ["Your Mercury shares your Sun's sign, so you say what you mean and mean what you say.", "With Mercury in {Sun} too, your words sound exactly like you."],
+/** Mercury beside the Sun. {Sun} and {Mer} are signs, {aKw} Mercury's keywords with "a" or "an", {chat} an everyday moment. */
+export const MERCURY_SUN: { same: string[]; other: string[] } = {
+  same: [
+    "Your Mercury shares your {Sun} Sun's sign, so your words sound exactly like you: you're the one {chat}.",
+    "With Mercury in {Sun} too, there is no gap between what you think and what you say, and it shows when you're {chat}.",
+    "Mercury in {Sun} as well means you talk the way you live; in the group chat you're {chat}.",
+  ],
   other: ["Your Mercury in {Mer} gives your {Sun} nature {aKw} way of thinking.", "Mercury in {Mer} adds {aKw} accent to the way you think and talk."],
 };

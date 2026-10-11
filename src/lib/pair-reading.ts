@@ -3,6 +3,8 @@
 // Where a combination has two wordings, one is picked from both birth dates, so the same
 // pair always reads the same and different pairs rarely match.
 
+import { hash } from "./wording.ts";
+import { PLANET_IMAGE, SCENES } from "../data/images.ts";
 import { PLANET_BY_ID, type Sign } from "../data/astrology.ts";
 import { PAIR_TITLES, PAIR_SHORT, type PairPlanet, type Tone } from "../data/synastry.ts";
 import { NUMBER_FAMILIES, NUMBER_MEANINGS } from "../data/numbers.ts";
@@ -54,12 +56,6 @@ export interface PairText {
   tips: string[];
 }
 
-/** FNV-1a, so a seed and a salt give the same pick every time. */
-function hash(s: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
-  return h >>> 0;
-}
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const lcFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -176,14 +172,24 @@ export function pairReading(input: PairInput): PairText {
   // {Your}/{your} name whose planets these are, so the other person's box says "Sam's Leo Moon"
   const startStop = (self: PersonalSigns, other: PersonalSigns, who: string, selfName: string, side: string): StartStop => {
     const theirP = poss(who), yourP = poss(selfName);
-    const vars = { them: who, their: theirP, Their: cap(theirP), your: yourP, Your: cap(yourP) };
-    const fit = (planet: PairPlanet) => {
+    const isOf = (name: string) => (name === "you" ? "you're" : `${name} is`);
+    const vars = {
+      them: who, their: theirP, Their: cap(theirP), your: yourP, Your: cap(yourP),
+      selfIs: isOf(selfName), otherIs: isOf(who), otherIs2: who === "you" ? "you" : who,
+    };
+    const SCENE_OF = { moon: SCENES.upset, venus: SCENES.treat, mercury: SCENES.chat } as const;
+    const fit = (planet: "moon" | "venus" | "mercury") => {
       const link = signLink(self.signs[planet], other.signs[planet]);
-      return fill(pick(START_FIT[LINK_FEEL[link]], `${side}-fit-${planet}`), { ...vars, mine: self.signs[planet].name, theirs: other.signs[planet].name, planet: pName(planet) });
+      return fill(pick(START_FIT[LINK_FEEL[link]], `${side}-fit-${planet}`), {
+        ...vars, mine: self.signs[planet].name, theirs: other.signs[planet].name, planet: pName(planet),
+        scene: pick(SCENE_OF[planet][other.signs[planet].id], `${side}-scene-${planet}`),
+        own: pick(SCENE_OF[planet][self.signs[planet].id], `${side}-own-${planet}`),
+      });
     };
     const marsMoon = signLink(self.signs.mars, other.signs.moon);
     const why = fill(pick(STOP_FIT[LINK_FEEL[marsMoon]], `${side}-stopfit`), {
-      ...vars, mars: self.signs.mars.name, moon: other.signs.moon.name, link: STOP_LINK[marsMoon] ?? "",
+      ...vars, mars: self.signs.mars.name, moon: other.signs.moon.name, link: STOP_LINK[marsMoon] ?? "meets",
+      upset: pick(SCENES.upset[other.signs.moon.id], `${side}-upset`), marsImg: pick(PLANET_IMAGE.mars[self.signs.mars.id], `${side}-mars-img`),
     });
     return {
       start: [
@@ -191,7 +197,7 @@ export function pairReading(input: PairInput): PairText {
         `${fill(pick(VENUS_VALUES[other.signs.venus.id], `${side}-venus`), vars)} ${fit("venus")}`,
         `${fill(pick(MERCURY_TALK[other.signs.mercury.id], `${side}-mercury`), vars)} ${fit("mercury")}`,
       ],
-      stop: `${pick(MARS_TRAPS[self.signs.mars.id], `${side}-mars`)} ${why}`,
+      stop: `${pick(MARS_TRAPS[self.signs.mars.id], `${side}-mars`).replace(/[.!]$/, "")}, because ${/^(Your|With) /.test(why) ? lcFirst(why) : why}`,
     };
   };
 
