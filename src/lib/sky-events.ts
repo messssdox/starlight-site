@@ -61,18 +61,6 @@ const INGRESS_PLANETS: PlanetId[] = ["sun", "mercury", "venus", "mars", "jupiter
 /** The planets that can turn retrograde. */
 const RETRO_PLANETS: PlanetId[] = ["mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"];
 
-const INGRESS_NOTES: Record<PlanetId, string> = {
-  sun: "A new star-sign season begins.",
-  moon: "",
-  mercury: "Thinking, talking and travel take on this sign's style.",
-  venus: "Love, money and pleasure take on this sign's style.",
-  mars: "Drive and energy take on this sign's style.",
-  jupiter: "A year-long theme of growth and luck shifts here.",
-  saturn: "A few years' lesson in hard work and limits shifts here.",
-  uranus: "A generation-long theme of change shifts here.",
-  neptune: "A generation-long theme of dreams and ideals shifts here.",
-  pluto: "A generation-long theme of deep change shifts here.",
-};
 /** Plain-English headlines for a planet going retrograde and moving forward again. */
 const RETRO_HEADLINES: Partial<Record<PlanetId, [string, string]>> = {
   mercury: ["slow down and double-check", "communication and plans get easier"],
@@ -83,11 +71,6 @@ const RETRO_HEADLINES: Partial<Record<PlanetId, [string, string]>> = {
   uranus: ["change happens on the inside", "change and breakthroughs speed up"],
   neptune: ["dreams come into focus", "dreams and intuition flow outward again"],
   pluto: ["deep change works below the surface", "deep change comes out into the open"],
-};
-const RETRO_NOTES: Partial<Record<PlanetId, [string, string]>> = {
-  mercury: ["A time to slow down, double-check plans and revisit old ideas.", "Plans and messages flow more easily again."],
-  venus: ["A time to rethink love, money and what you value.", "Love and money matters move forward again."],
-  mars: ["Energy turns inward; review before you push ahead.", "Drive and momentum return."],
 };
 
 /** Traditional full Moon names by month; the Harvest and Hunter's Moons are worked out from the equinox. */
@@ -102,8 +85,8 @@ function moonPhases(start: Date, end: Date): SkyEvent[] {
       if (!found || found.date >= end) break;
       const sign = signOf(longitudeOf("moon", found)).sign;
       out.push(full
-        ? { kind: "moon", at: at(found), icon: "○", title: `Full Moon in ${sign.name}`, note: "A time when things come to a head: finish, celebrate and let go.", link: "/library/events/full-moon-names", detail: fullMoonDetail(sign) }
-        : { kind: "moon", at: at(found), icon: "●", title: `New Moon in ${sign.name}`, note: "A fresh start: a good moment to set intentions.", link: "/library/moon-sky/moon-phases", detail: newMoonDetail(sign) });
+        ? { kind: "moon", at: at(found), icon: "○", title: `Full Moon in ${sign.name}`, note: `The Moon is fully lit and feelings run high. What began around the last New Moon comes to a head, especially around ${SIGN_AREA[sign.id]}: a time to finish, celebrate and let go.`, link: "/library/events/full-moon-names", detail: fullMoonDetail(sign) }
+        : { kind: "moon", at: at(found), icon: "●", title: `New Moon in ${sign.name}`, note: `The Moon is dark and a new cycle begins. Plans and wishes started now, especially around ${SIGN_AREA[sign.id]}, have the next two weeks to grow.`, link: "/library/moon-sky/moon-phases", detail: newMoonDetail(sign) });
       t = found.AddDays(1);
     }
   }
@@ -153,7 +136,7 @@ function eclipses(start: Date, end: Date): SkyEvent[] {
     const kind = e.kind === EclipseKind.Total ? "Total" : e.kind === EclipseKind.Partial ? "Partial" : "Penumbral";
     const sign = signOf(longitudeOf("moon", e.peak)).sign;
     out.push({ kind: "eclipse", at: at(e.peak), icon: "◐", title: `${kind} lunar eclipse in ${sign.name}`,
-      note: "A powerful full Moon: endings and revelations, often over the following months.", link: "/library/moon-sky/eclipses",
+      note: `Earth's shadow falls across the Full Moon${kind === "Total" ? " and it can turn a coppery red" : kind === "Partial" ? " and darkens part of it" : " and dims it slightly"}. Astrologers read it as a powerful ending: something around ${SIGN_AREA[sign.id]} wraps up or comes into the open over the following months.`, link: "/library/moon-sky/eclipses",
       detail: [
         { p: LUNAR_ECLIPSE_INTRO },
         { p: ECLIPSE_KIND[`${kind} lunar`] },
@@ -165,7 +148,7 @@ function eclipses(start: Date, end: Date): SkyEvent[] {
     const kind = e.kind === EclipseKind.Total ? "Total" : e.kind === EclipseKind.Annular ? "Annular" : "Partial";
     const sign = signOf(longitudeOf("sun", e.peak)).sign;
     out.push({ kind: "eclipse", at: at(e.peak), icon: "◑", title: `${kind} solar eclipse in ${sign.name}`,
-      note: "A powerful new Moon: a door opens for a new chapter.", link: "/library/moon-sky/eclipses",
+      note: `The Moon passes in front of the Sun${kind === "Total" ? " and blocks it completely where the shadow falls" : kind === "Annular" ? ", leaving a ring of fire where the shadow falls" : " and covers part of it"}. Astrologers read it as a powerful new start: a door opens around ${SIGN_AREA[sign.id]}, often unexpectedly.`, link: "/library/moon-sky/eclipses",
       detail: [
         { p: SOLAR_ECLIPSE_INTRO },
         { p: ECLIPSE_KIND[`${kind} solar`] },
@@ -181,10 +164,10 @@ function seasons(start: Date, end: Date): SkyEvent[] {
   for (let y = start.getUTCFullYear(); y <= end.getUTCFullYear(); y++) {
     const s = Seasons(y);
     const list: [AstroTime, string, string][] = [
-      [s.mar_equinox, "March equinox", "Day and night are equal; spring begins in the north. The Sun enters Aries."],
-      [s.jun_solstice, "June solstice", "The longest day in the north and the shortest in the south. The Sun enters Cancer."],
-      [s.sep_equinox, "September equinox", "Day and night are equal; autumn begins in the north. The Sun enters Libra."],
-      [s.dec_solstice, "December solstice", "The shortest day in the north and the longest in the south. The Sun enters Capricorn."],
+      [s.mar_equinox, "March equinox", "Day and night are equal; spring begins in the north. The Sun enters Aries, the astrological new year: a natural time for fresh starts."],
+      [s.jun_solstice, "June solstice", "The longest day in the north and the shortest in the south. The Sun enters Cancer: a time to celebrate the light and focus on home and family."],
+      [s.sep_equinox, "September equinox", "Day and night are equal; autumn begins in the north. The Sun enters Libra: a time for balance, gratitude and relationships."],
+      [s.dec_solstice, "December solstice", "The shortest day in the north and the longest in the south. From here the light returns. The Sun enters Capricorn: a time to rest, reflect and plan ahead."],
     ];
     for (const [t, title, note] of list) {
       if (t.date >= start && t.date < end) out.push({ kind: "season", at: at(t), icon: "☀︎", title, note, link: "/library/events/solstices-and-equinoxes", detail: [{ p: SEASON_DETAIL[title] }] });
@@ -253,7 +236,10 @@ function planetEvents(start: Date, end: Date): SkyEvent[] {
         const back = speed(id, when) < 0;
         out.push({ kind: "ingress", at: new Date(when), icon: now.glyph, planet: id,
           title: `${cap(NAMES[id])} ${back ? "moves back into" : "enters"} ${now.name}`,
-          note: back ? "A retrograde planet returns to the sign it just left, to finish unfinished business." : INGRESS_NOTES[id],
+          note: back
+            ? `${cap(NAMES[id])} slips back into ${now.name} for a while to finish business there, so matters of ${SIGN_AREA[now.id]} come up again.`
+            : id === "sun" ? `${now.name} season begins. For about a month everyone feels a little of its mood: ${SIGN_STYLE[now.id]}.`
+            : `For ${SIGN_STAY[id].split(",")[0]}, ${PLANET_SHORT[id]} turn towards ${SIGN_AREA[now.id]}.`,
           detail: ingressDetail(id, prev, now, back) });
         prev = now;
       }
@@ -267,11 +253,10 @@ function planetEvents(start: Date, end: Date): SkyEvent[] {
       if (back !== prevBack) {
         const when = bisect(t - DAY, t, (ms) => speed(id, ms) < 0);
         const sign = signOf(lonAt(id, when)).sign;
-        const [rx, direct] = RETRO_NOTES[id] ?? [`A slower, reflective phase for ${PLANET_SHORT[id]}.`, `Matters of ${PLANET_SHORT[id]} start moving outwards again.`];
         const [slow, forward] = RETRO_HEADLINES[id]!;
         out.push({ kind: "retrograde", at: new Date(when), icon: back ? "℞" : "⟳", planet: id, detail: retroDetail(id, sign, back),
           title: back ? `${cap(NAMES[id])} goes retrograde: ${slow}` : `${cap(NAMES[id])} moves forward again: ${forward}`,
-          note: `${back ? rx : direct} It happens in ${sign.name}.`, direct: !back, link: id === "mercury" ? "/library/events/mercury-retrograde-survival-guide" : "/library/moon-sky/retrograde-planets" });
+          note: back ? `${RETRO[id]!.feels} In ${sign.name}, it centres on ${SIGN_AREA[sign.id]}.` : `${RETRO[id]!.direct}`, direct: !back, link: id === "mercury" ? "/library/events/mercury-retrograde-survival-guide" : "/library/moon-sky/retrograde-planets" });
         prevBack = back;
       }
     }
