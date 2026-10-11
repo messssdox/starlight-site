@@ -391,7 +391,18 @@ const PLANET_NAME: Record<PlanetId, string> = {
 export interface PairMonthForecast extends MonthForecast {
   signStars: number;
   mercuryRetrograde: boolean;
+  /** Why each best day and each care day stands out, keyed by date. */
+  bestNotes: Record<string, string>;
+  careNotes: Record<string, string>;
 }
+
+const DAY_RELATION: Record<Relation, string> = {
+  secret: "your secret friend",
+  friend: "one of your friend animals",
+  same: "your own animal",
+  neutral: "a calm animal for you",
+  clash: "your clash animal",
+};
 
 /** This month for a sign and animal together. `iso` is today, which also sets where the planets are. */
 export function pairMonthlyForecast(signId: SignId, animalId: string, iso: string): PairMonthForecast {
@@ -414,14 +425,29 @@ export function pairMonthlyForecast(signId: SignId, animalId: string, iso: strin
   const moons = new Map(dates.map((d) => [d, moonEl(d)]));
   const best = dates.filter((d) => dayScore(animalId, d) >= 4 && moons.get(d)!.element === mine.element);
   const opposite = SIGNS[(SIGNS.indexOf(mine) + 6) % 12];
+  const bestDays = best.length ? best : base.bestDays;
+  const careDays = dates.filter((d) => base.careDays.includes(d) || moons.get(d)!.id === opposite.id);
+  const myElement = ELEMENTS[self.element];
+  /** "A Rabbit day, one of your friend animals, with Water feeding your Wood." */
+  const animalNote = (d: string, withElement = true) => {
+    const day = dayPillar(d);
+    const el = !withElement ? "" : day.element === self.element ? `, and a ${day.element} day like you`
+      : day.element === myElement.fedBy ? `, with ${day.element} feeding your ${self.element}` : "";
+    return `${/^[AEIOU]/.test(day.animal.name) ? "An" : "A"} ${day.animal.name} day, ${DAY_RELATION[relationBetween(animalId, day.animal.id)]}${el}.`;
+  };
+  const moonNote = (d: string) => `The Moon is ${inSign(mine, moons.get(d)!)}.`;
+  const bestNotes = Object.fromEntries(bestDays.map((d) => [d, best.length ? `${animalNote(d)} ${moonNote(d)}` : animalNote(d)]));
+  const careNotes = Object.fromEntries(careDays.map((d) => [d,
+    [base.careDays.includes(d) ? animalNote(d, false) : "", moons.get(d)!.id === opposite.id ? moonNote(d) : ""].filter(Boolean).join(" ")]));
   return {
     ...base,
     stars, signStars,
     headline: t === "bright" ? `A bright month for the ${mine.name} ${self.name}` : t === "steady" ? "A steady month: what you put in comes back" : "A month to go gently and pick your battles",
     intro: [`Most of ${monthName} is the ${base.animal.name}'s month in the Chinese calendar, ${RELATION_SHORT[base.relation](self)}.`],
     topics,
-    bestDays: best.length ? best : base.bestDays,
-    careDays: dates.filter((d) => base.careDays.includes(d) || moons.get(d)!.id === opposite.id),
+    bestDays,
+    careDays,
+    bestNotes, careNotes,
     mercuryRetrograde: retrogradeNow(at(iso).date).includes("mercury"),
   };
 }

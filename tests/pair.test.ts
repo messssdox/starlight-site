@@ -57,3 +57,13 @@ test("pair forecasts stay in range and are the same on reload", () => {
   assert.match(y.jupiter, /^Jupiter, the planet of luck, is in /);
   for (const m of [...y.bestMonths, ...y.careMonths]) assert.ok(m >= 1 && m <= 12);
 });
+
+test("every brightest and care day says why it stands out", () => {
+  for (const [sign, animal] of [["leo", "pig"], ["cancer", "horse"], ["aries", "ox"]] as const) {
+    for (const month of ["01", "04", "10"]) {
+      const f = pairMonthlyForecast(sign, animal, `2026-${month}-11`);
+      for (const d of f.bestDays) assert.match(f.bestNotes[d], /^An? \w+ day, .*\.$/);
+      for (const d of f.careDays) assert.match(f.careNotes[d], /(your clash animal|opposite [A-Z]\w+)\.$/);
+    }
+  }
+});
