@@ -143,34 +143,34 @@ export const MERCURY_TALK: Record<SignId, Two> = {
   pisces: ["Talk gently with {them}, and leave space for feelings that have no words yet.", "Use pictures, stories and kindness with {them} rather than cold facts."],
 };
 
-/** Stop: the trap of your own Mars sign when you push or argue. */
+/** Don't: the trap of your own Mars sign when you push or argue. Written to follow a "Don't" tag. */
 export const MARS_TRAPS: Record<SignId, Two> = {
-  aries: ["Snapping first and thinking second. Count to ten before you reply.", "Turning every disagreement into a race to win it."],
-  taurus: ["Digging your heels in. Being right matters less than getting on.", "Going silent and immovable when pushed. Say what you need instead."],
-  gemini: ["Arguing the point for the sake of it, or changing the subject when it gets real.", "Winning with clever words when a simple sorry would do."],
-  cancer: ["Sulking or going sideways when hurt. Say it straight, and kindly.", "Bringing up old hurts in a new argument."],
-  leo: ["Taking disagreement as a personal insult. It is about the issue, not your worth.", "Needing the last word, or the biggest reaction."],
-  virgo: ["Picking at small faults when the real issue is bigger.", "Correcting instead of listening. Ask first, fix later."],
-  libra: ["Keeping the peace on the surface while resentment builds underneath.", "Saying \"I'm fine\" when you are not. Fairness needs honesty."],
-  scorpio: ["Keeping score, or testing loyalty instead of asking for reassurance.", "Holding a grudge long after the moment has passed."],
-  sagittarius: ["Firing off blunt words without thinking how they land.", "Walking off for space without saying you will come back."],
-  capricorn: ["Going cold and businesslike when feelings run high.", "Treating every problem as a job to manage rather than a feeling to share."],
-  aquarius: ["Detaching and going distant when things get emotional.", "Arguing on principle when what is needed is warmth."],
-  pisces: ["Avoiding the issue and hoping it goes away.", "Going quiet and hoping it is noticed. Say what hurt, kindly and early."],
+  aries: ["Snap first and think second. Count to ten before you reply.", "Turn every disagreement into a race to win it."],
+  taurus: ["Dig your heels in. Being right matters less than getting on.", "Go silent and immovable when pushed. Say what you need instead."],
+  gemini: ["Argue the point for the sake of it, or change the subject when it gets real.", "Win with clever words when a simple sorry would do."],
+  cancer: ["Sulk or go sideways when hurt. Say it straight, and kindly.", "Bring up old hurts in a new argument."],
+  leo: ["Take disagreement as a personal insult. It is about the issue, not your worth.", "Need the last word, or the biggest reaction."],
+  virgo: ["Pick at small faults when the real issue is bigger.", "Correct instead of listening. Ask first, fix later."],
+  libra: ["Keep the peace on the surface while resentment builds underneath.", "Say \"I'm fine\" when you are not. Fairness needs honesty."],
+  scorpio: ["Keep score, or test loyalty instead of asking for reassurance.", "Hold a grudge long after the moment has passed."],
+  sagittarius: ["Fire off blunt words without thinking how they land.", "Walk off for space without saying you will come back."],
+  capricorn: ["Go cold and businesslike when feelings run high.", "Treat every problem as a job to manage rather than a feeling to share."],
+  aquarius: ["Detach and go distant when things get emotional.", "Argue on principle when what is needed is warmth."],
+  pisces: ["Avoid the issue and hope it goes away.", "Go quiet and hope it is noticed. Say what hurt, kindly and early."],
 };
 
-/** Why a Start fits: your own planet against the other person's. {mine} is your sign. */
+/** Why a Start fits: your own planet against the other person's. {mine} is your sign, {Your}/{your} whose it is ("Your", or "Sam's" in the other person's box). */
 export const START_FIT: Record<"easy" | "care" | "mixed", Two> = {
-  easy: ["Your {mine} {planet} gets on with {their} {theirs} {planet}, so this comes naturally: do more of it.", "This comes easily from your {mine} {planet} to {their} {theirs} {planet}, which makes it an easy win."],
-  care: ["It may not come naturally from your {mine} {planet} to {their} {theirs} {planet}, which is exactly why it is worth practising.", "Your {mine} {planet} wants something different from {their} {theirs} {planet}, so this takes a conscious effort, and it shows."],
-  mixed: ["Your {mine} {planet} is close to {their} {theirs} {planet} but not the same, so ask whether you have it right.", "Your {mine} {planet} sits next door to {their} {theirs} {planet}, so check how it lands rather than guess."],
+  easy: ["{Your} {mine} {planet} gets on with {their} {theirs} {planet}, so this comes naturally: do more of it.", "This comes easily from {your} {mine} {planet} to {their} {theirs} {planet}, which makes it an easy win."],
+  care: ["It may not come naturally from {your} {mine} {planet} to {their} {theirs} {planet}, which is exactly why it is worth practising.", "{Your} {mine} {planet} wants something different from {their} {theirs} {planet}, so this takes a conscious effort, and it shows."],
+  mixed: ["{Your} {mine} {planet} is close to {their} {theirs} {planet} but not the same, so ask whether you have it right.", "{Your} {mine} {planet} sits next door to {their} {theirs} {planet}, so check how it lands rather than guess."],
 };
 
 /** Why a Stop matters: your Mars against the other person's Moon. */
 export const STOP_FIT: Record<"easy" | "care" | "mixed", Two> = {
-  easy: ["{Their} {moon} Moon copes with your {mars} Mars fairly well, but this still chips away over time.", "Your {mars} Mars and {their} {moon} Moon usually get on, so this habit is the main thing to watch."],
-  care: ["Your {mars} Mars {link} {their} {moon} Moon, so this lands harder than you mean it to.", "With your {mars} Mars and {their} {moon} Moon at odds, this is the habit that hurts most."],
-  mixed: ["Your {mars} Mars sits next door to {their} {moon} Moon, so this can puzzle more than it hurts.", "{Their} {moon} Moon reads your {mars} Mars a little differently than you intend, especially here."],
+  easy: ["{Their} {moon} Moon copes with {your} {mars} Mars fairly well, but this still chips away over time.", "{Your} {mars} Mars and {their} {moon} Moon usually get on, so this habit is the main thing to watch."],
+  care: ["{Your} {mars} Mars {link} {their} {moon} Moon, so this lands harder than it is meant to.", "With {your} {mars} Mars and {their} {moon} Moon at odds, this is the habit that hurts most."],
+  mixed: ["{Your} {mars} Mars sits next door to {their} {moon} Moon, so this can puzzle more than it hurts.", "{Their} {moon} Moon reads {your} {mars} Mars a little differently than it is meant, especially here."],
 };
 
 /** Tips for the bond from your hardest planet pair. {a} is your sign, {b} the other's. */
