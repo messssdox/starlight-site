@@ -44,3 +44,12 @@ test("partner choices and older love links", () => {
   assert.equal(relationshipById("spouse")?.kind, "love");
   assert.equal(relationshipById("date")?.kind, "love");
 });
+
+test("a birth time and town add the Rising sign and settle the Moon", () => {
+  const manchester = { lat: 53.48, lon: -2.24 };
+  const noTime = personalSigns("1992-01-03", "", "Europe/London", manchester);
+  assert.equal(noTime.rising, undefined);
+  const full = personalSigns("1992-01-03", "21:15", "Europe/London", manchester);
+  assert.ok(full.rising);
+  assert.deepEqual(full.unsure, {});
+});

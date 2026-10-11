@@ -83,3 +83,21 @@
 .reading .say p { margin: 4px 0; }
 .reading .say .pl { color: var(--gold); }
 .reading .facts { font-size: 0.88rem; color: var(--mist); }
+
+/* Optional birth times and towns for both people in a relationship reading */
+.reading .pair-extra { margin: 14px 0 6px; }
+.reading .pair-details { display: grid; gap: 12px; margin-top: 10px; }
+.reading .pair-details p { margin: 0; }
+.reading .pd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.reading .pd-person { border: 1px solid rgba(142, 107, 217, 0.3); border-radius: 12px; padding: 10px 12px 12px; margin: 0; display: grid; gap: 8px; min-width: 0; }
+.reading .pd-person legend { color: var(--gold); padding: 0 4px; }
+.reading .pd-person label { display: grid; gap: 4px; font-size: 0.9rem; margin: 0; }
+.reading .pair-details .btn { justify-self: start; }
+.reading .notice { border-left: 2px solid var(--orchid); padding-left: 12px; }
+@media (max-width: 640px) { .reading .pd-grid { grid-template-columns: 1fr; } }
+
+/* Start and stop tips in a relationship reading */
+.reading .ss p:not(.eyebrow) { display: grid; grid-template-columns: 3.4rem 1fr; gap: 8px; align-items: baseline; margin: 8px 0; }
+.reading .ss-tag { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 2px 0; border-radius: 999px; }
+.reading .ss-tag.start { color: var(--gold); border: 1px solid var(--gold); }
+.reading .ss-tag.stop { color: var(--clash); border: 1px solid var(--clash); }

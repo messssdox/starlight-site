@@ -88,3 +88,41 @@ export const CHEMISTRY: Record<"easy" | "magnetic" | "spark" | "slow", string> =
   spark: "{V} Venus squares {M} Mars: a spark with friction. Attraction and irritation can arrive together, so making up matters.",
   slow: "{V} Venus and {M} Mars have little in common, so attraction here builds slowly, through getting to know each other.",
 };
+
+/** Rising signs meet: only when both birth times and towns are known. */
+export const RISING_TITLE: Record<Tone, string> = { love: "First impressions and chemistry on sight", family: "How you come across to each other", friends: "First impressions", work: "How you come across at work" };
+export const RISING_LINES: Record<SignLink, string> = {
+  same: "You share a Rising sign, so you meet the world the same way and probably felt familiar to each other from the start.",
+  neighbour: "Your Rising signs sit side by side but give very different first impressions. Others may see you as a pair of contrasts.",
+  sextile: "Your Rising signs are a friendly match, so you put each other at ease quickly and come across well together.",
+  square: "Your Rising signs square each other, so your first reactions to life can clash. The friction fades once you see past the surface.",
+  trine: "Your Rising signs share an element, so you clicked on first meeting and tend to approach new situations in the same spirit.",
+  quincunx: "Your Rising signs have little in common, so first impressions may have been puzzling. You get each other better the longer you know each other.",
+  opposite: "Your Rising signs sit opposite each other, the classic partnership axis: each of you is drawn to the way the other meets the world.",
+};
+
+/**
+ * Start and stop tips for each person. What to start comes from the other person's
+ * Moon (what they need to feel safe) and Venus (how they like to be appreciated); what
+ * to stop comes from your own Mars (how you push and argue). {them} is the other person,
+ * always as an object.
+ */
+type AstroElement = "Fire" | "Earth" | "Air" | "Water";
+export const START_FOR_MOON: Record<AstroElement, string> = {
+  Fire: "Bring the energy: suggest something spontaneous and fun to do with {them}.",
+  Earth: "Show care for {them} in practical ways: turn up on time and follow through.",
+  Air: "Talk things through with {them} before deciding anything together.",
+  Water: "Check in on how things really feel for {them}, not just what happened.",
+};
+export const START_FOR_VENUS: Record<AstroElement, string> = {
+  Fire: "Praise {them} out loud, and mean it. Big, warm appreciation lands best.",
+  Earth: "Give {them} small, steady comforts: a cuppa, a hand with a chore, a thought-through gift.",
+  Air: "Keep things interesting for {them} with new ideas, plans and good conversation.",
+  Water: "Remember the little things that matter to {them}, and show you remembered.",
+};
+export const STOP_FOR_MARS: Record<AstroElement, string> = {
+  Fire: "Reacting in the heat of the moment. Give it ten minutes before you reply.",
+  Earth: "Digging your heels in. Being right matters less than getting on.",
+  Air: "Arguing the logic when it is a feeling that needs hearing.",
+  Water: "Going quiet and hoping it is noticed. Say what hurt, kindly and early.",
+};

@@ -15,21 +15,26 @@ export function signLink(a: Sign, b: Sign): SignLink {
 
 export interface PersonalSigns {
   signs: Record<PairPlanet, Sign>;
+  /** Only when both the birth time and town are known. */
+  rising?: Sign;
   /** Planets whose sign changed during the birth day, when no birth time is known. */
   unsure: Partial<Record<PairPlanet, { from: Sign; to: Sign }>>;
 }
 
-/** The five personal planets for a birth date, at the birth time if known, else midday. */
-export function personalSigns(date: string, time: string, timeZone: string): PersonalSigns {
+/**
+ * The five personal planets for a birth date, at the birth time if known, else midday.
+ * With a time and a place, the Rising sign too.
+ */
+export function personalSigns(date: string, time: string, timeZone: string, place?: { lat: number; lon: number }): PersonalSigns {
   const { utc } = localToUtc(date, time || "12:00", timeZone);
-  const chart = birthChart(utc);
+  const chart = birthChart(utc, time && place ? place : undefined);
   const signs = Object.fromEntries(PAIR_PLANETS.map((id) => [id, chart.points.find((p) => p.id === id)!.sign])) as Record<PairPlanet, Sign>;
   const unsure: PersonalSigns["unsure"] = {};
   if (!time) {
     const changes = signChangesDuring(localToUtc(date, "00:00", timeZone).utc, localToUtc(date, "23:59", timeZone).utc);
     for (const c of changes) if ((PAIR_PLANETS as string[]).includes(c.id)) unsure[c.id as PairPlanet] = { from: c.from, to: c.to };
   }
-  return { signs, unsure };
+  return { signs, unsure, rising: chart.angles?.asc.sign };
 }
 
 export interface PlanetPair {
