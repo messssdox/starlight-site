@@ -73,14 +73,22 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   <div class="finder-head">
     <p class="eyebrow">The sun sign and Chinese zodiac wheels</p>
     <h2 id="wheel-title">Find your sign and animal</h2>
-    <form class="finder" autocomplete="off">
-      <BirthDate id="wheel-date" name="date" label="Your birth date" />
-      <label class="sign-pick">
-        <span>Your sun sign</span>
-        <select id="wheel-sign" name="sign">
-          {SIGNS.map((g) => <option value={g.id}>{`${g.glyph} ${g.name}`}</option>)}
-        </select>
-      </label>
+    <form class="finder" autocomplete="off" novalidate>
+      <BirthDate id="wheel-date" name="date" label="Birth date (optional)" />
+      <div class="picks">
+        <label class="pick">
+          <span>Sign</span>
+          <select id="wheel-sign" name="sign">
+            {SIGNS.map((g) => <option value={g.id}>{`${g.glyph} ${g.name}`}</option>)}
+          </select>
+        </label>
+        <label class="pick">
+          <span>Animal</span>
+          <select id="wheel-animal" name="animal">
+            {ANIMALS.map((a) => <option value={a.id}>{a.name}</option>)}
+          </select>
+        </label>
+      </div>
       <button class="btn" type="submit">Show me</button>
     </form>
   </div>
@@ -305,8 +313,9 @@ const tagW = (name: string) => name.length * 15.5 + 22;
   .finder-head h2 { margin: 0 0 14px; }
   .finder { display: flex; flex-wrap: wrap; align-items: end; justify-content: center; gap: 10px 12px; text-align: left; }
   .finder :global(.birthdate) { flex: 1 1 280px; }
-  .sign-pick { display: grid; gap: 0.35em; flex: 0 1 190px; }
-  .sign-pick span { font-size: 0.85rem; color: var(--mist); }
+  .picks { display: flex; gap: 10px 12px; flex: 1 1 280px; }
+  .pick { display: grid; gap: 0.35em; flex: 1 1 0; min-width: 0; }
+  .pick span { font-size: 0.85rem; color: var(--mist); }
   .wheels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4vw, 56px); align-items: center; }
   .reveal { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; margin-top: clamp(20px, 3vw, 36px); animation: rise 0.6s ease-out; }
   .reveal[hidden] { display: none; }

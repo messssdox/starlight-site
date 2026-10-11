@@ -12,8 +12,8 @@ const tiers = [
 <form class="reading-form panel" action="/reading" method="get">
   <div class="grid">
     <div>
-      <label for="f-name">Your full birth name</label>
-      <input id="f-name" name="n" autocomplete="name" placeholder="As on your birth certificate" required />
+      <label for="f-name">Your name</label>
+      <input id="f-name" name="n" autocomplete="name" placeholder="e.g. Jamie Taylor" required />
     </div>
     <BirthDate id="f-date" name="d" label="Your birth date" required />
   </div>
@@ -42,10 +42,11 @@ const tiers = [
       <button type="button" class="link-btn" data-rel-clear>Remove</button>
     </div>
     <div class="compat-fields" data-compat-fields>
+      <p class="their-head">Their details</p>
       <div class="grid">
         <div>
           <label for="f-name2">Their first name (optional)</label>
-          <input id="f-name2" name="n2" />
+          <input id="f-name2" name="n2" placeholder="e.g. Alex" />
         </div>
         <BirthDate id="f-date2" name="d2" label="Their birth date" />
       </div>
@@ -88,7 +89,8 @@ const tiers = [
   .rel-chosen { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
   .rel-chosen strong { color: var(--gold); }
   .link-btn { background: none; border: 0; padding: 0; color: var(--orchid); font: inherit; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
-  .compat-fields { display: grid; gap: 14px; }
+  .compat-fields { display: grid; gap: 14px; padding-top: 14px; border-top: 1px dashed rgba(212, 175, 90, 0.5); scroll-margin: 90px; }
+  .their-head { margin: 0; font-family: var(--font-display); color: var(--gold); font-size: 1rem; }
   .compat-fields[hidden], .rel-chosen[hidden], .rel-list[hidden], .tiers[hidden], .compat-body[hidden] { display: none; }
   .tiers { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tiers legend { font-family: var(--font-display); color: var(--gold); margin-bottom: 10px; font-size: 1.05rem; }
@@ -149,7 +151,9 @@ const tiers = [
       changing = false;
       sync();
     });
-    for (const r of radios) r.addEventListener("change", () => { changing = false; sync(); });
+    // picking someone folds the list away, which can leave their fields off screen on a phone, so bring them into view
+    const showFields = () => fields.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    for (const r of radios) r.addEventListener("change", () => { changing = false; sync(); showFields(); });
     box.querySelector("[data-rel-change]")!.addEventListener("click", () => { changing = true; sync(); });
     box.querySelector("[data-rel-clear]")!.addEventListener("click", () => {
       for (const r of radios) r.checked = false;
@@ -159,5 +163,12 @@ const tiers = [
     });
     window.addEventListener("pageshow", () => sync());
     sync();
+  }
+
+  // On a phone, the keyboard's next arrow walks through every field on the page, so after the last
+  // date list here it would carry on down to "Find your sign and animal" and send the second person's
+  // details into the wheel's date. Those lists stay tappable but are left out of that walk on touch screens.
+  if (matchMedia("(pointer: coarse)").matches) {
+    for (const el of document.querySelectorAll<HTMLElement>(".finder select")) el.tabIndex = -1;
   }
 </script>
