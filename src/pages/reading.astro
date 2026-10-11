@@ -45,6 +45,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
   import { compare, comparisonBreakdown } from "../lib/compat.ts";
   import { lifePathBreakdown, chineseBreakdowns, todayIso } from "../lib/explain.ts";
   import { esc, calc, countReading, soloQuery, isPartnerReading, type Tier } from "../lib/reading-ui.ts";
+  import { spotlight, type SpotlightText } from "../lib/spotlight.ts";
 
   const q = new URLSearchParams(location.search);
   const tier = (q.get("tier") ?? "first") as Tier;
@@ -62,7 +63,12 @@ const articles = (await getCollection("library")).map((a) => a.id);
     root.innerHTML = `<h1>Let's begin</h1><p>Please <a href="/">enter your birth date</a> to see your reading.</p>`;
   } else {
     if (isPartnerReading(q)) drawRelationship();
-    else draw(solo());
+    else {
+      draw(solo());
+      fillSpotlight();
+      // the birth time and town can be added in the birth chart below, which sharpens the spotlight too
+      document.addEventListener("reading:details", fillSpotlight);
+    }
     countReading();
   }
 
@@ -156,6 +162,8 @@ const articles = (await getCollection("library")).map((a) => a.id);
           : `You were born in a yin year: the quiet, inward side of life. Yin ${cn.animal.name}s tend to watch first, feel deeply and act with care.`}</p>
         ${tier === "glance" ? "" : `<p class="muted">Your ${cn.animal.name} also belongs to ${season.season.toLowerCase()}, the season of ${season.meaning}.</p>`}
       </div>`;
+    // "Meet yourself" sits straight under the animal card, filled in by fillSpotlight()
+    const spotSlot = `<div class="panel spotlight" data-spotlight><p class="muted">Bringing your reading together…</p></div>`;
     const wheel = `
       <div class="panel wheel-card">
         <p class="eyebrow">Your people on the wheel</p>
@@ -176,6 +184,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
             <p>${cn.animal.summary}</p>
           </div>
         </div>
+        ${spotSlot}
         <div class="panel says">
           <div class="say"><h3>${el.glyph} What ${cn.element} brings</h3>
             <p><strong>${el.strengths}</strong> ${el.personality} ${cn.yinYang === "Yang" ? `Born in a yang year, you tend to act first and meet the world head on.` : `Born in a yin year, you tend to watch first, feel deeply and act with care.`} Watch out for ${lc(el.watchOut)}</p></div>
@@ -197,10 +206,47 @@ const articles = (await getCollection("library")).map((a) => a.id);
             <p>${cn.animal.summary} You were born in the ${cn.zodiacYear} zodiac year, a ${cn.yinYang.toLowerCase()} year.</p>
           </div>
         </div>
+        ${spotSlot}
         ${elementCard}
         <div class="pair">${yinYang}${wheel}</div>
         ${calc(chineseBreakdowns(date), articles)}
       </section>`;
+  }
+
+  /**
+   * "Meet yourself": one portrait from the Sun, Moon and planets, the Life Path and the animal
+   * (src/lib/spotlight.ts). Uses the birth time and town when given, like the birth chart.
+   */
+  async function fillSpotlight() {
+    const slot = root.querySelector<HTMLElement>("[data-spotlight]");
+    if (!slot) return;
+    const now = new URLSearchParams(location.search);
+    const time = clockTime(now.get("t"));
+    const placeText = (now.get("p") ?? "").trim();
+    let place: Place | null = null;
+    if (placeText) {
+      try { place = await findPlace(placeText); } catch {}
+    }
+    const zone = place?.timeZone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+    const s = spotlight({ date, tier, year: Number(todayIso().slice(0, 4)), signs: personalSigns(date, time, zone, place ?? undefined) });
+    slot.innerHTML = spotlightHtml(s);
+    slot.setAttribute("data-share-title", `Meet yourself: ${s.title}`);
+    slot.setAttribute("data-share-text", s.closing || s.sections[0].text.split(/(?<=\.)\s/).slice(0, 2).join(" "));
+    root.setAttribute("data-glossary", "");
+    document.dispatchEvent(new Event("glossary:scan"));
+  }
+
+  function spotlightHtml(s: SpotlightText) {
+    const first = name.split(/\s+/)[0];
+    const list = (title: string, items: string[]) => `<div><h3>${title}</h3><ul>${items.map((x) => `<li>${x}</li>`).join("")}</ul></div>`;
+    return `
+      <p class="eyebrow">Meet yourself</p>
+      <h2>${first ? `${esc(first)}, meet` : "Meet"} ${s.title}</h2>
+      <ul class="chips">${s.facts.map((f) => `<li>${f}</li>`).join("")}</ul>
+      ${tier === "first" ? `<p class="muted">Your whole reading in one read, drawn from your Sun, Moon and planets, your Life Path and your Chinese animal. The detail follows below.</p>` : ""}
+      ${s.sections.map((x) => `${x.heading ? `<h3>${x.heading}</h3>` : ""}<p>${x.text}</p>`).join("")}
+      ${s.gifts.length ? `<div class="pair spot-lists">${list("Your gifts", s.gifts)}${list("Your growing edges", s.edges)}</div>` : ""}
+      ${s.closing ? `<p class="closing">${s.closing}</p>` : ""}`;
   }
 
   /** The relationship reading, shown instead of the solo reading when a second person is in the link. */
