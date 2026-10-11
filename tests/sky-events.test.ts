@@ -15,8 +15,8 @@ test("eclipses land on the right days", () => {
 });
 
 test("Mercury's retrograde and the seasons are found", () => {
-  sameDay(find("Mercury turns retrograde in Scorpio")?.at, 2026, 10, 24, "Mercury retrograde");
-  sameDay(find("Mercury turns direct in Scorpio")?.at, 2026, 11, 13, "Mercury direct");
+  sameDay(find("Mercury goes retrograde")?.at, 2026, 10, 24, "Mercury retrograde");
+  sameDay(find("Mercury moves forward again")?.at, 2026, 11, 13, "Mercury direct");
   sameDay(find("December solstice")?.at, 2026, 12, 21, "solstice");
   sameDay(find("Jupiter enters Virgo")?.at, 2027, 7, 26, "Jupiter ingress");
 });
@@ -36,7 +36,7 @@ test("Venus is retrograde on 10 October 2026, and Mercury is not", () => {
 
 test("every entry explains what it means, and retrogrades say when they end", () => {
   for (const e of events) assert.ok(e.detail.length > 0 && e.detail.every((d) => d.p.length > 20), `${e.title} has no detail`);
-  const rx = find("Mercury turns retrograde in Scorpio")!;
+  const rx = find("Mercury goes retrograde")!;
   sameDay(rx.until, 2026, 11, 13, "Mercury retrograde ends");
   assert.equal(rx.untilLabel, "Retrograde until");
   assert.ok(rx.detail.some((d) => d.h === "Go easy on"));

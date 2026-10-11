@@ -14,7 +14,7 @@ import { NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
 import { universalYear } from "./numerology.ts";
 import {
   PLANET_THEMES, SIGN_STAY, SIGN_STYLE, SIGN_AREA, NEW_MOON_IDEAS, RETRO, RETRO_INTRO, STATION_NOTE,
-  NEW_MOON_INTRO, NUMBER_DATES, PORTAL_WHY, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
+  NEW_MOON_INTRO, NUMBER_DATES, PORTAL_WHY, PLANET_SHORT, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
 } from "../data/sky-meanings.ts";
 
 export type SkyKind = "moon" | "eclipse" | "season" | "retrograde" | "ingress" | "number";
@@ -38,6 +38,8 @@ export interface SkyEvent {
   until?: Date;
   /** What `until` marks, such as "In Scorpio until" or "Retrograde until". */
   untilLabel?: string;
+  /** For retrogrades: true when the planet moves forward again, false when it starts going backwards. */
+  direct?: boolean;
   /** A whole-day event (the numerology dates), shown without a time. */
   allDay?: boolean;
   /** A lesser numerology date: shown under the "Numerology dates" filter but not under "Everything". */
@@ -71,12 +73,22 @@ const INGRESS_NOTES: Record<PlanetId, string> = {
   neptune: "A generation-long theme of dreams and ideals shifts here.",
   pluto: "A generation-long theme of deep change shifts here.",
 };
+/** Plain-English headlines for a planet going retrograde and moving forward again. */
+const RETRO_HEADLINES: Partial<Record<PlanetId, [string, string]>> = {
+  mercury: ["slow down and double-check", "communication and plans get easier"],
+  venus: ["time to rethink love and money", "love and money move forward"],
+  mars: ["energy turns inward", "drive and momentum return"],
+  jupiter: ["growth turns inward", "growth and opportunity pick up"],
+  saturn: ["time to review your commitments", "hard work starts to pay off again"],
+  uranus: ["change happens on the inside", "change and breakthroughs speed up"],
+  neptune: ["dreams come into focus", "dreams and intuition flow outward again"],
+  pluto: ["deep change works below the surface", "deep change comes out into the open"],
+};
 const RETRO_NOTES: Partial<Record<PlanetId, [string, string]>> = {
   mercury: ["A time to slow down, double-check plans and revisit old ideas.", "Plans and messages flow more easily again."],
   venus: ["A time to rethink love, money and what you value.", "Love and money matters move forward again."],
   mars: ["Energy turns inward; review before you push ahead.", "Drive and momentum return."],
 };
-const RETRO_DEFAULT: [string, string] = ["A slower, reflective phase for this planet's themes.", "This planet's themes move forward again."];
 
 /** Traditional full Moon names by month; the Harvest and Hunter's Moons are worked out from the equinox. */
 const MOON_NAMES = ["Wolf", "Snow", "Worm", "Pink", "Flower", "Strawberry", "Buck", "Sturgeon", "Corn", "Hunter's", "Beaver", "Cold"];
@@ -214,7 +226,7 @@ function retroDetail(id: PlanetId, sign: Sign, back: boolean) {
   const r = RETRO[id]!;
   const name = cap(NAMES[id]);
   if (!back) return [
-    { p: STATION_NOTE },
+    { p: `${name} has finished its retrograde: it stops seeming to drift backwards across the sky and moves forward again (astrologers say it "turns direct"). ${STATION_NOTE}` },
     { h: "What changes", p: r.direct },
     { p: `${name} rules ${PLANET_THEMES[id]}.` },
   ];
@@ -255,10 +267,11 @@ function planetEvents(start: Date, end: Date): SkyEvent[] {
       if (back !== prevBack) {
         const when = bisect(t - DAY, t, (ms) => speed(id, ms) < 0);
         const sign = signOf(lonAt(id, when)).sign;
-        const [rx, direct] = RETRO_NOTES[id] ?? RETRO_DEFAULT;
+        const [rx, direct] = RETRO_NOTES[id] ?? [`A slower, reflective phase for ${PLANET_SHORT[id]}.`, `Matters of ${PLANET_SHORT[id]} start moving outwards again.`];
+        const [slow, forward] = RETRO_HEADLINES[id]!;
         out.push({ kind: "retrograde", at: new Date(when), icon: back ? "℞" : "⟳", planet: id, detail: retroDetail(id, sign, back),
-          title: `${cap(NAMES[id])} ${back ? "turns retrograde" : "turns direct"} in ${sign.name}`,
-          note: back ? rx : direct, link: id === "mercury" ? "/library/events/mercury-retrograde-survival-guide" : "/library/moon-sky/retrograde-planets" });
+          title: back ? `${cap(NAMES[id])} goes retrograde: ${slow}` : `${cap(NAMES[id])} moves forward again: ${forward}`,
+          note: `${back ? rx : direct} It happens in ${sign.name}.`, direct: !back, link: id === "mercury" ? "/library/events/mercury-retrograde-survival-guide" : "/library/moon-sky/retrograde-planets" });
         prevBack = back;
       }
     }
@@ -283,7 +296,7 @@ export function skyEvents(start: Date, end: Date): SkyEvent[] {
   for (const p of planets) {
     const next = planets.find((q) => q.planet === p.planet && q.kind === p.kind && q.at > p.at);
     if (p.kind === "ingress" && next) { p.until = next.at; p.untilLabel = `In ${p.title.split(" ").pop()} until`; }
-    if (p.kind === "retrograde" && p.title.includes("retrograde") && next) { p.until = next.at; p.untilLabel = "Retrograde until"; }
+    if (p.kind === "retrograde" && !p.direct && next) { p.until = next.at; p.untilLabel = "Retrograde until"; }
   }
   return [...moons, ...ecl, ...seasons(start, end), ...planets, ...numberDates(start, end)].sort((a, b) => a.at.getTime() - b.at.getTime());
 }
