@@ -103,6 +103,18 @@ export function personalYear(date: string, currentYear: number): Result {
   };
 }
 
+/**
+ * Personal Day: the Personal Year for that date's year, plus its month, plus its day, each
+ * step reduced (masters not kept). Only the birth day and month are needed, never the year.
+ */
+export function personalDay(birthMonth: number, birthDay: number, year: number, month: number, day: number): Result {
+  const py = reduce(reduce(birthDay, false).value + reduce(birthMonth, false).value + reduce(year, false).value, false).value;
+  const pm = reduce(py + month, false).value;
+  const total = pm + day;
+  const r = reduce(total, false);
+  return { value: r.value, steps: [`Personal Year ${py} + month ${month} = Personal Month ${pm}`, `${pm} + day ${day} = ${total}`, ...r.steps] };
+}
+
 /** Maturity: Life Path + Expression, reduced. */
 export function maturity(date: string, name: string): Result {
   const lp = lifePath(date).value;
@@ -116,10 +128,10 @@ export function universalYear(year: number): Result {
   return reduce(year, false);
 }
 
-/** Universal Month: the month's number added to the Universal Year (October 2026 → 10 + 1 = 11 → 2). */
+/** Universal Month: the month's number added to the Universal Year, keeping master numbers (October 2026 → 10 + 1 = 11). */
 export function universalMonth(year: number, month: number): Result {
   const uy = universalYear(year).value;
-  const r = reduce(month + uy, false);
+  const r = reduce(month + uy);
   return { value: r.value, steps: [`Month ${month} + Universal Year ${uy} = ${month + uy}`, ...r.steps] };
 }
 

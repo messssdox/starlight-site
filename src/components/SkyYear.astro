@@ -36,6 +36,15 @@ const FILTERS = [
       <summary>How the numbers work</summary>
       <p data-num-intro></p>
     </details>
+    {months === 12 && (
+      <form class="mine" data-mine aria-label="Your Personal Day numbers" onsubmit="return false">
+        <p>Add your birthday to see your own Personal Day number for every event. Only the day and month are needed, and nothing is saved.</p>
+        <div class="mine-row">
+          <select data-bday aria-label="Birth day"><option value="">Day</option>{Array.from({ length: 31 }, (_, i) => <option value={i + 1}>{i + 1}</option>)}</select>
+          <select data-bmonth aria-label="Birth month"><option value="">Month</option>{["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((m, i) => <option value={i + 1}>{m}</option>)}</select>
+        </div>
+      </form>
+    )}
   </div>
 
   {months === 12 && (
@@ -61,6 +70,9 @@ const FILTERS = [
   .now p { margin: 0 0 6px; }
   .now .calc summary { cursor: pointer; color: var(--orchid); font-size: 0.88rem; }
   .now .calc p { margin: 6px 0 0; color: var(--mist); font-size: 0.9rem; }
+  .mine { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid rgba(156, 122, 60, 0.3); }
+  .mine p { color: var(--mist); font-size: 0.9rem; }
+  .mine-row { display: grid; grid-template-columns: 5em minmax(0, 12em); gap: 8px; }
   .now :global(strong) { color: var(--gold); }
   .filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
   .chip { margin: 0; cursor: pointer; }
@@ -90,6 +102,9 @@ const FILTERS = [
   .months :global(.k-eclipse .e-title) { color: var(--gold); }
   .months :global(.e-num) { margin: 4px 0 0; font-size: 0.85rem; color: var(--mist); }
   .months :global(.e-num b), .months :global(.e-num span) { color: var(--orchid); font-weight: 600; }
+  .months :global(.master) { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--gold); color: var(--gold); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; }
+  .months :global(.e-pers) { margin: 2px 0 0; font-size: 0.85rem; color: var(--mist); }
+  .months :global(.e-pers b) { color: var(--gold); }
   .months :global(.m-num) { color: var(--orchid); font-size: 0.85rem; }
   .months :global(.e-until) { margin: 4px 0 0; font-size: 0.85rem; color: var(--antique-gold); }
   .months :global(.more) { margin: 4px 0 0; grid-column: 3; }
@@ -112,7 +127,7 @@ const FILTERS = [
 
 <script>
   import { skyEvents, addMonths, retrogradeNow, type SkyEvent } from "../lib/sky-events.ts";
-  import { universalDay, universalMonth, universalYear } from "../lib/numerology.ts";
+  import { universalDay, universalMonth, universalYear, personalDay, MASTER_NUMBERS } from "../lib/numerology.ts";
   import { UNIVERSAL_DAY, NUMBER_ECHOES, NUMEROLOGY_INTRO } from "../data/sky-meanings.ts";
   import { NUMBER_MEANINGS } from "../data/numbers.ts";
 
@@ -155,7 +170,7 @@ const FILTERS = [
       `<span aria-hidden="true">✧</span> Numbers now: Universal Year <strong>${uy}</strong> (${NUMBER_MEANINGS[uy].keyword}) · ` +
       `Universal Month <strong>${um}</strong> · today is a Universal Day <strong>${ud.value}</strong>, ${UNIVERSAL_DAY[ud.value]}.`;
     now.querySelector("[data-num-intro]")!.textContent =
-      `${NUMEROLOGY_INTRO} The Universal Month is the month's number added to the Universal Year's, and the Universal Year is the year's digits added up (${y} makes ${uy}).`;
+      `${NUMEROLOGY_INTRO} The Universal Month is the month's number added to the Universal Year's, and the Universal Year is the year's digits added up (${y} makes ${uy}). Your Personal Day is personal to you: your birth day and month plus the date, added up the same way.`;
     now.hidden = false;
 
     // Group into months, starting with the current one.
@@ -181,14 +196,15 @@ const FILTERS = [
       const n = dayNumber(e.at);
       const echo = NUMBER_ECHOES.find((x) => x.test(e.title) && x.numbers.includes(n.value));
       return { n, html: `
-        <p class="e-num"><span aria-hidden="true">✧</span> Universal Day <b>${n.value}</b>: ${UNIVERSAL_DAY[n.value]}</p>`,
+        <p class="e-num"><span aria-hidden="true">✧</span> Universal Day <b>${n.value}</b>: ${UNIVERSAL_DAY[n.value]}${MASTER_NUMBERS.includes(n.value) ? ` <span class="master">Master day</span>` : ""}</p>
+        <p class="e-pers" data-pers hidden></p>`,
         detail: [
           { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${n.value} (${n.steps.join(", then ")}). ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : " Let the day's number set the tone for how you work with this event."}` },
         ] };
     }
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     const row = (e: SkyEvent) => { const num = numerology(e); return `
-      <li class="k-${e.kind}" data-kind="${e.kind}">
+      <li class="k-${e.kind}" data-kind="${e.kind}" data-at="${e.at.getTime()}">
         <span class="e-date"><b>${day.format(e.at)}</b>${time.format(e.at)}</span>
         <span class="e-icon" aria-hidden="true">${e.icon}</span>
         <div>
@@ -233,6 +249,28 @@ const FILTERS = [
       });
       section.querySelector<HTMLElement>("[data-none]")!.hidden = any;
     };
+    // Personal Day numbers, from a birthday the visitor picks here. It is never saved or sent anywhere.
+    const mine = section.querySelector<HTMLFormElement>("[data-mine]");
+    if (mine) {
+      const bd = mine.querySelector<HTMLSelectElement>("[data-bday]")!, bm = mine.querySelector<HTMLSelectElement>("[data-bmonth]")!;
+      const personal = () => {
+        const d = Number(bd.value), m = Number(bm.value);
+        const ok = d > 0 && m > 0 && new Date(Date.UTC(2000, m - 1, d)).getUTCDate() === d; // 2000 is a leap year, so 29 February is allowed
+        months.querySelectorAll<HTMLElement>("li[data-at]").forEach((li) => {
+          const p = li.querySelector<HTMLElement>("[data-pers]")!;
+          p.hidden = !ok;
+          if (!ok) return;
+          const at = new Date(Number(li.dataset.at));
+          const n = personalDay(m, d, at.getFullYear(), at.getMonth() + 1, at.getDate()).value;
+          p.innerHTML = `Your Personal Day <b>${n}</b>: ${UNIVERSAL_DAY[n]}`;
+        });
+      };
+      bd.addEventListener("change", personal);
+      bm.addEventListener("change", personal);
+      window.addEventListener("pageshow", personal);
+      personal();
+    }
+
     section.querySelectorAll<HTMLInputElement>("input[name=sky-filter]").forEach((input) =>
       input.addEventListener("change", () => filter(input.value)));
     filter("all");
