@@ -10,12 +10,14 @@ import {
 } from "astronomy-engine";
 import { longitudeOf, signOf } from "./astrology.ts";
 import { SIGNS, type Sign, type PlanetId } from "../data/astrology.ts";
+import { NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
+import { universalYear } from "./numerology.ts";
 import {
   PLANET_THEMES, SIGN_STAY, SIGN_STYLE, SIGN_AREA, NEW_MOON_IDEAS, RETRO, RETRO_INTRO, STATION_NOTE,
-  NEW_MOON_INTRO, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
+  NEW_MOON_INTRO, NUMBER_DATES, PORTAL_WHY, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
 } from "../data/sky-meanings.ts";
 
-export type SkyKind = "moon" | "eclipse" | "season" | "retrograde" | "ingress";
+export type SkyKind = "moon" | "eclipse" | "season" | "retrograde" | "ingress" | "number";
 
 export interface SkyEvent {
   kind: SkyKind;
@@ -36,6 +38,10 @@ export interface SkyEvent {
   until?: Date;
   /** What `until` marks, such as "In Scorpio until" or "Retrograde until". */
   untilLabel?: string;
+  /** A whole-day event (the numerology dates), shown without a time. */
+  allDay?: boolean;
+  /** A lesser numerology date: shown under the "Numerology dates" filter but not under "Everything". */
+  minor?: boolean;
 }
 
 const opposite = (sign: Sign) => SIGNS[(SIGNS.indexOf(sign) + 6) % 12];
@@ -279,7 +285,49 @@ export function skyEvents(start: Date, end: Date): SkyEvent[] {
     if (p.kind === "ingress" && next) { p.until = next.at; p.untilLabel = `In ${p.title.split(" ").pop()} until`; }
     if (p.kind === "retrograde" && p.title.includes("retrograde") && next) { p.until = next.at; p.untilLabel = "Retrograde until"; }
   }
-  return [...moons, ...ecl, ...seasons(start, end), ...planets].sort((a, b) => a.at.getTime() - b.at.getTime());
+  return [...moons, ...ecl, ...seasons(start, end), ...planets, ...numberDates(start, end)].sort((a, b) => a.at.getTime() - b.at.getTime());
+}
+
+/** Starlight went live on 10 October 2026. */
+const LAUNCH_YEAR = 2026;
+const ORDINAL = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
+
+/**
+ * The numerology dates: the repeating "portal" dates 1/1 to 12/12, the master-number dates
+ * (22/2, 22/11, 29/11) and the mirror dates (11/1, 1/11), written day/month as in the UK.
+ * The six best known (1/1, 22/2, 8/8, 10/10, 11/11, 12/12) are headline dates, shown
+ * everywhere; the rest appear under the "Numerology dates" filter. They are whole days in
+ * the visitor's own time zone, starting at local midnight, and today's date is included.
+ */
+function numberDates(start: Date, end: Date): SkyEvent[] {
+  const out: SkyEvent[] = [];
+  const today = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
+    for (const [key, p] of Object.entries(NUMBER_DATES)) {
+      const [d, m] = key.split("/").map(Number);
+      const at = new Date(y, m - 1, d);
+      if (at < today || at >= end) continue;
+      const ev: SkyEvent = {
+        kind: "number", at, allDay: true, minor: !p.headline, icon: "✧", title: `${key} · ${p.name}`, note: p.note,
+        detail: [...p.detail.map((x) => ({ ...x })), { ...PORTAL_WHY }], link: "/numerology",
+      };
+      if (key === "1/1") {
+        const uy = universalYear(y);
+        ev.title = `1/1 · Universal Year ${uy.value} begins`;
+        ev.note = `${y} adds up to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`;
+        ev.detail = [{ p: `${y} is a Universal Year ${uy.value} (${uy.steps.join(", then ")}). ${PERSONAL_YEAR_THEMES[uy.value]}` }, ...ev.detail];
+      }
+      if (key === "8/8") { ev.until = new Date(y, 7, 12); ev.untilLabel = "The Lion's Gate stays open until"; }
+      if (key === "10/10" && y > LAUNCH_YEAR) {
+        const age = y - LAUNCH_YEAR;
+        ev.title = `10/10 · Starlight's ${ORDINAL[age] ?? `${age}th`} birthday`;
+        ev.icon = "✦";
+        ev.note = STARLIGHT_BIRTHDAY;
+      }
+      out.push(ev);
+    }
+  }
+  return out;
 }
 
 /** The same date, `months` months later. */

@@ -44,3 +44,16 @@ test("every entry explains what it means, and retrogrades say when they end", ()
   assert.equal(sun.untilLabel, "In Scorpio until");
   sameDay(sun.until, 2026, 11, 22, "Sun leaves Scorpio");
 });
+
+test("numerology dates: six headline dates, with the other portal, master and mirror dates under the filter", () => {
+  const nums = events.filter((e) => e.kind === "number");
+  const key = (e: { at: Date }) => `${e.at.getDate()}/${e.at.getMonth() + 1}`;
+  // From 10 October 2026 to 10 October 2027
+  assert.deepEqual(nums.filter((e) => !e.minor).map(key), ["10/10", "11/11", "12/12", "1/1", "22/2", "8/8"]);
+  assert.deepEqual(nums.filter((e) => e.minor).map(key), ["1/11", "22/11", "29/11", "11/1", "2/2", "3/3", "4/4", "5/5", "6/6", "7/7", "9/9"]);
+  assert.ok(nums.every((e) => e.allDay && e.detail.length > 0));
+  assert.equal(find("1/1 ·")!.title, "1/1 · Universal Year 2 begins"); // 2027: 2 + 0 + 2 + 7 = 11, then 2 (years are not kept as masters on this site)
+  assert.equal(find("8/8 ·")!.until!.getDate(), 12);
+  const later = skyEvents(new Date(2027, 9, 1), new Date(2027, 10, 1));
+  assert.ok(later.some((e) => e.title === "10/10 · Starlight's first birthday"));
+});
