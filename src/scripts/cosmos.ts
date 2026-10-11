@@ -330,9 +330,12 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
 
   // ---- the black hole ----
 
+  /** How squashed the disc looks: we see it almost edge-on. */
+  const FLAT = 0.13;
+
   /** Where an orbiting clump at angle `a`, distance `d` appears: the disc is seen nearly edge-on. */
   function onDisc(a: number, d: number): [number, number] {
-    const x = Math.cos(a) * d, y = Math.sin(a) * d * 0.19;
+    const x = Math.cos(a) * d, y = Math.sin(a) * d * FLAT;
     const ct = Math.cos(hole.tilt), st = Math.sin(hole.tilt);
     return [hole.x + x * ct - y * st, hole.y + x * st + y * ct];
   }
@@ -383,9 +386,9 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     const beam = m.star ? 1 : 0.65 + 0.55 * -Math.cos(m.a);
     const fade = smooth(1.05, 1.6, m.d / hole.r);
     const appear = m.star ? smooth(10, 7.5, m.d / hole.r) : 1;
-    c.globalAlpha = alpha * beam * fade * appear * (m.star ? 0.9 : 0.55);
+    c.globalAlpha = alpha * beam * fade * appear * (m.star ? 0.9 : 0.3);
     c.strokeStyle = m.star ? (near > 0.35 ? heat(m.d * 0.8) : "#eef0ff") : heat(m.d);
-    c.lineWidth = m.size * (m.star ? 1 : 1.3);
+    c.lineWidth = m.size * (m.star ? 1 : 0.7);
     c.lineCap = "round";
     c.stroke();
   }
@@ -395,18 +398,31 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     const c = ctx!;
     const { x, y, r } = hole;
     c.save();
-    c.translate(x, y); c.rotate(hole.tilt); c.scale(1, 0.19);
-    const g = c.createRadialGradient(0, 0, r * 1.1, 0, 0, r * 5.2);
-    g.addColorStop(0, "rgba(255,240,215,1)");
-    g.addColorStop(0.1, "rgba(255,186,105,0.8)");
-    g.addColorStop(0.4, "rgba(220,100,90,0.3)");
-    g.addColorStop(1, "rgba(120,40,90,0)");
-    c.globalAlpha = alpha * (front ? 0.6 : 1);
-    c.fillStyle = g;
-    c.beginPath();
-    c.arc(0, 0, r * 5.2, front ? 0 : Math.PI, front ? Math.PI : TAU);
-    c.arc(0, 0, r * 1.1, front ? Math.PI : TAU, front ? 0 : Math.PI, true);
-    c.closePath(); c.fill();
+    c.translate(x, y); c.rotate(hole.tilt); c.scale(1, FLAT);
+    const g = c.createRadialGradient(0, 0, r * 1.25, 0, 0, r * 5.2);
+    g.addColorStop(0, "rgba(255,250,235,1)");
+    g.addColorStop(0.12, "rgba(255,200,120,0.9)");
+    g.addColorStop(0.45, "rgba(230,110,70,0.35)");
+    g.addColorStop(1, "rgba(120,40,70,0)");
+    const draw = () => {
+      c.beginPath();
+      c.arc(0, 0, r * 5.2, front ? 0 : Math.PI, front ? Math.PI : TAU);
+      c.arc(0, 0, r * 1.25, front ? Math.PI : TAU, front ? 0 : Math.PI, true);
+      c.closePath(); c.fill();
+    };
+    c.globalAlpha = alpha;
+    c.fillStyle = g; draw();
+    // the left side spins toward us, so its light is boosted (Doppler beaming) and the right side dims
+    // (the same glow again, in thin slices fading from the left edge to the middle, so there are no hard edges)
+    const SLICES = 24;
+    for (let k = 0; k < SLICES; k++) {
+      const x0 = -r * 5.2 + (r * 5.6 * k) / SLICES;
+      c.save();
+      c.beginPath(); c.rect(x0, -r * 6, (r * 5.6) / SLICES, r * 12); c.clip();
+      c.globalAlpha = alpha * 0.7 * (1 - k / SLICES);
+      draw();
+      c.restore();
+    }
     c.restore();
   }
 
@@ -426,29 +442,38 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
     for (const m of motes) drawMote(m, false, alpha);
     // the far side of the disc, bent up over the top of the hole and faintly under it
     c.globalCompositeOperation = "lighter";
-    for (const [k, a0, a1, op] of [[1, Math.PI, TAU, 1], [-1, 0, Math.PI, 0.35]] as const) {
-      const ring = c.createRadialGradient(x, y, r * 1.02, x, y, r * 1.85);
-      ring.addColorStop(0, "rgba(255,240,215,0.95)");
-      ring.addColorStop(0.3, "rgba(255,170,90,0.5)");
+    // (gravity bends the light from behind the hole up and over it, and a fainter image under it)
+    for (const [k, op] of [[1, 1], [-1, 0.6]] as const) {
+      c.save();
+      c.translate(x, y); c.rotate(hole.tilt);
+      c.beginPath(); c.rect(-r * 3, 0, r * 6, -k * r * 3); c.clip();
+      const ring = c.createRadialGradient(0, 0, r * 1.02, 0, 0, r * 2.1);
+      ring.addColorStop(0, "rgba(255,248,230,1)");
+      ring.addColorStop(0.15, "rgba(255,214,150,0.9)");
+      ring.addColorStop(0.5, "rgba(240,130,80,0.4)");
       ring.addColorStop(1, "rgba(160,60,80,0)");
       c.globalAlpha = alpha * op;
       c.fillStyle = ring;
       c.beginPath();
-      c.ellipse(x, y, r * 1.9, r * (k > 0 ? 1.75 : 1.4), hole.tilt, a0, a1);
-      c.ellipse(x, y, r * 1.02, r * 1.02, hole.tilt, a1, a0, true);
-      c.closePath(); c.fill();
+      c.ellipse(0, 0, r * 2.15, r * (k > 0 ? 2.0 : 1.55), 0, 0, TAU);
+      c.ellipse(0, 0, r * 1.02, r * 1.02, 0, TAU, 0, true);
+      c.fill("evenodd");
+      c.restore();
     }
     // the shadow: nothing comes back out
     c.globalCompositeOperation = "source-over";
     c.globalAlpha = Math.min(1, alpha * 1.4);
     c.fillStyle = "#000";
     c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
-    // the photon ring, light circling right at the edge
+    // the photon ring: a hair-thin glow of light circling right at the edge, not a solid outline
     c.globalCompositeOperation = "lighter";
-    c.globalAlpha = alpha * 0.85;
-    c.strokeStyle = "rgba(255,226,180,0.9)";
-    c.lineWidth = Math.max(1, r * 0.06);
-    c.beginPath(); c.arc(x, y, r * 1.04, 0, TAU); c.stroke();
+    const photon = c.createRadialGradient(x, y, r, x, y, r * 1.12);
+    photon.addColorStop(0, "rgba(255,236,200,0.75)");
+    photon.addColorStop(0.35, "rgba(255,200,140,0.25)");
+    photon.addColorStop(1, "rgba(255,170,110,0)");
+    c.globalAlpha = alpha;
+    c.fillStyle = photon;
+    c.beginPath(); c.arc(x, y, r * 1.12, 0, TAU); c.arc(x, y, r, TAU, 0, true); c.fill();
     disc(true, alpha);
     for (const m of motes) drawMote(m, true, alpha);
     c.restore();
@@ -568,7 +593,7 @@ export function startCosmos(canvas: HTMLCanvasElement, dim: boolean) {
         // lit from where the Sun really is today: from behind at new Moon, from the right while waxing
         const phi = (moonAge() / 29.530588853) * TAU;
         light = [Math.sin(phi), 0, -Math.cos(phi)];
-        ambient = 0.12; turn = 0;
+        ambient = 0.24; turn = 0; // earthshine: sunlight bounced off the Earth keeps the dark side faintly visible
       }
       paintSphere(m, tex, turn, light, ambient, haze ?? null);
       c.drawImage(m.canvas, x - r, y - r, (m.size / dpr), (m.size / dpr));
