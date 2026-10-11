@@ -71,6 +71,10 @@ const FILTERS = [
   .now p { margin: 0 0 6px; }
   .now .rx-list { margin: 0 0 10px; padding-left: 1.4em; }
   .now .rx-list li { margin: 2px 0; }
+  .now :global(.now-item) { all: unset; cursor: pointer; border-bottom: 1px dotted var(--gold); }
+  .now :global(.now-item:hover), .now :global(.now-item:focus-visible), .now :global(.now-item[aria-expanded="true"]) { color: var(--gold); }
+  .now :global(.now-explain) { margin: 4px 0 12px; padding: 10px 14px; border-left: 2px solid var(--antique-gold); background: rgba(255, 255, 255, 0.03); border-radius: 0 8px 8px 0; font-size: 0.9rem; }
+  .now :global(.now-explain p) { margin: 0 0 6px; }
   .now .calc summary { cursor: pointer; color: var(--orchid); font-size: 0.88rem; }
   .now .calc p { margin: 6px 0 0; color: var(--mist); font-size: 0.9rem; }
   .mine { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid rgba(156, 122, 60, 0.3); }
@@ -132,8 +136,9 @@ const FILTERS = [
 <script>
   import { skyEvents, addMonths, retrogradeNow, type SkyEvent } from "../lib/sky-events.ts";
   import { universalDay, universalMonth, universalYear, personalDay, MASTER_NUMBERS } from "../lib/numerology.ts";
-  import { UNIVERSAL_DAY, NUMBER_ECHOES, NUMEROLOGY_INTRO, PLANET_SHORT } from "../data/sky-meanings.ts";
-  import { NUMBER_MEANINGS } from "../data/numbers.ts";
+  import { UNIVERSAL_DAY, NUMBER_ECHOES, NUMEROLOGY_INTRO, PLANET_SHORT, PLANET_THEMES, RETRO } from "../data/sky-meanings.ts";
+  import { NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
+  import type { PlanetId } from "../data/astrology.ts";
 
   const NAMES: Record<string, string> = {
     mercury: "Mercury", venus: "Venus", mars: "Mars", jupiter: "Jupiter", saturn: "Saturn", uranus: "Uranus", neptune: "Neptune", pluto: "Pluto",
@@ -159,6 +164,17 @@ const FILTERS = [
 
     // What is retrograde right now, and when each turns direct.
     const now = section.querySelector<HTMLElement>("[data-now]")!;
+    // Each planet and number in this panel can be tapped to show a short explainer underneath it.
+    const explains: string[] = [];
+    const item = (label: string, html: string) =>
+      `<button type="button" class="now-item" aria-expanded="false" data-explain="${explains.push(html) - 1}">${label}</button>`;
+    const planetExplain = (id: PlanetId, ends?: Date) => {
+      const r = RETRO[id]!;
+      return `<p><strong>${NAMES[id]}</strong> rules ${PLANET_THEMES[id]}. ${r.rhythm}</p>
+        <p><strong>What you may notice now.</strong> ${r.feels}</p>
+        <p><strong>${ends ? `From ${day.format(ends)}` : "When it moves forward again"}.</strong> ${r.direct}</p>
+        <p><a href="${id === "mercury" ? "/library/events/mercury-retrograde-survival-guide" : "/library/moon-sky/retrograde-planets"}">Read more about retrogrades</a></p>`;
+    };
     // Sorted so the planet that moves forward again soonest comes first.
     const rx = retrogradeNow(start)
       .map((id) => ({ id, ends: events.find((e) => e.kind === "retrograde" && e.planet === id && e.direct)?.at }))
@@ -168,15 +184,38 @@ const FILTERS = [
       ? `<p><span aria-hidden="true">℞</span> <strong>${COUNT[rx.length]} planet${rx.length === 1 ? " is" : "s are"} retrograde right now.</strong>
           That means ${rx.length === 1 ? "it seems" : "they seem"} to drift backwards across the sky, so astrologers read it as a time to review and finish things rather than rush.
           In order of which moves forward again first:</p>
-        <ul class="rx-list">${rx.map((r) => `<li><strong>${NAMES[r.id]}</strong> (${PLANET_SHORT[r.id]})${r.ends ? `: moves forward again on ${day.format(r.ends)}` : ": still retrograde a year from now"}</li>`).join("")}</ul>`
+        <ul class="rx-list">${rx.map((r) => `<li>${item(`<strong>${NAMES[r.id]}</strong> (${PLANET_SHORT[r.id]})`, planetExplain(r.id, r.ends))}${r.ends ? `: moves forward again on ${day.format(r.ends)}` : ": still retrograde a year from now"}</li>`).join("")}</ul>`
       : `<p><span aria-hidden="true">✦</span> No planets are retrograde right now: everything in the sky is moving forward.</p>`;
 
     // Today's numbers, worked out from the visitor's own date.
     const y = start.getFullYear(), mo = start.getMonth() + 1;
     const uy = universalYear(y).value, um = universalMonth(y, mo).value, ud = dayNumber(start);
+    const firstSentence = (t: string) => t.split(/(?<=\.) /)[0];
     now.querySelector("[data-numbers]")!.innerHTML =
-      `<span aria-hidden="true">✧</span> Numbers now: Universal Year <strong>${uy}</strong> (${NUMBER_MEANINGS[uy].keyword}) · ` +
-      `Universal Month <strong>${um}</strong> · today is a Universal Day <strong>${ud.value}</strong>, ${UNIVERSAL_DAY[ud.value]}.`;
+      `<span aria-hidden="true">✧</span> Numbers now: ` +
+      item(`Universal Year <strong>${uy}</strong> (${NUMBER_MEANINGS[uy].keyword})`,
+        `<p>The Universal Year is the number of the whole calendar year, the same for everyone: the digits of ${y} add up to ${uy}. ${NUMBER_MEANINGS[uy].keyword}: ${NUMBER_MEANINGS[uy].essence}</p><p>${PERSONAL_YEAR_THEMES[uy]}</p>`) + " · " +
+      item(`Universal Month <strong>${um}</strong>`,
+        `<p>The Universal Month is this month's number for everyone: the month (${mo}) added to the Universal Year (${uy}). ${NUMBER_MEANINGS[um].keyword}: ${NUMBER_MEANINGS[um].essence}</p><p>${firstSentence(NUMBER_MEANINGS[um].gentle)}</p>`) +
+      ` · today is a ` +
+      item(`Universal Day <strong>${ud.value}</strong>`,
+        `<p>The Universal Day is today's number for everyone, from adding up every digit of the date (${ud.steps.join(", then ")}). ${NUMBER_MEANINGS[ud.value].keyword}: ${NUMBER_MEANINGS[ud.value].essence}</p><p>${firstSentence(NUMBER_MEANINGS[ud.value].gentle)}</p>`) +
+      `, ${UNIVERSAL_DAY[ud.value]}.`;
+    // One explainer box per line, shown under the line; tapping the same item again closes it.
+    for (const line of now.querySelectorAll<HTMLElement>("[data-rx], [data-numbers]")) {
+      const box = document.createElement("div");
+      box.className = "now-explain";
+      box.hidden = true;
+      line.after(box);
+      line.addEventListener("click", (ev) => {
+        const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>(".now-item");
+        if (!btn) return;
+        const open = btn.getAttribute("aria-expanded") === "true";
+        line.querySelectorAll(".now-item").forEach((b) => b.setAttribute("aria-expanded", "false"));
+        box.hidden = open;
+        if (!open) { btn.setAttribute("aria-expanded", "true"); box.innerHTML = explains[Number(btn.dataset.explain)]; }
+      });
+    }
     now.querySelector("[data-num-intro]")!.textContent =
       `${NUMEROLOGY_INTRO} The Universal Month is the month's number added to the Universal Year's, and the Universal Year is the year's digits added up (${y} makes ${uy}). Your Personal Day is personal to you: your birth day and month plus the date, added up the same way.`;
     now.hidden = false;
