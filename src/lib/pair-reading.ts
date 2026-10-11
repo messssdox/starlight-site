@@ -134,8 +134,8 @@ export function pairReading(input: PairInput): PairText {
   const animals = [
     kind.chinese[c.relation].replaceAll("{me}", A1).replaceAll("{them}", A2),
     pick([
-      `With your Sun signs added, you are a ${S1} ${A1} and ${them} is ${/^[AEIOU]/.test(S2) ? "an" : "a"} ${S2} ${A2}.`,
-      `Read alongside your Sun signs, this is a ${S1} ${A1} meeting ${/^[AEIOU]/.test(S2) ? "an" : "a"} ${S2} ${A2}.`,
+      `With your Sun signs added, your ${A1} has ${/^[AEIOU]/.test(S1) ? "an" : "a"} ${S1} Sun and ${their} ${A2} has ${/^[AEIOU]/.test(S2) ? "an" : "a"} ${S2} Sun.`,
+      `Read alongside your Sun signs, your ${A1} shines through ${/^[AEIOU]/.test(S1) ? "an" : "a"} ${S1} Sun, and ${their} ${A2} through ${/^[AEIOU]/.test(S2) ? "an" : "a"} ${S2} Sun.`,
     ], "sunanimal"),
     `The ${c.me.sign.element} ${A1}'s ${t1} side and the ${c.them.sign.element} ${A2}'s ${t2} side ${fill(pick(ANIMAL_MIX[c.relation], "animals"), { them })}.`,
   ].join(" ");
@@ -173,9 +173,10 @@ export function pairReading(input: PairInput): PairText {
 
   // start and stop: start from the other's Moon, Venus and Mercury signs, stop from your own Mars,
   // each with why it fits the two of you
-  const startStop = (self: PersonalSigns, other: PersonalSigns, who: string, side: string): StartStop => {
-    const theirP = poss(who);
-    const vars = { them: who, their: theirP, Their: cap(theirP) };
+  // {Your}/{your} name whose planets these are, so the other person's box says "Sam's Leo Moon"
+  const startStop = (self: PersonalSigns, other: PersonalSigns, who: string, selfName: string, side: string): StartStop => {
+    const theirP = poss(who), yourP = poss(selfName);
+    const vars = { them: who, their: theirP, Their: cap(theirP), your: yourP, Your: cap(yourP) };
     const fit = (planet: PairPlanet) => {
       const link = signLink(self.signs[planet], other.signs[planet]);
       return fill(pick(START_FIT[LINK_FEEL[link]], `${side}-fit-${planet}`), { ...vars, mine: self.signs[planet].name, theirs: other.signs[planet].name, planet: pName(planet) });
@@ -207,6 +208,6 @@ export function pairReading(input: PairInput): PairText {
   return {
     pairs, easiest, hardest, harmony, click, care, planetMix, animals, numbers, year, tips,
     elements: elementLine(c.me.sign.element, c.them.sign.element, them),
-    startStop: { me: startStop(mine, theirs, them, "me"), them: startStop(theirs, mine, "you", "them") },
+    startStop: { me: startStop(mine, theirs, them, "you", "me"), them: startStop(theirs, mine, "you", them, "them") },
   };
 }

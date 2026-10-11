@@ -40,7 +40,8 @@ export function signAspect(a: SignId, b: SignId): SignAspect {
 
 export interface PairMatch { sign: Sign; animal: Animal }
 
-/** The pair's two friends, secret friend and clash, each a sign and an animal together. */
+/** The friends, secret friend and clash on each wheel. Each sign is matched with signs and each
+ * animal with animals; `sign` and `animal` sit side by side here but are separate matches. */
 export function pairMatches(signId: SignId, animalId: string): { friends: PairMatch[]; secret: PairMatch; clash: PairMatch } {
   const s = signIndex(signId);
   const a = animalById(animalId).index;

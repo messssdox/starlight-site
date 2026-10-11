@@ -118,6 +118,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
         if (v) q.set(k, v); else q.delete(k);
       }
       history.replaceState(null, "", `${location.pathname}?${q}`);
+      document.dispatchEvent(new Event("reading:details"));
       start().then(() => root.scrollIntoView({ behavior: "smooth", block: "start" }));
     });
   }

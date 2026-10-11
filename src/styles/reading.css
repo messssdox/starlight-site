@@ -97,7 +97,21 @@
 @media (max-width: 640px) { .reading .pd-grid { grid-template-columns: 1fr; } }
 
 /* Start and stop tips in a relationship reading */
-.reading .ss p:not(.eyebrow) { display: grid; grid-template-columns: 3.4rem 1fr; gap: 8px; align-items: baseline; margin: 8px 0; }
+.reading .ss p:not(.eyebrow) { display: grid; grid-template-columns: 4.2rem 1fr; gap: 8px; align-items: baseline; margin: 8px 0; }
 .reading .ss-tag { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 2px 0; border-radius: 999px; }
 .reading .ss-tag.start { color: var(--gold); border: 1px solid var(--gold); }
 .reading .ss-tag.stop { color: var(--clash); border: 1px solid var(--clash); }
+/* "Meet yourself": the spotlight under the Chinese zodiac card */
+.reading .spotlight { border-color: rgba(212, 175, 90, 0.55); background: linear-gradient(160deg, rgba(212, 175, 90, 0.08), rgba(142, 107, 217, 0.06)); }
+.reading .spotlight h2 { margin: 2px 0 6px; }
+.reading .spotlight h3 { margin: 18px 0 4px; font-size: 1.05rem; color: var(--gold); }
+.reading .spotlight p { margin: 6px 0; }
+.reading .spotlight .spot-lists { margin-top: 6px; }
+.reading .spotlight .spot-lists ul { margin: 4px 0 0; padding-left: 20px; }
+.reading .spotlight .closing { margin-top: 18px; font-style: italic; font-size: 1.08rem; color: var(--gold); }
+/* "Meet the two of you": the spotlight at the top of a relationship reading */
+.reading .spotlight .pair-title { margin: 0 0 8px; font-size: 1.15rem; color: var(--gold); font-style: italic; }
+.reading .spotlight .ss { background: transparent; }
+.reading .full-breakdown { margin-top: 24px; }
+.reading .full-breakdown > summary { font-size: 0.95rem; padding: 6px 16px; }
+.reading .spotlight .ss { padding: 12px 14px; }

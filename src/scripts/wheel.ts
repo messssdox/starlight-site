@@ -5,7 +5,7 @@
 import { ANIMALS, GROUPS, SECRET_FRIENDS, SEASONS, ELEMENTS, EARTH_ANIMALS, animalById, seasonOf, type Animal, type Element } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
 import { SIGNS, type Sign, type SignId } from "../data/astrology.ts";
-import { SIGN_FRIEND, ANIMAL_FRIEND, SIGN_SECRET } from "../data/pairs.ts";
+import { SIGN_FRIEND_LINES, SIGN_SECRET_LINES, SIGN_CLASH_LINES, ANIMAL_FRIEND_LINES, ANIMAL_SECRET_LINES, ANIMAL_CLASH_LINES, matchKey } from "../data/matches.ts";
 import { chineseSign, animalOfZodiacYear, elementOfZodiacYear, yinYangOfZodiacYear } from "../lib/chinese.ts";
 import { pairMonthlyForecast, pairYearlyForecast, luckyAnimals, animalHours } from "../lib/forecast.ts";
 import { pairProfile, pairMatches, sunSignOn, signById, poss, type PairMatch } from "../lib/pair.ts";
@@ -24,7 +24,6 @@ const dayBefore = (iso: string) => {
   return d.toISOString().slice(0, 10);
 };
 const signGlyph = (g: Sign) => `<span class="sg" aria-hidden="true">${g.glyph}</span>`;
-const pairName = (m: PairMatch) => `${m.sign.name} ${m.animal.name}`;
 const yearsOfAnimal = (a: Animal, from: number, to: number) =>
   Array.from({ length: to - from + 1 }, (_, k) => from + k).filter((y) => animalOfZodiacYear(y).id === a.id);
 const nextYearOf = (a: Animal) => yearsOfAnimal(a, new Date().getFullYear(), new Date().getFullYear() + 11)[0];
@@ -215,7 +214,14 @@ export function initWheel(root: HTMLElement) {
     renderDetails(sg, self, m);
   }
 
-  /** The three boxes: the pair's friends, secret friend and clash, each a sign and an animal together. */
+  /** One row of a box: the sign or animal matches, with glyphs, names and why. */
+  const row = (label: string, pics: string, names: string, why: string, next: string) => `
+      <div class="match"><p class="kind">${label}</p>
+        <div class="who">${pics}<strong>${names}</strong></div>
+        ${why}<p class="next">${next}</p></div>`;
+
+  /** The three boxes. Signs and animals are matched separately, each on its own wheel, so every box
+   * lists its signs and its animals as two rows rather than joining them into made-up people. */
   function renderInsights(sg: Sign, self: Animal, m: ReturnType<typeof pairMatches>) {
     const group = GROUPS[self.group];
     const pair = SECRET_FRIENDS.find((s) => s.pair.includes(self.id))!;
@@ -223,19 +229,30 @@ export function initWheel(root: HTMLElement) {
     box("secret").style.setProperty("--c", pair.colour);
     box("clash").style.setProperty("--c", CLASH_RED);
 
+    const fs = m.friends.map((f) => f.sign);
     const fa = m.friends.map((f) => f.animal);
-    box("friends").querySelector(".body")!.innerHTML = `
-      <div class="who">${m.friends.map((f) => signGlyph(f.sign) + img(f.animal)).join("")}<strong>${list(m.friends.map(pairName))}</strong></div>
-      <p>${SIGN_FRIEND[sg.element]}, and the ${list(fa.map((f) => f.name))} ${ANIMAL_FRIEND[self.group]}.</p>
-      <p class="next">They share your colour on both wheels. Next friend years: ${fa.map((f) => `${nextYearOf(f)} (${f.name})`).join(", ")}.</p>`;
-    box("secret").querySelector(".body")!.innerHTML = `
-      <div class="who">${signGlyph(m.secret.sign)}${img(m.secret.animal)}<strong>The ${pairName(m.secret)}</strong></div>
-      <p>Your hidden ally. ${SIGN_SECRET[sg.element]}, and the ${m.secret.animal.name} brings what the ${self.name} lacks: a quiet, loyal bond.</p>
-      <p class="next">Two signs on, and the same colour on the inner ring. Next ${m.secret.animal.name} year: ${nextYearOf(m.secret.animal)}.</p>`;
-    box("clash").querySelector(".body")!.innerHTML = `
-      <div class="who">${signGlyph(m.clash.sign)}${img(m.clash.animal)}<strong>The ${pairName(m.clash)}</strong></div>
-      <p>Your opposite. ${m.clash.sign.name} and ${sg.name} face each other, and the ${self.name} and ${m.clash.animal.name} want different things, so this bond takes patience. Learn from each other rather than compete.</p>
-      <p class="next">Directly opposite on both wheels. Next ${m.clash.animal.name} year, a year to take extra care: ${nextYearOf(m.clash.animal)}.</p>`;
+    const line = (lines: Record<string, string>, a: string, b: string) => `<p>${lines[matchKey(a, b)]}</p>`;
+    box("friends").querySelector(".body")!.innerHTML =
+      row("Friendly signs", fs.map(signGlyph).join(""), list(fs.map((f) => f.name)),
+        fs.map((f) => line(SIGN_FRIEND_LINES, sg.id, f.id)).join(""),
+        `${list(fs.map((f) => f.name))} share ${poss(sg.name)} ${sg.element} colour on the sign wheel.`) +
+      row("Friendly animals", fa.map((f) => img(f)).join(""), list(fa.map((f) => f.name)),
+        fa.map((f) => line(ANIMAL_FRIEND_LINES, self.id, f.id)).join(""),
+        `They share the ${poss(self.name)} colour on the animal wheel. Next friend years: ${fa.map((f) => [nextYearOf(f), f.name] as const).sort((x, y) => x[0] - y[0]).map(([y, n]) => `${y} (${n})`).join(", ")}.`);
+    box("secret").querySelector(".body")!.innerHTML =
+      row("Secret friend sign", signGlyph(m.secret.sign), m.secret.sign.name,
+        line(SIGN_SECRET_LINES, sg.id, m.secret.sign.id),
+        `Two signs on from ${sg.name}.`) +
+      row("Secret friend animal", img(m.secret.animal), `The ${m.secret.animal.name}`,
+        line(ANIMAL_SECRET_LINES, self.id, m.secret.animal.id),
+        `The same colour on the animal wheel's inner ring. Next ${m.secret.animal.name} year: ${nextYearOf(m.secret.animal)}.`);
+    box("clash").querySelector(".body")!.innerHTML =
+      row("Clashing sign", signGlyph(m.clash.sign), m.clash.sign.name,
+        line(SIGN_CLASH_LINES, sg.id, m.clash.sign.id),
+        `Directly opposite ${sg.name} on the sign wheel.`) +
+      row("Clashing animal", img(m.clash.animal), `The ${m.clash.animal.name}`,
+        line(ANIMAL_CLASH_LINES, self.id, m.clash.animal.id),
+        `Directly opposite the ${self.name} on the animal wheel. Next ${m.clash.animal.name} year, a year to take extra care: ${nextYearOf(m.clash.animal)}.`);
     delete insights.dataset.glossaryDone;
   }
 
