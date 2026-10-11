@@ -101,3 +101,11 @@
 .reading .ss-tag { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 2px 0; border-radius: 999px; }
 .reading .ss-tag.start { color: var(--gold); border: 1px solid var(--gold); }
 .reading .ss-tag.stop { color: var(--clash); border: 1px solid var(--clash); }
+/* "Meet yourself": the spotlight under the Chinese zodiac card */
+.reading .spotlight { border-color: rgba(212, 175, 90, 0.55); background: linear-gradient(160deg, rgba(212, 175, 90, 0.08), rgba(142, 107, 217, 0.06)); }
+.reading .spotlight h2 { margin: 2px 0 6px; }
+.reading .spotlight h3 { margin: 18px 0 4px; font-size: 1.05rem; color: var(--gold); }
+.reading .spotlight p { margin: 6px 0; }
+.reading .spotlight .spot-lists { margin-top: 6px; }
+.reading .spotlight .spot-lists ul { margin: 4px 0 0; padding-left: 20px; }
+.reading .spotlight .closing { margin-top: 18px; font-style: italic; font-size: 1.08rem; color: var(--gold); }
