@@ -224,6 +224,12 @@ export const NUMBER_ECHOES: { test: (title: string) => boolean; numbers: number[
 export const NUMEROLOGY_INTRO =
   "In numerology every date has its own number, the same for everyone. Add up all the digits of the date and keep going until one digit is left (11, 22 and 33 are kept as master numbers). That is the Universal Day, and it colours whatever happens in the sky that day.";
 
+/** Shown on every numerology date: why people mark repeating dates at all. */
+export const PORTAL_WHY = {
+  h: "Why people mark these dates",
+  p: "Numerology goes back to Pythagoras, the Greek thinker who taught that numbers carry meaning as well as amounts. When a date repeats a number, numerologists say its meaning is doubled, so the day is a natural moment to pause and work with that theme. Calling these days \"portals\" is a modern idea that spread online over the last twenty years or so. People mark them by setting an intention, journaling, meditating, lighting a candle or simply making a wish. Nothing about the date forces anything to happen. Its power is as a reminder to stop, notice and choose.",
+};
+
 /**
  * The numerology dates in the calendar, keyed day/month as written in the UK. `headline`
  * dates show everywhere; the rest only under the "Numerology dates" filter, so the main

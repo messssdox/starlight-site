@@ -14,7 +14,7 @@ import { NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
 import { universalYear } from "./numerology.ts";
 import {
   PLANET_THEMES, SIGN_STAY, SIGN_STYLE, SIGN_AREA, NEW_MOON_IDEAS, RETRO, RETRO_INTRO, STATION_NOTE,
-  NEW_MOON_INTRO, NUMBER_DATES, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
+  NEW_MOON_INTRO, NUMBER_DATES, PORTAL_WHY, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
 } from "../data/sky-meanings.ts";
 
 export type SkyKind = "moon" | "eclipse" | "season" | "retrograde" | "ingress" | "number";
@@ -309,7 +309,7 @@ function numberDates(start: Date, end: Date): SkyEvent[] {
       if (at < today || at >= end) continue;
       const ev: SkyEvent = {
         kind: "number", at, allDay: true, minor: !p.headline, icon: "✧", title: `${key} · ${p.name}`, note: p.note,
-        detail: p.detail.map((x) => ({ ...x })), link: "/numerology",
+        detail: [...p.detail.map((x) => ({ ...x })), { ...PORTAL_WHY }], link: "/numerology",
       };
       if (key === "1/1") {
         const uy = universalYear(y);
