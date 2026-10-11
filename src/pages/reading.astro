@@ -32,7 +32,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
   import { GROUPS, ELEMENTS, PROFILES, seasonOf } from "../data/zodiac.ts";
   import { PLANET_BY_ID } from "../data/astrology.ts";
   import { PLACEMENTS } from "../data/placements.ts";
-  import { PAIR_TITLES, PAIR_LINES, PAIR_SHORT, CHEMISTRY, RISING_TITLE, RISING_LINES, type Tone } from "../data/synastry.ts";
+  import { PAIR_TITLES, PAIR_LINES, PAIR_SHORT, CHEMISTRY, RISING_TITLE, RISING_LINES, START_FOR_MOON, START_FOR_VENUS, STOP_FOR_MARS, type Tone } from "../data/synastry.ts";
   import { personalSigns, pairUp, chemistryOf, signLink } from "../lib/synastry.ts";
   import { findPlace, type Place } from "../lib/place.ts";
   import { NUMBER_MEANINGS, NUMBER_FAMILIES } from "../data/numbers.ts";
@@ -289,6 +289,20 @@ const articles = (await getCollection("library")).map((a) => a.id);
           <button class="btn" type="submit">Update our reading</button>
         </form>
       </details>`;
+    // start and stop for each of you: start what the other needs, stop your own trap
+    const startStop = (who: string, other: string, self: typeof mine, partner: typeof mine) => `
+      <div class="panel ss">
+        <p class="eyebrow">${who}</p>
+        <p><span class="ss-tag start">Start</span> ${START_FOR_MOON[partner.signs.moon.element].replace("{them}", other)}</p>
+        <p><span class="ss-tag start">Start</span> ${START_FOR_VENUS[partner.signs.venus.element].replace("{them}", other)}</p>
+        <p><span class="ss-tag stop">Stop</span> ${STOP_FOR_MARS[self.signs.mars.element]}</p>
+      </div>`;
+    const startStopSection = `
+      <section class="part">
+        <h2>Start and stop</h2>
+        <p class="muted">What each of you could start, from the other person's Moon and Venus, and stop, from your own Mars.</p>
+        <div class="pair">${startStop(myName ? `For ${esc(myName)}` : "For you", them, mine, theirs)}${startStop(`For ${Them}`, "you", theirs, mine)}</div>
+      </section>`;
     const chemistry = tone === "love"
       ? `<div class="say"><h3><span class="gl">♀\uFE0E♂\uFE0E</span>Chemistry</h3>
           <p>${CHEMISTRY[chemistryOf(mine.signs.venus, theirs.signs.mars)].replace("{V}", "Your").replace("{M}", `${them}'s`)}</p>
@@ -340,6 +354,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
               <p>${yearTogetherLine(c.me.personalYear, c.them.personalYear, them)}</p></div>
           </div>
         </section>
+        ${startStopSection}
         <div class="panel tips"><p class="eyebrow">Tips for your bond</p><ul>${kind.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>
       </section>`;
   }
