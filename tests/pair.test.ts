@@ -82,6 +82,9 @@ test("every brightest and care day says why it stands out", () => {
       const f = pairMonthlyForecast(sign, animal, `2026-${month}-11`);
       for (const d of f.bestDays) assert.match(f.bestNotes[d], /^An? \w+ day, .*\.$/);
       for (const d of f.careDays) assert.match(f.careNotes[d], /(your clash animal|opposite [A-Z]\w+)\.$/);
+      for (const d of [...f.bestDays, ...f.careDays]) assert.match(f.bestTips[d] ?? f.careTips[d], /^[A-Z].*\.$/);
+      const best = f.bestDays.map((d) => f.bestTips[d]);
+      if (best.length <= 5) assert.equal(new Set(best).size, best.length, "brightest-day tips repeat");
     }
   }
 });
