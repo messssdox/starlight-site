@@ -31,7 +31,7 @@ const FILTERS = [
   </p>
 
   <div class="now panel" data-now hidden>
-    <p data-rx></p>
+    <div data-rx></div>
     <p data-numbers></p>
     <details class="calc">
       <summary>How the numbers work</summary>
@@ -69,6 +69,8 @@ const FILTERS = [
   .lede { max-width: 720px; }
   .now { padding: 14px 18px; margin: 0 0 16px; font-size: 0.95rem; }
   .now p { margin: 0 0 6px; }
+  .now .rx-list { margin: 0 0 10px; padding-left: 1.4em; }
+  .now .rx-list li { margin: 2px 0; }
   .now .calc summary { cursor: pointer; color: var(--orchid); font-size: 0.88rem; }
   .now .calc p { margin: 6px 0 0; color: var(--mist); font-size: 0.9rem; }
   .mine { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid rgba(156, 122, 60, 0.3); }
@@ -130,7 +132,7 @@ const FILTERS = [
 <script>
   import { skyEvents, addMonths, retrogradeNow, type SkyEvent } from "../lib/sky-events.ts";
   import { universalDay, universalMonth, universalYear, personalDay, MASTER_NUMBERS } from "../lib/numerology.ts";
-  import { UNIVERSAL_DAY, NUMBER_ECHOES, NUMEROLOGY_INTRO } from "../data/sky-meanings.ts";
+  import { UNIVERSAL_DAY, NUMBER_ECHOES, NUMEROLOGY_INTRO, PLANET_SHORT } from "../data/sky-meanings.ts";
   import { NUMBER_MEANINGS } from "../data/numbers.ts";
 
   const NAMES: Record<string, string> = {
@@ -157,13 +159,17 @@ const FILTERS = [
 
     // What is retrograde right now, and when each turns direct.
     const now = section.querySelector<HTMLElement>("[data-now]")!;
-    const rx = retrogradeNow(start).map((id) => {
-      const direct = events.find((e) => e.kind === "retrograde" && e.title.startsWith(`${NAMES[id]} turns direct`));
-      return `<strong>${NAMES[id]}</strong>${direct ? ` until ${day.format(direct.at)}` : ""}`;
-    });
+    // Sorted so the planet that moves forward again soonest comes first.
+    const rx = retrogradeNow(start)
+      .map((id) => ({ id, ends: events.find((e) => e.kind === "retrograde" && e.planet === id && e.direct)?.at }))
+      .sort((a, b) => (a.ends?.getTime() ?? Infinity) - (b.ends?.getTime() ?? Infinity));
+    const COUNT = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight"];
     now.querySelector("[data-rx]")!.innerHTML = rx.length
-      ? `<span aria-hidden="true">℞</span> Retrograde right now: ${rx.join(", ")}.`
-      : `<span aria-hidden="true">✦</span> No planets are retrograde right now.`;
+      ? `<p><span aria-hidden="true">℞</span> <strong>${COUNT[rx.length]} planet${rx.length === 1 ? " is" : "s are"} retrograde right now.</strong>
+          That means ${rx.length === 1 ? "it seems" : "they seem"} to drift backwards across the sky, so astrologers read it as a time to review and finish things rather than rush.
+          In order of which moves forward again first:</p>
+        <ul class="rx-list">${rx.map((r) => `<li><strong>${NAMES[r.id]}</strong> (${PLANET_SHORT[r.id]})${r.ends ? `: moves forward again on ${day.format(r.ends)}` : ": still retrograde a year from now"}</li>`).join("")}</ul>`
+      : `<p><span aria-hidden="true">✦</span> No planets are retrograde right now: everything in the sky is moving forward.</p>`;
 
     // Today's numbers, worked out from the visitor's own date.
     const y = start.getFullYear(), mo = start.getMonth() + 1;
@@ -207,7 +213,7 @@ const FILTERS = [
     }
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     const row = (e: SkyEvent) => { const num = numerology(e); return `
-      <li class="k-${e.kind}" data-kind="${e.kind}"${e.minor ? " data-minor" : ""} data-at="${e.at.getTime()}">
+      <li class="k-${e.kind}" data-glossary data-kind="${e.kind}"${e.minor ? " data-minor" : ""} data-at="${e.at.getTime()}">
         <span class="e-date"><b>${day.format(e.at)}</b>${e.allDay ? "All day" : time.format(e.at)}</span>
         <span class="e-icon" aria-hidden="true">${e.icon}</span>
         <div>
@@ -278,5 +284,9 @@ const FILTERS = [
     section.querySelectorAll<HTMLInputElement>("input[name=sky-filter]").forEach((input) =>
       input.addEventListener("change", () => filter(input.value)));
     filter("all");
+    // make words like "retrograde" and "solstice" tappable, with a short explainer
+    // (the panel is marked only now, once its text is filled in, because the glossary scans marked areas once)
+    now.setAttribute("data-glossary", "");
+    document.dispatchEvent(new Event("glossary:scan"));
   }
 </script>

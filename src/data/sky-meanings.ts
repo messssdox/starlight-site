@@ -5,6 +5,13 @@
 import type { PlanetId, SignId } from "./astrology.ts";
 
 /** What each planet governs, finishing the sentence "Mercury rules …". */
+/** A few words on what each planet is about, for short lists. */
+export const PLANET_SHORT: Record<PlanetId, string> = {
+  sun: "your core self", moon: "feelings", mercury: "communication and plans", venus: "love and money",
+  mars: "drive and energy", jupiter: "growth and luck", saturn: "work and responsibility",
+  uranus: "change and freedom", neptune: "dreams and intuition", pluto: "power and deep change",
+};
+
 export const PLANET_THEMES: Record<PlanetId, string> = {
   sun: "your core self, your energy and what you put in the spotlight",
   moon: "feelings, moods, comfort and what makes you feel safe",
@@ -105,7 +112,7 @@ export const RETRO: Partial<Record<PlanetId, RetroMeaning>> = {
     feels: "It is famous for crossed wires: delays, lost messages, technology playing up, travel hiccups and plans that change. People from the past often get back in touch.",
     goodFor: "Anything with \"re\" in front of it: review, revise, reconnect, repair, rest and finish old jobs.",
     goEasy: "Signing big contracts, buying new gadgets or launching something new without double-checking the details.",
-    direct: "Messages, plans and travel start flowing again. Give it a week or two to pick up speed before you make big decisions (the \"shadow\" period).",
+    direct: "Messages, plans and travel start flowing again. Give it a week or two to pick up speed before you make big decisions (the shadow period).",
   },
   venus: {
     rhythm: "Venus turns retrograde about every eighteen months, for about six weeks.",
