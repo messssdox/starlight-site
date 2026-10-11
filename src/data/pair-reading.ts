@@ -97,14 +97,14 @@ export const LINK_PHRASE = {
 
 /** Start: what a Moon in each sign needs to feel safe. */
 export const MOON_NEEDS: Record<SignId, string[]> = {
-  aries: ["Let {them} blow off steam with something active first, and talk once the heat has passed.", "Allow {them} a fast first reaction, and don't hold it against {them} afterwards.", "Let {them} vent first and fix it fast; a Moon in Aries hates a problem left hanging overnight."],
-  taurus: ["Offer {them} calm and comfort: a good meal, a quiet evening, no sudden changes of plan.", "Keep your word to {them} on the small things; steady routines are what feel safe to a Taurus Moon.", "Bring {them} a favourite snack and sit together quietly; for a Taurus Moon, calm company says more than any speech."],
+  aries: ["Let {them} blow off steam with something active first, and talk once the heat has passed.", "Allow {them} a fast first reaction, and don't hold it against {them} afterwards.", "Deal with a problem with {them} the same day; a Moon in Aries settles once things are said and sorted."],
+  taurus: ["Offer {them} calm and comfort: a good meal, a quiet evening, no sudden changes of plan.", "Keep your word to {them} on the small things; steady routines are what feel safe to a Taurus Moon.", "Spend quiet, unhurried time with {them}; for a Taurus Moon, calm company reassures more than words."],
   gemini: ["Ask {them} what is on {their} mind, and keep it light enough to think out loud.", "Send {them} the little message or the funny link; for a Gemini Moon, staying in touch is feeling close.", "Talk it through with {them} as long as it takes; a Gemini Moon feels better once the feeling has words."],
-  cancer: ["Make home a soft place to land for {them}, and ask about {their} day before you share yours.", "Follow up on what mattered to {them} last week; being remembered means a lot to a Cancer Moon.", "Check in on {them} with a text that says you remembered; a Cancer Moon keeps those for years."],
-  leo: ["Praise {them} out loud for something specific; warm, honest appreciation refuels a Leo Moon.", "Make {them} feel chosen: plan something special just for {them} now and then.", "Tell {them} you're proud of {them}, in front of people who matter to {them}."],
-  virgo: ["Help {them} with something practical when stress builds, rather than saying not to worry.", "Notice {their} quiet, behind-the-scenes effort, and say so.", "Take one job off {their} list without being asked; for a Virgo Moon that is a love letter."],
-  libra: ["Raise problems with {them} early and gently, before they grow; peace matters to a Libra Moon.", "Make time for something lovely with {them}: a nice place, good music, a shared treat.", "Keep your tone gentle with {them}, even in a disagreement; harsh words linger with a Libra Moon."],
-  scorpio: ["Be completely honest with {them}, even when it is awkward; trust is a Scorpio Moon's safe place.", "Give {them} your full attention in the moments that matter, and keep private things private.", "Tell {them} the whole truth the first time; a Scorpio Moon always finds out the rest."],
+  cancer: ["Make home a soft place to land for {them}, and ask about {their} day before you share yours.", "Follow up on what mattered to {them} last week; being remembered means a lot to a Cancer Moon.", "Check in on {them} about something {them} mentioned earlier; a Cancer Moon notices when you remember."],
+  leo: ["Praise {them} out loud for something specific; warm, honest appreciation refuels a Leo Moon.", "Make {them} feel chosen: plan something just for {them} now and then.", "Tell {them} you're proud of {them}, in front of people who matter to {them}."],
+  virgo: ["Help {them} with something practical when stress builds, rather than saying not to worry.", "Notice {their} quiet, behind-the-scenes effort, and say so.", "Take one job off {their} list without being asked; a Virgo Moon feels cared for through practical help."],
+  libra: ["Raise problems with {them} early and gently, before they grow; peace matters to a Libra Moon.", "Make time for something pleasant with {them}: a nice place, good music, a shared treat.", "Keep your tone gentle with {them}, even in a disagreement; harsh words linger with a Libra Moon."],
+  scorpio: ["Be completely honest with {them}, even when it is awkward; trust is a Scorpio Moon's safe place.", "Give {them} your full attention in the moments that matter, and keep private things private.", "Tell {them} the whole truth the first time; a Scorpio Moon trusts honesty more than reassurance."],
   sagittarius: ["Plan something to look forward to with {them}: a trip, an outing, something new.", "Give {them} space to roam, and trust the coming back; freedom feels like home to a Sagittarius Moon.", "Cheer {them} up with a plan or a joke rather than a long, heavy talk."],
   capricorn: ["Back {their} goals through what you do, not just what you say.", "Respect {their} way of handling things, and offer help without taking over.", "Show {them} you can be relied on: be on time, keep the promise, and don't make a fuss about it."],
   aquarius: ["Give {them} room to be a separate person, and take an interest in {their} ideas, even the odd ones.", "Be easy company for {them}, with no pressure to explain every feeling.", "Let {them} think a feeling through before you ask about it; pressure only makes an Aquarius Moon go quiet."],
@@ -113,25 +113,25 @@ export const MOON_NEEDS: Record<SignId, string[]> = {
 
 /** Start: how a Venus in each sign likes to be appreciated. Kept free of romance, so it suits family and work too. */
 export const VENUS_VALUES: Record<SignId, string[]> = {
-  aries: ["Show {them} some excitement: a spontaneous plan, a bold idea, a bit of friendly competition.", "Be direct with {them} about what you appreciate; a Venus in Aries values a clear, brave word.", "Plan something with {them} you've never done before; a Venus in Aries loves a first."],
+  aries: ["Show {them} some excitement: a spontaneous plan, a bold idea, a bit of friendly competition.", "Be direct with {them} about what you appreciate; a Venus in Aries values a clear, brave word.", "Plan something new with {them}; a Venus in Aries values fresh experiences."],
   taurus: ["Treat {them} to simple pleasures: good food, a calm space, time that is not rushed.", "Show appreciation for {them} in ways that last: a thoughtful gift, a promise kept.", "Make time with {them} slow and unhurried, with good food and no checking the time."],
-  gemini: ["Keep things interesting for {them} with new ideas, plans and good conversation.", "Appreciate {them} in words: a funny message, a clever compliment, a proper chat.", "Send {them} the thing that made you think of {them}; a Venus in Gemini loves being remembered in words."],
-  cancer: ["Look after {them} in small, homely ways: a cuppa, a check-in, something made with care.", "Show {them} you are in it for the long haul; a Venus in Cancer values feeling safe and kept close.", "Cook for {them} or bring something home-made; a Venus in Cancer feels loved through looking after."],
-  leo: ["Celebrate {them} properly: a compliment in front of others, a fuss on the big days.", "Be generous with warmth towards {them}; a Venus in Leo values open-hearted appreciation.", "Make a fuss of {them} on the day that matters, and let others see it."],
-  virgo: ["Show care for {them} through helpful acts: a job done, a problem quietly solved.", "Remember the details of {their} likes and dislikes, and act on them.", "Fix the small thing that has been bugging {them} for weeks."],
-  libra: ["Bring a little beauty and courtesy for {them}: a nice setting, good manners, a kind word.", "Treat {them} as an equal in every decision; fairness is how a Venus in Libra feels valued.", "Make the effort to look nice and pick a lovely place when you spend time with {them}."],
+  gemini: ["Keep things interesting for {them} with new ideas, plans and good conversation.", "Appreciate {them} in words: a funny message, a clever compliment, a proper chat.", "Send {them} a message about something that made you think of {them}; a Venus in Gemini values words."],
+  cancer: ["Look after {them} in small, homely ways: a cup of tea, a check-in, something made with care.", "Show {them} you are in it for the long haul; a Venus in Cancer values feeling safe and kept close.", "Cook for {them} or bring something home-made; a Venus in Cancer feels loved through looking after."],
+  leo: ["Celebrate {them} properly: a compliment in front of others, a fuss on the big days.", "Be generous with warmth towards {them}; a Venus in Leo values open-hearted appreciation.", "Mark the occasions that matter to {them}, and do it where others can see."],
+  virgo: ["Show care for {them} through helpful acts: a job done, a problem quietly solved.", "Remember the details of {their} likes and dislikes, and act on them.", "Sort out the small problem that has been bothering {them} for weeks."],
+  libra: ["Bring a little beauty and courtesy for {them}: a nice setting, good manners, a kind word.", "Treat {them} as an equal in every decision; fairness is how a Venus in Libra feels valued.", "Choose a pleasant place and make an effort when you spend time with {them}."],
   scorpio: ["Give {them} depth and loyalty: real conversations and no half-measures.", "Let {them} see what you really think and feel; a Venus in Scorpio values trust over show.", "Keep {their} secrets as carefully as your own; loyalty is how a Venus in Scorpio measures love."],
-  sagittarius: ["Share something new with {them}: a place, an idea, a good laugh.", "Keep things honest and light with {them}; a Venus in Sagittarius values freedom and fun.", "Book something together with {them} that ends in a story worth telling."],
-  capricorn: ["Show {them} commitment through steady effort: turning up, following through, planning ahead.", "Respect {their} time and ambitions; a Venus in Capricorn values support for the long game.", "Help {them} with something that matters for the future, like a plan, a form or a big decision."],
-  aquarius: ["Be a true friend to {them}: talk ideas, share causes and give space.", "Surprise {them} with something unusual and thoughtful; a Venus in Aquarius values the unexpected.", "Give {them} space to do their own thing, then take a real interest in it."],
-  pisces: ["Bring some tenderness and imagination for {them}: music, a film, a heartfelt note.", "Show {them} kindness without being asked; a Venus in Pisces values gentle, wholehearted care.", "Make {them} a playlist, a card or a small gesture that says what you feel."],
+  sagittarius: ["Share something new with {them}: a place, an idea, a good laugh.", "Keep things honest and light with {them}; a Venus in Sagittarius values freedom and fun.", "Plan a trip or outing with {them} somewhere neither of you has been."],
+  capricorn: ["Show {them} commitment through steady effort: turning up, following through, planning ahead.", "Respect {their} time and ambitions; a Venus in Capricorn values support for the long game.", "Help {them} with something that matters for the future, such as a plan, a form or a big decision."],
+  aquarius: ["Be a true friend to {them}: talk ideas, share causes and give space.", "Surprise {them} with something unusual and thoughtful; a Venus in Aquarius values the unexpected.", "Give {them} space for {their} own interests, then take a real interest in them."],
+  pisces: ["Bring some tenderness and imagination for {them}: music, a film, a heartfelt note.", "Show {them} kindness without being asked; a Venus in Pisces values gentle, wholehearted care.", "Show {them} what you feel with a card, a note or another small, personal gesture."],
 };
 
 /** Start: how a Mercury in each sign likes to be talked with. */
 export const MERCURY_TALK: Record<SignId, string[]> = {
-  aries: ["Get to the point with {them}; short, honest and direct beats a long lead-up.", "Let {them} speak first and fast, then answer the heart of it.", "Keep it quick and honest with {them}; long messages lose a Mercury in Aries by the second paragraph."],
+  aries: ["Get to the point with {them}; short, honest and direct beats a long lead-up.", "Let {them} speak first and fast, then answer the heart of it.", "Keep messages to {them} short and honest; a Mercury in Aries prefers the point first."],
   taurus: ["Give {them} time to think before expecting an answer; rushing only slows things down.", "Talk things over with {them} calmly and practically, one thing at a time.", "Say it once, calmly and clearly, then give {them} space to mull it over."],
-  gemini: ["Keep conversations with {them} lively and two-way, with room to jump between topics.", "Swap ideas with {them} freely; curiosity is the best way in.", "Reply to {them} with interest and a question back; a Gemini Mercury loves a lively back and forth."],
+  gemini: ["Keep conversations with {them} lively and two-way, with room to jump between topics.", "Swap ideas with {them} freely; curiosity is the best way in.", "Reply to {them} with interest and a question back; a Gemini Mercury enjoys a two-way conversation."],
   cancer: ["Ask {them} how something felt, not just what happened.", "Pick a cosy, private moment for serious talks with {them}.", "Choose a soft tone with {them}; a Cancer Mercury hears the feeling before the words."],
   leo: ["Talk with {them} warmly and generously, and give credit where it is due.", "Listen to {their} stories properly; being heard matters as much as being right.", "Start with what went right before you tell {them} what needs changing."],
   virgo: ["Be clear and specific with {them}; vague promises worry a Virgo Mercury.", "Give {them} the details, and welcome the useful questions that follow.", "Put the plan in writing for {them}, with the times and the details."],
@@ -140,12 +140,12 @@ export const MERCURY_TALK: Record<SignId, string[]> = {
   sagittarius: ["Talk big ideas with {them}: plans, places, what life is for.", "Be straight with {them} and keep a sense of humour; lectures land badly.", "Keep it honest and light with {them}, and leave room for a laugh."],
   capricorn: ["Be practical with {them}: what is the plan, and who does what?", "Respect {their} time in conversation, and follow words with action.", "Bring {them} solutions, not just the problem."],
   aquarius: ["Talk ideas with {them}, including unusual ones, without needing to agree.", "Leave {them} room to see things differently; a good debate is a kind of closeness here.", "Ask for {their} view and really weigh it, even if it is unusual."],
-  pisces: ["Talk gently with {them}, and leave space for feelings that have no words yet.", "Use pictures, stories and kindness with {them} rather than cold facts.", "Listen for what {them} means rather than the exact words."],
+  pisces: ["Talk gently with {them}, and leave space for feelings that have no words yet.", "Use pictures, stories and kindness with {them} rather than cold facts.", "Listen for the meaning behind {their} words rather than the exact wording."],
 };
 
 /** Don't: the trap of your own Mars sign when you push or argue. Written to follow a "Don't" tag, with no full stop, since the reason follows. */
 export const MARS_TRAPS: Record<SignId, string[]> = {
-  aries: ["Snap first and think second", "Turn every disagreement into a race to win it", "Send the angry text you'll regret in ten minutes"],
+  aries: ["Snap first and think second", "Turn every disagreement into a race to win it", "Send an angry message before you have calmed down"],
   taurus: ["Dig your heels in", "Go silent and immovable when pushed", "Refuse to budge on something that doesn't really matter to you"],
   gemini: ["Argue the point for the sake of it, or change the subject when it gets real", "Win with clever words when a simple sorry would do", "Turn a serious talk into a joke to get out of it"],
   cancer: ["Sulk or go sideways when hurt", "Bring up old hurts in a new argument", "Go quiet and expect the other person to guess what's wrong"],
@@ -155,45 +155,44 @@ export const MARS_TRAPS: Record<SignId, string[]> = {
   scorpio: ["Keep score, or test loyalty instead of asking for reassurance", "Hold a grudge long after the moment has passed", "Go cold and silent to make a point"],
   sagittarius: ["Fire off blunt words without thinking how they land", "Walk off for space without saying you will come back", "Laugh off something that clearly matters to the other person"],
   capricorn: ["Go cold and businesslike when feelings run high", "Treat every problem as a job to manage rather than a feeling to share", "Answer a feeling with a lecture or a to-do list"],
-  aquarius: ["Detach and go distant when things get emotional", "Argue on principle when what is needed is warmth", "Treat a hurt feeling like a debate to be won"],
+  aquarius: ["Detach and go distant when things get emotional", "Argue on principle when what is needed is warmth", "Treat a hurt feeling as a debate to be won"],
   pisces: ["Avoid the issue and hope it goes away", "Go quiet and hope it is noticed", "Say yes when you mean no, then quietly drift away"],
 };
 
-/** Why a Start fits: your own planet against the other person's, with an everyday moment.
- * {Your}/{your} name whose planets these are ("Your", or "Sam's" in the other person's box), {selfIs}
- * and {otherIs} are "you're" or "Sam is", {scene} is the other person's moment and {own} your own. */
+/** Why a Start fits: your own planet against the other person's. {Your}/{your} name whose planets these are
+ * ("Your", or "Sam's" in the other person's box), {own} is a full predicate for your own planet's sign
+ * ("needs a safe, loving home", "tends to show love through small, practical acts of care"). */
 export const START_FIT: Record<"easy" | "care" | "mixed", string[]> = {
   easy: [
-    "This comes easily from {your} {mine} {planet}, which already understands {their} {theirs} side, the one {scene}.",
-    "{Your} {mine} {planet} gets on with {their} {theirs} {planet}, so you already know what it means when {otherIs} {scene}: do more of it.",
-    "With {your} {mine} {planet} and {their} {theirs} {planet} on good terms, this is an easy win, especially when {otherIs} {scene}.",
+    "{Your} {mine} {planet} {own}, which already suits {their} {theirs} {planet}, so this comes easily.",
+    "This is an easy win: {your} {mine} {planet} {own}, and that sits well with {their} {theirs} {planet}.",
+    "Because {your} {mine} {planet} {own}, it is already in tune with {their} {theirs} {planet}, so do more of this.",
   ],
   care: [
-    "{Your} {mine} {planet} would sooner be {own}, so this takes a conscious effort, and it shows.",
-    "It may not come naturally: when it's {your} turn, {selfIs} {own}, while {their} {theirs} {planet} has {otherIs2} {scene}.",
-    "{Your} {mine} {planet} wants something different from {their} {theirs} {planet}, so when {otherIs} {scene}, that is the moment to practise.",
+    "{Your} {mine} {planet} {own}, which is not what {their} {theirs} {planet} needs, so this takes conscious effort.",
+    "This may not come naturally, because {your} {mine} {planet} {own}, and that is why it is worth practising.",
+    "{Your} {mine} {planet} {own}, so with {their} {theirs} {planet} this takes effort, and the effort is noticed.",
   ],
   mixed: [
-    "{Your} {mine} {planet} sits next door to {their} {theirs} {planet}, so check how it lands when {otherIs} {scene}.",
-    "{Your} {mine} {planet} is close to {their} {theirs} {planet} but not the same: {selfIs} {own}, and {otherIs} {scene}, so ask rather than guess.",
-    "{Your} {mine} {planet} and {their} {theirs} {planet} are neighbours, not twins, so when {otherIs} {scene}, ask whether this is what helps.",
+    "{Your} {mine} {planet} {own}, which is close to {their} {theirs} {planet} but not the same, so ask how it lands.",
+    "Because {your} {mine} {planet} {own}, check how this lands with {their} {theirs} {planet} rather than guess.",
   ],
 };
 
-/** Why a Stop matters: your Mars against the other person's Moon. {upset} is how the other person copes with a bad day, {marsImg} a picture of your Mars. */
+/** Why a Stop matters: your Mars against the other person's Moon. Lower case, as it follows "because". */
 export const STOP_FIT: Record<"easy" | "care" | "mixed", string[]> = {
   easy: [
-    "{Their} {moon} Moon usually copes with {your} {mars} Mars, but when {otherIs} {upset}, this still chips away.",
-    "{Your} {mars} Mars and {their} {moon} Moon mostly get on, so this habit is the one to watch, especially when {otherIs} {upset}.",
+    "{their} {moon} Moon usually copes with {your} {mars} Mars, but this habit still wears it down over time.",
+    "{your} {mars} Mars and {their} {moon} Moon mostly get on, so this is the one habit to watch.",
   ],
   care: [
-    "{Your} {mars} Mars {link} {their} {moon} Moon, so this lands hardest when {otherIs} {upset}.",
-    "With {your} {mars} Mars and {their} {moon} Moon at odds, this is the habit that hurts most, and it shows when {otherIs} {upset}.",
-    "{Your} {mars} Mars can be {marsImg}, and {their} {moon} Moon feels that more than it lets on.",
+    "{your} {mars} Mars {link} {their} {moon} Moon, so this lands harder than you intend.",
+    "with {your} {mars} Mars and {their} {moon} Moon at odds, this is the habit that hurts most.",
+    "{their} {moon} Moon takes this more personally than {your} {mars} Mars realises.",
   ],
   mixed: [
-    "{Your} {mars} Mars sits next door to {their} {moon} Moon, so this can puzzle more than it hurts, especially when {otherIs} {upset}.",
-    "{Their} {moon} Moon reads {your} {mars} Mars a little differently than it is meant, most of all when {otherIs} {upset}.",
+    "{your} {mars} Mars sits next to {their} {moon} Moon in the zodiac, so this can confuse more than it hurts.",
+    "{their} {moon} Moon reads {your} {mars} Mars a little differently than you intend.",
   ],
 };
 
@@ -209,7 +208,7 @@ export const TIP_CARE: Record<PairPlanet, Two> = {
 /** Tips for the bond from your easiest planet pair. */
 export const TIP_EASY: Record<PairPlanet, Two> = {
   sun: ["Your {a} and {b} Suns get on naturally. Use that ease to take on something big together.", "With Suns in {a} and {b}, you like who the other is. Say so more often."],
-  moon: ["Your {a} and {b} Moons soothe each other. Lean on that on hard days instead of going it alone.", "With Moons in {a} and {b}, comfort comes easily. Make a ritual of it: a walk, a cuppa, a check-in."],
+  moon: ["Your {a} and {b} Moons soothe each other. Lean on that on hard days instead of going it alone.", "With Moons in {a} and {b}, comfort comes easily. Make a ritual of it: a walk, a cup of tea, a check-in."],
   mercury: ["Your {a} and {b} Mercury signs click, so talk the big decisions through together.", "With Mercury in {a} and {b}, conversation flows. Keep a running list of ideas to try together."],
   venus: ["Your {a} and {b} Venus signs enjoy the same things. Plan more of them.", "With Venus in {a} and {b}, warmth is easy. Don't let it slip into being taken for granted."],
   mars: ["Your {a} and {b} Mars signs pull the same way. Pick a shared goal and chase it.", "With Mars in {a} and {b}, you get things done together. Take on a project side by side."],

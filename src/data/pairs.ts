@@ -64,7 +64,7 @@ export const ANIMAL_PARTS: Record<string, AnimalPart> = {
   monkey: { you: "witty and inventive", strengths: "inventiveness and playful wit", watchOut: "habit of getting bored or cutting corners", love: "keep love playful and fun", work: "puzzles to solve", wellbeing: "fresh challenges for your mind" },
   rooster: { you: "proud and precise", strengths: "eye for detail and honesty", watchOut: "bluntness and perfectionism", love: "are devoted, honest and a little proud", work: "precision and high standards", wellbeing: "a steady daily routine" },
   dog: { you: "faithful and honest", strengths: "loyalty and sense of fairness", watchOut: "anxiety and black-and-white thinking", love: "are loyal for life once you commit", work: "work that helps or protects people", wellbeing: "time to switch off from worry" },
-  pig: { you: "warm-hearted and generous", strengths: "generosity and warm heart", watchOut: "habit of trusting too easily", love: "give your whole heart, generously", work: "a friendly team and a good cause", wellbeing: "balance with food and treats" },
+  pig: { you: "warm-hearted and generous", strengths: "generosity and warm heart", watchOut: "habit of trusting too easily", love: "give your whole heart, generously", work: "a friendly team and a good cause", wellbeing: "a balanced approach to food and treats" },
 };
 
 /** How a sign's Western element meets the animal's own Chinese element. `{A}` is the animal's name. */

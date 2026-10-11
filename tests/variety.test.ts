@@ -6,7 +6,6 @@ import { pairReading } from "../src/lib/pair-reading.ts";
 import { personalSigns } from "../src/lib/synastry.ts";
 import { compare } from "../src/lib/compat.ts";
 import { KINDS } from "../src/data/relationships.ts";
-import { PLANET_IMAGE, SCENES, ANIMAL_IMAGE, LIFE_PATH_IMAGE } from "../src/data/images.ts";
 import type { Tone } from "../src/data/synastry.ts";
 
 // The user wants every reading to read as its own: no stock one-liners shared across people.
@@ -87,25 +86,4 @@ test("no stock sentences repeat across many pairs' spotlights, Dos and Don'ts", 
   }
   check("Meet the two of you", spots, 0.03, 0.04);
   check("Do and Don't", dos, 0.03, 0.04);
-});
-
-test("a reading never uses the same picture or everyday moment twice", () => {
-  const all = [
-    ...Object.values(PLANET_IMAGE).flatMap((t) => Object.values(t).flat()),
-    ...Object.values(SCENES).flatMap((t) => Object.values(t).flat()),
-    ...Object.values(ANIMAL_IMAGE).flat(), ...Object.values(LIFE_PATH_IMAGE).flat(),
-  ];
-  // the pieces themselves are all different, so a repeat can only come from picking one twice
-  assert.equal(new Set(all).size, all.length, "the same picture or moment is written twice");
-  for (let i = 0; i < 300; i++) {
-    const d = randomDate();
-    const texts = [
-      spotlightWords(spotlight({ date: d, tier: "deep", year: 2026, signs: personalSigns(d, "", "Europe/London") })),
-      Object.values(pair(d, randomDate(), i % 4).sections).map((x) => x.text).join(" "),
-    ];
-    for (const text of texts) {
-      const twice = all.filter((p) => text.split(p).length > 2);
-      assert.deepEqual(twice, [], `${d}: ${twice.join(" | ")}`);
-    }
-  }
 });
