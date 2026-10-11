@@ -46,6 +46,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
   import { lifePathBreakdown, chineseBreakdowns, todayIso } from "../lib/explain.ts";
   import { esc, calc, countReading, soloQuery, isPartnerReading, type Tier } from "../lib/reading-ui.ts";
   import { spotlight, type SpotlightText } from "../lib/spotlight.ts";
+  import { pairSpotlight, type PairSpotlightText } from "../lib/pair-spotlight.ts";
 
   const q = new URLSearchParams(location.search);
   const tier = (q.get("tier") ?? "first") as Tier;
@@ -271,7 +272,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
     const theirs = personalSigns(date2, time2, theirsAt.place?.timeZone ?? zone, theirsAt.place ?? undefined);
     // every section below is written from both charts together (src/lib/pair-reading.ts)
     const pr = pairReading({ seed: `${date}|${date2}|${rel.kind}|${time1}|${time2}`, dates: [date, date2], tone, mine, theirs, c, them, kind });
-    const { pairs, click, care, easiest, hardest } = pr;
+    const { pairs, easiest, hardest } = pr;
     const plain = (html: string) => html.replace(/<[^>]+>/g, "");
 
     const person = (who: string, p: typeof c.me, signs: typeof mine) => `
@@ -324,19 +325,27 @@ const articles = (await getCollection("library")).map((a) => a.id);
           <button class="btn" type="submit">Update our reading</button>
         </form>
       </details>`;
-    // start and stop for each of you: start what the other needs, stop your own trap
-    const startStop = (who: string, ss: typeof pr.startStop.me) => `
+    // "Meet the two of you": the pair read as one, ending with a Do and a Don't for each of you
+    // (src/lib/pair-spotlight.ts). The Do and Don't replace the old Start and stop section.
+    const ps = pairSpotlight({ seed: `${date}|${date2}|${rel.kind}|${time1}|${time2}`, tone, mine, theirs, c, them, startStop: pr.startStop });
+    const doDont = (who: string, d: PairSpotlightText["doDont"]["me"]) => `
       <div class="panel ss">
         <p class="eyebrow">${who}</p>
-        ${ss.start.map((t) => `<p><span class="ss-tag start">Start</span> ${t}</p>`).join("")}
-        <p><span class="ss-tag stop">Stop</span> ${ss.stop}</p>
+        <p><span class="ss-tag start">Do</span> ${d.do}</p>
+        <p><span class="ss-tag stop">Don't</span> ${d.dont}</p>
       </div>`;
-    const startStopSection = `
-      <section class="part">
-        <h2>Start and stop</h2>
-        <p class="muted">What each of you could start, from the other person's Moon, Venus and Mercury, and stop, from your own Mars, with why it fits the two of you.</p>
-        <div class="pair">${startStop(myName ? `For ${esc(myName)}` : "For you", pr.startStop.me)}${startStop(`For ${Them}`, pr.startStop.them)}</div>
-      </section>`;
+    const pairSpot = `
+      <div class="panel spotlight"${share(`${ps.names}: ${ps.title}`, ps.sections[3].text)}>
+        <p class="eyebrow">Meet the two of you</p>
+        <h2>${ps.names}</h2>
+        <p class="pair-title">Together, ${ps.title}</p>
+        <ul class="chips">${ps.facts.map((f) => `<li>${f}</li>`).join("")}</ul>
+        <p class="muted">The two of you in one read, from both your Suns, Moons and planets, Life Paths and Chinese animals.</p>
+        ${ps.sections.map((x) => `<h3>${x.heading}</h3><p>${x.text}</p>`).join("")}
+        <p class="closing">${ps.closing}</p>
+        <h3>One Do and one Don't each</h3>
+        <div class="pair">${doDont(myName ? `For ${esc(myName)}` : "For you", ps.doDont.me)}${doDont(`For ${Them}`, ps.doDont.them)}</div>
+      </div>`;
     const chemistry = tone === "love"
       ? `<div class="say"><h3><span class="gl">♀\uFE0E♂\uFE0E</span>Chemistry</h3>
           <p>${CHEMISTRY[chemistryOf(mine.signs.venus, theirs.signs.mars)].replace("{V}", "Your").replace("{M}", `${them}'s`)}</p>
@@ -352,6 +361,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
         <p class="eyebrow">${rel.label} compatibility</p>
         <h1>${!given ? rel.bond : rel.bond.includes(rel.them) ? rel.bond.replace(rel.them, them) : `${rel.bond} with ${them}`}</h1>
         <p>${kind.intro}</p>
+        ${pairSpot}
         <div class="panel harmony"${share(`${rel.label} harmony: ${c.harmony} of 5`, [easiest ? `Our easiest link is ${PAIR_TITLES[easiest.planet][tone].toLowerCase()}.` : "", hardest ? `Our biggest lesson is ${PAIR_TITLES[hardest.planet][tone].toLowerCase()}.` : ""].join(" ").trim())}>
           <p class="eyebrow">Your harmony</p>
           <p class="stars" aria-label="${c.harmony} out of 5">${stars}<span class="muted"> ${c.harmony} of 5</span></p>
@@ -360,10 +370,8 @@ const articles = (await getCollection("library")).map((a) => a.id);
         </div>
         <div class="pair">${person(myName ? esc(myName) : "You", c.me, mine)}${person(given ? them : rel.label, c.them, theirs)}</div>
         ${extras}
-        <div class="pair">
-          <div class="panel"><p class="eyebrow">Where you click</p>${click.length ? `<ul>${click.map((x) => `<li>${x}</li>`).join("")}</ul>` : `<p>No part of your charts is an automatic match, so this is a bond you build by choice, and those are often the strongest.</p>`}</div>
-          <div class="panel"><p class="eyebrow">Where to take care</p>${care.length ? `<ul>${care.map((x) => `<li>${x}</li>`).join("")}</ul>` : `<p>Nothing in your charts pulls hard against the other. Your main job is not to take the ease for granted.</p>`}</div>
-        </div>
+        <details class="calc full-breakdown">
+          <summary>See the full breakdown</summary>
         <section class="part">
           <h2>Planet by planet</h2>
           <p class="muted">Each planet is one part of a person. Here is how each part of you meets the same part of ${them}.</p>
@@ -388,8 +396,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
               <p>${pr.year}</p></div>
           </div>
         </section>
-        ${startStopSection}
-        <div class="panel tips"><p class="eyebrow">Tips for your bond</p><ul>${pr.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>
+        </details>
       </section>`;
   }
 </script>
