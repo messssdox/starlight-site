@@ -24,4 +24,4 @@ Use the same recipe as for a birth chart: the transiting planet (what), the aspe
 
 ## A note of caution
 
-Transits describe weather, not destiny. Starlight's Sky Now page, coming soon, will show where the planets are today, so you can see the weather for yourself and decide what it means for you.
+Transits describe weather, not destiny. Starlight's [Cosmic calendar](/sky) shows what the planets are doing this month and across the year ahead, so you can see the weather for yourself and decide what it means for you.
