@@ -9,6 +9,7 @@ import { SIGN_FRIEND, ANIMAL_FRIEND, SIGN_SECRET } from "../data/pairs.ts";
 import { chineseSign, animalOfZodiacYear, elementOfZodiacYear, yinYangOfZodiacYear } from "../lib/chinese.ts";
 import { pairMonthlyForecast, pairYearlyForecast, luckyAnimals, animalHours } from "../lib/forecast.ts";
 import { pairProfile, pairMatches, sunSignOn, signById, poss, type PairMatch } from "../lib/pair.ts";
+import { pillArc } from "../lib/arc.ts";
 
 const CLASH_RED = "#d8343c";
 const TURN_MS = 1500; // keep in step with the transition in ZodiacWheel.astro
@@ -109,6 +110,9 @@ function makeTurner(svg: SVGSVGElement) {
       const a = -90 + Number(t.dataset.i) * 30 + spin;
       const rot = (Math.sin((a * Math.PI) / 180) > 0.01 ? a - 90 : a + 90) - spin;
       t.setAttribute("transform", `translate(${t.dataset.x} ${t.dataset.y}) rotate(${rot.toFixed(2)})`);
+      // curved labels swap arcs as they cross the middle, so their letters stay the right way up
+      const path = t.querySelector<SVGTextPathElement>("textPath");
+      if (path) path.setAttribute("href", `#${Math.sin((a * Math.PI) / 180) > 0.01 ? path.dataset.bot : path.dataset.top}`);
     }
   };
   /** `extra` adds whole turns, so Show me visibly spins the wheel even when it is already in place. */
@@ -160,11 +164,9 @@ export function initWheel(root: HTMLElement) {
     badge.classList.toggle("is-on", !!label);
     badge.classList.toggle("k-clash", kind === "clash");
     if (!label) return;
-    badge.querySelector("text")!.textContent = label;
-    const w = label.length * 8.8 + 20;
-    const rect = badge.querySelector("rect")!;
-    rect.setAttribute("x", String(-w / 2));
-    rect.setAttribute("width", String(w));
+    badge.querySelector("textPath")!.textContent = label;
+    const d = pillArc(Number(badge.dataset.r), Number(badge.dataset.angle), label.length * 8.8 + 20 - 26);
+    badge.querySelectorAll("path").forEach((p) => p.setAttribute("d", d));
   }
 
   /** Mark self, friends, secret friend and clash on one wheel. */

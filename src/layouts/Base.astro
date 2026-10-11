@@ -5,6 +5,7 @@ import Cosmos from "../components/Cosmos.astro";
 import ReadingCounter from "../components/ReadingCounter.astro";
 import Glossary from "../components/Glossary.astro";
 import InstallApp from "../components/InstallApp.astro";
+import Welcome from "../components/Welcome.astro";
 
 interface Props {
   title: string;
@@ -94,6 +95,7 @@ const nav = [
     </footer>
     <Glossary />
     <InstallApp />
+    {!noindex && <Welcome />}
   </body>
 </html>
 
