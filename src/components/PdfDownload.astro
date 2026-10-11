@@ -1,0 +1,55 @@
+---
+// "Download PDF": opens the browser's own print screen, where "Save as PDF" turns the page
+// into a clean, light PDF (the print look is in global.css under @media print).
+// Nothing is sent anywhere and it costs nothing to run. The file is named from `filename`.
+interface Props {
+  label?: string;
+  /** The PDF's file name, without ".pdf". The reading page swaps in the reader's name. */
+  filename: string;
+  /** Show the button straight away, or only once something matching this selector appears. */
+  waitFor?: string;
+}
+const { label = "Download PDF", filename, waitFor } = Astro.props;
+---
+
+<div class="pdf-wrap no-print" data-pdf-wrap data-pdf-name={filename} data-pdf-wait={waitFor} hidden={!!waitFor}>
+  <button class="btn ghost pdf-btn" type="button" data-pdf-go>
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    {label}
+  </button>
+  <p class="pdf-hint muted" data-pdf-hint></p>
+</div>
+
+<style>
+  .pdf-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 18px 0; }
+  .pdf-wrap[hidden] { display: none; }
+  .pdf-btn { padding: 0.6em 1.2em; font-size: 0.9rem; }
+  .pdf-hint { margin: 0; font-size: 0.8rem; }
+</style>
+
+<script>
+  const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const hint = iOS
+    ? "On the print screen, tap the Share button at the top, then Save to Files."
+    : "When the print window opens, choose Save as PDF as the printer.";
+
+  for (const wrap of document.querySelectorAll<HTMLElement>("[data-pdf-wrap]")) {
+    wrap.querySelector<HTMLElement>("[data-pdf-hint]")!.textContent = hint;
+    const wait = wrap.dataset.pdfWait;
+    if (wait) {
+      // show the button once the page has drawn the thing worth saving
+      const reveal = () => { if (document.querySelector(wait)) wrap.hidden = false; };
+      new MutationObserver(reveal).observe(document.body, { childList: true, subtree: true });
+      reveal();
+    }
+    wrap.querySelector("[data-pdf-go]")!.addEventListener("click", () => {
+      // most browsers name the PDF after the page title, so give it a tidy one while printing
+      const before = document.title;
+      const who = (new URLSearchParams(location.search).get("n") ?? "").trim().split(/\s+/)[0];
+      document.title = (wrap.dataset.pdfName ?? "Starlight").replace("{name}", who ? ` for ${who}` : "");
+      addEventListener("afterprint", () => { document.title = before; }, { once: true });
+      if (typeof window.print === "function") window.print();
+      else wrap.querySelector<HTMLElement>("[data-pdf-hint]")!.textContent = "Your browser can't save PDFs from here. Open this page in Safari or Chrome and try again.";
+    });
+  }
+</script>

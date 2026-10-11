@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { getCollection, render } from "astro:content";
+import PdfDownload from "../../components/PdfDownload.astro";
 
 export async function getStaticPaths() {
   const articles = await getCollection("library");
@@ -23,6 +24,7 @@ const related = all
     <p class="eyebrow"><a href="/library">The Library</a></p>
     <h1>{article.data.title}</h1>
     <p class="summary" data-glossary>{article.data.summary}</p>
+    <PdfDownload label="Download this article as a PDF" filename={`${article.data.title} · Starlight`} />
     <details class="deep" open>
       <summary>The full deep dive</summary>
       <div class="prose" data-glossary><Content /></div>
@@ -51,4 +53,9 @@ const related = all
   .prose :global(p:first-of-type)::first-letter { font-family: var(--font-display); color: var(--gold); float: left; font-size: 3.2em; line-height: 0.9; padding-right: 8px; }
   .sources, .related { margin-top: 40px; border-top: 1px solid rgba(156, 122, 60, 0.3); padding-top: 16px; }
   .sources h2, .related h2 { font-size: 1.1rem; }
+  @media print {
+    .summary { color: #3a3346; font-size: 13pt; }
+    .prose { font-size: 12pt; }
+    .deep summary { display: none; }
+  }
 </style>

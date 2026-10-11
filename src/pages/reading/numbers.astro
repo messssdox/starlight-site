@@ -3,6 +3,7 @@
 // It uses the same link details as the reading (n = name, d = date, tier).
 import Base from "../../layouts/Base.astro";
 import DonationBox from "../../components/DonationBox.astro";
+import PdfDownload from "../../components/PdfDownload.astro";
 import { getCollection } from "astro:content";
 import "../../styles/reading.css";
 
@@ -12,6 +13,9 @@ const articles = (await getCollection("library")).map((a) => a.id);
 <Base title="Your numerology">
   <section class="container reading" data-numbers data-articles={JSON.stringify(articles)}>
     <noscript><p>Your numbers are calculated in your browser, so please turn on JavaScript.</p></noscript>
+  </section>
+  <section class="container reading">
+    <PdfDownload label="Download your numbers as a PDF" filename="Starlight numerology{name}" waitFor="[data-numbers] .eyebrow" />
   </section>
   <section class="container" style="margin-top:64px">
     <DonationBox compact />
