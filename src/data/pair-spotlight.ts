@@ -14,57 +14,67 @@ import type { Relation } from "../lib/chinese.ts";
 type Two = [string, string];
 
 /** The pair's title noun, from both Sun elements (alphabetical key), with what it means. */
-export const PAIR_NOUN: Record<string, [{ name: string; means: string }, { name: string; means: string }]> = {
+export const PAIR_NOUN: Record<string, { name: string; means: string }[]> = {
   "Fire|Fire": [
     { name: "Blaze", means: "two fires that make each other burn brighter" },
     { name: "Bonfire", means: "a big, warm fire that other people gather round" },
+    { name: "Firework", means: "loud, bright and in the sky before anyone else has found a lighter" },
   ],
   "Earth|Earth": [
     { name: "Oak", means: "something that grows slowly and stands for a very long time" },
     { name: "Mountain", means: "a bond that is hard to shake once it is set" },
+    { name: "Orchard", means: "years of patient planting, then fruit every autumn" },
   ],
   "Air|Air": [
     { name: "Breeze", means: "an easy, moving bond full of fresh air and new ideas" },
     { name: "Skylark", means: "a bond that lifts and sings, happiest with plenty of sky" },
+    { name: "Paper Plane", means: "light, quick and always heading somewhere interesting" },
   ],
   "Water|Water": [
     { name: "Tide", means: "a pull between you that keeps coming back, deep and steady" },
     { name: "Deep Well", means: "a bond with more underneath than anyone outside can see" },
+    { name: "Rock Pool", means: "a small, private world that is full of life when you look closely" },
   ],
   "Earth|Fire": [
     { name: "Flame", means: "a fire with something solid underneath it, so it lasts" },
     { name: "Hearth", means: "a fire that warms a home rather than burning it down" },
+    { name: "Forge", means: "heat and hard work that make something strong" },
   ],
   "Air|Fire": [
     { name: "Wildfire", means: "ideas and energy that catch fast and spread" },
     { name: "Comet", means: "a bright streak across the sky that people notice" },
+    { name: "Hot-Air Balloon", means: "warmth that lifts you both higher than either would go alone" },
   ],
   "Fire|Water": [
     { name: "Hot Spring", means: "heat and feeling mixed into something that soothes" },
     { name: "Storm", means: "a bond with real weather in it, and clear skies after" },
+    { name: "Steam Train", means: "fire and water together, which is exactly what makes it go" },
   ],
   "Air|Earth": [
     { name: "Kite", means: "something light that flies because someone holds the string" },
     { name: "Windmill", means: "ideas turned into real, useful work" },
+    { name: "Meadow", means: "open sky above and solid ground below" },
   ],
   "Earth|Water": [
     { name: "Garden", means: "a place where things grow because they are tended" },
     { name: "Riverbank", means: "feeling given a safe shape to flow along" },
+    { name: "Harbour", means: "a safe place to come back to after rough weather" },
   ],
   "Air|Water": [
     { name: "Rainbow", means: "thought and feeling meeting to make something lovely" },
     { name: "Sea Mist", means: "a soft, shifting bond that is hard to pin down and easy to love" },
+    { name: "Sailboat", means: "wind and water working together to get somewhere" },
   ],
 };
 
 /** The pair's title adjective, from both Life Path families (alphabetical key). */
-export const PAIR_ADJ: Record<string, Two> = {
-  "steady builders|steady builders": ["Steady", "Solid"],
-  "creative hearts|creative hearts": ["Golden", "Bright"],
-  "independent minds|independent minds": ["Free", "Wandering"],
-  "independent minds|steady builders": ["Anchored", "Daring"],
-  "creative hearts|independent minds": ["Spirited", "Starry"],
-  "creative hearts|steady builders": ["Warm", "Faithful"],
+export const PAIR_ADJ: Record<string, string[]> = {
+  "steady builders|steady builders": ["Steady", "Solid", "Trusty", "Patient"],
+  "creative hearts|creative hearts": ["Golden", "Bright", "Glowing", "Tender"],
+  "independent minds|independent minds": ["Free", "Wandering", "Restless", "Curious"],
+  "independent minds|steady builders": ["Anchored", "Daring", "Grounded", "Bold"],
+  "creative hearts|independent minds": ["Spirited", "Starry", "Wild", "Dreaming"],
+  "creative hearts|steady builders": ["Warm", "Faithful", "Gentle", "Homely"],
 };
 
 /** What a Sun in each sign brings to someone else: a noun phrase with no "you" or "they" in it. */
@@ -108,50 +118,59 @@ export const ANIMAL_VERB: Record<Relation, Two> = {
   clash: ["challenges", "stretches"],
 };
 
-/** Where you click: a planet pair that gets on. */
-export const CLICK_PLANET: Record<"sun" | "mercury" | "venus" | "mars", Two> = {
+/** Where you click: a planet pair that gets on. {imgA}/{imgB} are pictures of each planet, {sceneA}/{sceneB}
+ * everyday moments ("you're {sceneA}", "{otherIs} {sceneB}"), {link} how the signs sit. */
+export const CLICK_PLANET: Record<"sun" | "mercury" | "venus" | "mars", string[]> = {
   sun: [
-    "Your {a} Sun and {their} {b} Sun {link}, so you tend to like who the other is without trying.",
-    "With Suns in {a} and {b}, your basic natures fit, and you rarely have to explain yourselves.",
+    "Your {a} Sun is {imgA} and {their} {b} Sun is {imgB}; they {link}, so you like who the other is without trying.",
+    "On a free evening you might be {sceneA} while {otherIs} {sceneB}, and with Suns in {a} and {b} that feels easy rather than odd.",
+    "Your {a} and {b} Suns {link}, which is why you can be {sceneA} while {otherIs} {sceneB} and still feel like a team.",
   ],
   mercury: [
-    "Your {a} Mercury and {their} {b} Mercury {link}, so talking comes easily and you often finish each other's thoughts.",
-    "With Mercury in {a} and {b}, you think along similar lines, which makes plans and decisions quicker.",
+    "Your {a} Mercury is {imgA} and {their} {b} Mercury is {imgB}, and they {link}, so talking just flows.",
+    "You're {sceneA} and {otherIs} {sceneB}, but with Mercury in {a} and {b} you still get each other's meaning first time.",
+    "With Mercury in {a} and {b}, plans come together fast: you're {sceneA}, {otherIs} {sceneB}, and somehow it all fits.",
   ],
   venus: [
-    "Your {a} Venus and {their} {b} Venus {link}, so you enjoy the same kinds of time together.",
-    "With Venus in {a} and {b}, the way one of you shows care is the way the other likes to receive it.",
+    "Your {a} Venus is {imgA} and {their} {b} Venus is {imgB}; they {link}, so the way one of you shows care is the way the other likes to get it.",
+    "You show love by {sceneA} and {them} by {sceneB}, and with Venus in {a} and {b}, both land well.",
+    "With Venus in {a} and {b}, you enjoy each other's kind of care, whether it's {sceneA} or {sceneB}.",
   ],
   mars: [
-    "Your {a} Mars and {their} {b} Mars {link}, so when you want something you pull in the same direction.",
-    "With Mars in {a} and {b}, your energy matches, and you get things done side by side.",
+    "Your {a} Mars is {imgA} and {their} {b} Mars is {imgB}, and they {link}, so you pull in the same direction.",
+    "Give you both a job and you'll be {sceneA} while {otherIs} {sceneB}, and with Mars in {a} and {b} it gets done.",
+    "With Mars in {a} and {b}, your energy matches: you're {sceneA}, {otherIs} {sceneB}, and the job is finished by lunch.",
   ],
 };
 
-/** Where you rub: a planet pair that pulls against itself. */
-export const RUB_PLANET: Record<"sun" | "mercury" | "venus" | "mars", Two> = {
+/** Where you rub: a planet pair that pulls against itself. Same placeholders as CLICK_PLANET. */
+export const RUB_PLANET: Record<"sun" | "mercury" | "venus" | "mars", string[]> = {
   sun: [
-    "Your {a} Sun and {their} {b} Sun {link}, so you go about life in different ways, and what seems obvious to one of you can puzzle the other.",
-    "With Suns in {a} and {b}, your basic styles differ, and that can feel like being misunderstood.",
+    "Your {a} Sun is {imgA} and {their} {b} Sun is {imgB}; they {link}, so what seems obvious to one of you can puzzle the other.",
+    "On a night in you'd be {sceneA} while {otherIs} {sceneB}, and with Suns in {a} and {b} that can feel like living on different planets.",
+    "Your {a} and {b} Suns {link}: you'd rather be {sceneA}, {otherIs} {sceneB}, and neither of you quite sees why.",
   ],
   mercury: [
-    "Your {a} Mercury and {their} {b} Mercury {link}, so you can talk past each other and hear criticism where none was meant.",
-    "With Mercury in {a} and {b}, you think in different ways, so small misunderstandings can pile up.",
+    "Your {a} Mercury is {imgA} and {their} {b} Mercury is {imgB}; they {link}, so a simple message can be read the wrong way.",
+    "You're {sceneA} and {otherIs} {sceneB}, so with Mercury in {a} and {b}, the group chat can turn into a misunderstanding.",
+    "With Mercury in {a} and {b}, you think differently: you're {sceneA}, {otherIs} {sceneB}, and small mix-ups pile up.",
   ],
   venus: [
-    "Your {a} Venus and {their} {b} Venus {link}, so you show care in different ways, and a kind gesture can go unnoticed.",
-    "With Venus in {a} and {b}, you enjoy different things, so time together needs a little planning.",
+    "Your {a} Venus is {imgA} and {their} {b} Venus is {imgB}; they {link}, so a kind gesture can go unnoticed.",
+    "You show love by {sceneA}, {them} by {sceneB}, and with Venus in {a} and {b}, each of you can miss what the other meant.",
+    "With Venus in {a} and {b}, your ideas of care differ: {sceneA} for one of you, {sceneB} for the other.",
   ],
   mars: [
-    "Your {a} Mars and {their} {b} Mars {link}, so you push at different speeds, and tempers can meet head on.",
-    "With Mars in {a} and {b}, one of you charges while the other digs in, which can turn small things into standoffs.",
+    "Your {a} Mars is {imgA} and {their} {b} Mars is {imgB}; they {link}, so tempers can meet head on.",
+    "Hand you both a job and you're {sceneA} while {otherIs} {sceneB}, which with Mars in {a} and {b} can turn into a standoff.",
+    "With Mars in {a} and {b}, you work at different speeds: you're {sceneA}, {otherIs} {sceneB}, and someone gets frustrated.",
   ],
 };
 
 /** How to handle the main rub, by where it comes from. */
 export const HANDLE: Record<"sun" | "moon" | "mercury" | "venus" | "mars" | "animal" | "family" | "element" | "none", Two> = {
   sun: [
-    "The way through is respect: let each of you do some things your own way, without needing the other to copy.",
+    "The way through is respect, so let each of you do some things your own way, without needing the other to copy.",
     "When it grates, ask what the other's way gets right before you defend your own.",
   ],
   moon: [
@@ -270,50 +289,56 @@ export const ELEMENT_CHECK: Two = [
   "In the five elements, {who1} {E1} holds {who2} {E2} back a little, useful guidance that can tip into control.",
 ];
 
-/** Life Paths in the same family. {n1} and {n2} are the two numbers. */
-export const FAMILY_CLICK: Record<string, Two> = {
+/** Life Paths in the same family. {n1}/{n2} are the numbers, {f1}/{f2} what each brings, {img1}/{img2} a picture of each. */
+export const FAMILY_CLICK: Record<string, string[]> = {
   "independent minds": [
-    "Life Paths {n1} and {n2} are both independent minds, so you give each other room without taking it personally.",
-    "Your Life Paths, {n1} and {n2}, both belong to the independent minds, so you respect each other's freedom by instinct.",
+    "Life Paths {n1} and {n2} are both independent minds, {f1} meeting {f2}, so you give each other room without taking it personally.",
+    "Your Life Paths are both independent minds, {img1} and {img2}, so you respect each other's freedom by instinct.",
   ],
   "steady builders": [
-    "Life Paths {n1} and {n2} are both steady builders, so you want the same solid things from life.",
-    "Your Life Paths, {n1} and {n2}, are both steady builders, so you trust each other's effort.",
+    "Life Paths {n1} and {n2} are both steady builders, {f1} meeting {f2}, so you want the same solid things from life.",
+    "Your Life Paths are both steady builders, {img1} and {img2}, so you trust each other's effort.",
   ],
   "creative hearts": [
-    "Life Paths {n1} and {n2} are both creative hearts, so warmth and expression flow both ways.",
-    "Your Life Paths, {n1} and {n2}, are both creative hearts, so you light each other up.",
+    "Life Paths {n1} and {n2} are both creative hearts, {f1} meeting {f2}, so warmth and expression flow both ways.",
+    "Your Life Paths are both creative hearts, {img1} and {img2}, so you light each other up.",
   ],
 };
-export const SAME_LIFE_PATH: Two = [
-  "You share Life Path {n1}, so you are walking the same road and want the same things from it.",
-  "With the same Life Path, {n1}, you each recognise the other's purpose straight away.",
+export const SAME_LIFE_PATH: string[] = [
+  "You share Life Path {n1}, {img1}, so you are walking the same road and want the same things from it.",
+  "With the same Life Path, {n1}, you both have {f1}, and you recognise it in each other straight away.",
 ];
 
-/** Life Paths in different families (alphabetical key). */
-export const FAMILY_RUB: Record<string, Two> = {
+/** Life Paths in different families (alphabetical key). Same placeholders as FAMILY_CLICK. */
+export const FAMILY_RUB: Record<string, string[]> = {
   "independent minds|steady builders": [
-    "Life Paths {n1} and {n2} come from different families: freedom meets structure, and each of you can feel hemmed in or let down by the other.",
-    "With Life Paths {n1} and {n2}, one of you wants room to roam and the other wants a solid plan.",
+    "Life Path {n1} brings {f1} and Life Path {n2} brings {f2}: freedom meets structure, and each of you can feel hemmed in or let down.",
+    "With Life Paths {n1} and {n2}, one of you wants room to roam and the other a solid plan, like {img1} beside {img2}.",
   ],
   "creative hearts|independent minds": [
-    "Life Paths {n1} and {n2} come from different families: heart meets head, so closeness can mean different things to each of you.",
-    "With Life Paths {n1} and {n2}, one of you leads with feeling and the other with independence.",
+    "Life Path {n1} brings {f1} and Life Path {n2} brings {f2}: heart meets head, so closeness can mean different things to each of you.",
+    "With Life Paths {n1} and {n2}, one of you leads with feeling and the other with independence, like {img1} beside {img2}.",
   ],
   "creative hearts|steady builders": [
-    "Life Paths {n1} and {n2} come from different families: joy meets duty, and each of you can think the other has the wrong priorities.",
-    "With Life Paths {n1} and {n2}, one of you lives for warmth and expression, the other for plans and results.",
+    "Life Path {n1} brings {f1} and Life Path {n2} brings {f2}: joy meets duty, and each of you can think the other has the wrong priorities.",
+    "With Life Paths {n1} and {n2}, one of you lives for warmth and the other for results, like {img1} beside {img2}.",
   ],
 };
 
-/** Nothing clicks automatically, or nothing rubs. */
-export const NO_CLICK: Two = [
-  "Beyond that, {pairOf} and Life Paths {n1} and {n2} do not hand you an easy match, so this bond is built by choice, and those are often the strongest.",
-  "Beyond that, {pairOf} and your {A1} and {their} {A2} do not click on their own, so every bit of closeness here is something you made together.",
-];
-export const NO_RUB: Two = [
-  "Very little in your charts pulls hard against the other.",
-  "Nothing in your charts pulls strongly the other way.",
+export const NO_CLICK: { lifePaths: string[]; animals: string[] } = {
+  lifePaths: [
+    "Beyond that, {pairOf} and Life Paths {n1} and {n2} do not hand you an easy match: you're {sceneA}, {otherIs} {sceneB}, so this bond is built by choice, and those are often the strongest.",
+    "Beyond that, {pairOf} and Life Paths {n1} and {n2} don't click on their own, so every evening of you {sceneA} and {them} {sceneB} is something you chose.",
+  ],
+  animals: [
+    "Beyond that, {pairOf} and your {A1} and {their} {A2} do not click on their own, so the closeness here is something you made together, one evening of {sceneA} and {sceneB} at a time.",
+    "Beyond that, {pairOf} and your {A1} and {their} {A2} don't hand you an easy match: you're {sceneA}, {otherIs} {sceneB}, and you make it work anyway.",
+  ],
+};
+export const NO_RUB: string[] = [
+  "Very little in your charts pulls hard against the other, which is why you can be {sceneA} while {otherIs} {sceneB} and nobody minds.",
+  "Nothing in your charts pulls strongly the other way, so you're {sceneA}, {otherIs} {sceneB}, and it all just works.",
+  "Your charts barely clash, so an evening of you {sceneA} and {them} {sceneB} feels perfectly normal.",
 ];
 
 /** Your story together: the opening of the summing up. */
@@ -322,23 +347,31 @@ export const STORY: Two = [
   "Put it all together and you have {aHeart1} {S1} heart beside {aHeart2} {S2} heart, the {kw1} walking with the {kw2}.",
 ];
 
-/** The last line, in this kind of bond's voice. */
-export const STORY_TONE: Record<Tone, Two> = {
+/** The last line, in this kind of bond's voice. {noun} is the pair's title noun, lower case. */
+export const STORY_TONE: Record<Tone, string[]> = {
   love: [
-    "A love like this grows best when you keep choosing each other, on the easy days and the hard ones.",
-    "Keep the romance in the small things, and this can be a love that lasts.",
+    "Like any {noun}, a love like this needs tending, so keep choosing each other on the easy days and the hard ones.",
+    "Keep the romance in the small things, and your {noun} can last for years.",
+    "Look after your {noun}: a date night here, a kind message there, and this love keeps growing.",
+    "A {noun} does not look after itself, so make time that is only for the two of you.",
   ],
   friends: [
-    "A friendship like this is worth turning up for, year after year.",
-    "Keep making memories together, and this friendship will carry you both a long way.",
+    "A friendship like your {noun} is worth turning up for, year after year.",
+    "Keep making memories together, and this {noun} of a friendship will carry you both a long way.",
+    "Like any {noun}, this friendship stays bright with a bit of regular effort: a message, a plan, a laugh.",
+    "Friends like you two make a {noun} people notice, so keep it going.",
   ],
   family: [
-    "Family ties like this deepen every time you meet each other where you are.",
-    "Give each other patience and plenty of second chances, and this bond only gets stronger.",
+    "Like any {noun}, family ties like this deepen every time you meet each other where you are.",
+    "Give each other patience and plenty of second chances, and your {noun} only gets stronger.",
+    "A family {noun} like yours needs small, steady care: a call, a visit, a little forgiveness.",
+    "Treat this bond like a {noun} worth keeping, and it will be there for you both for years.",
   ],
   work: [
-    "Working together, the trick is to let each of you lead where you are strongest.",
-    "Share the credit and split the work by strengths, and you make a team people remember.",
+    "Working together, your {noun} is strongest when each of you leads where you are best.",
+    "Share the credit and split the work by strengths, and your {noun} makes a team people remember.",
+    "Like any {noun}, a working pair like yours needs clear roles and honest check-ins.",
+    "Keep your {noun} running with a quick weekly catch-up and plenty of thanks.",
   ],
 };
 
@@ -393,9 +426,83 @@ export const VENUS_SHOWS: Record<SignId, Two> = {
   pisces: ["tenderness, music and heartfelt notes", "gentle kindness given without being asked"],
 };
 
-/** This year for the pair, from whether both Personal Years point outward, inward or one of each. */
-export const YEAR_STORY: Record<"out" | "in" | "mixed", Two> = {
-  out: ["This year, with Personal Years {py1} and {py2}, you are both moving outward, so say yes to new things together.", "With Personal Years {py1} and {py2} this year, you are both in a going-out, getting-on-with-it phase."],
-  in: ["This year, with Personal Years {py1} and {py2}, you are both turning inward, so a quieter, closer stretch suits you.", "With Personal Years {py1} and {py2} this year, you are both in a settling, looking-after phase."],
-  mixed: ["This year, with Personal Years {py1} and {py2}, one of you is heading out while the other turns in, so agree a rhythm that suits you both.", "With Personal Years {py1} and {py2} this year, your energy runs at different speeds, so meet in the middle."],
+/** This year for the pair, from whether both Personal Years point outward, inward or one of each.
+ * {py1}/{py2} are the numbers and {s1}/{s2} what each year is about. */
+export const YEAR_STORY: Record<"out" | "in" | "mixed", string[]> = {
+  out: [
+    "This year you're in a Personal Year {py1}, all about {s1}, and {them} is in a Personal Year {py2}, all about {s2}, so say yes to new things together.",
+    "With Personal Years {py1} and {py2}, you both point outward this year: {s1} for you, {s2} for {them}.",
+  ],
+  in: [
+    "This year you're in a Personal Year {py1}, about {s1}, and {them} is in a Personal Year {py2}, about {s2}, so a quieter, closer stretch suits you.",
+    "With Personal Years {py1} and {py2}, you both turn inward this year: {s1} for you, {s2} for {them}.",
+  ],
+  mixed: [
+    "This year your Personal Year {py1} means {s1}, while {their} Personal Year {py2} means {s2}, so agree a rhythm that suits you both.",
+    "With Personal Years {py1} and {py2}, you run at different speeds this year: {s1} for you, {s2} for {them}, so meet in the middle.",
+  ],
 };
+
+/** Extra ways to make the most of a click, using both people's everyday moments: {sceneA} is yours, {sceneB} the other person's. */
+export const CLICK_USE_SCENE: Record<keyof typeof CLICK_USE, string[]> = {
+  sun: ["Plan nights that take turns: one week {sceneA}, the next {sceneB}.", "Some nights you're {sceneA}, some nights you join {them} {sceneB}, and both count as quality time.", "Say out loud what you like about each other, even the bit of {them} that is always {sceneB}."],
+  moon: ["When one of you is {sceneA} and the other {sceneB}, sit with it together rather than going it alone.", "Learn each other's bad-day signs: you {sceneA}, {them} {sceneB}, and a hug fits both.", "Make a small ritual of checking in, whether you're {sceneA} or {otherIs} {sceneB}."],
+  mercury: ["Enjoy the rhythm: you're {sceneA}, {otherIs} {sceneB}, and it works.", "Keep a shared note of ideas, because you're {sceneA} and {otherIs} {sceneB} anyway.", "Talk big decisions through together; you're {sceneA}, {otherIs} {sceneB}, and between you nothing gets missed."],
+  venus: ["Take turns: let {them} try {sceneA}, and you try {sceneB}.", "Swap styles now and then, so you get to enjoy {sceneB} and {them} gets {sceneA}.", "Protect the time you both love, whether that's {sceneA} or {sceneB}."],
+  mars: ["Split big jobs so you're {sceneA} and {otherIs} {sceneB}, side by side.", "Pick one shared project this year: you'll be {sceneA}, {otherIs} {sceneB}, and it'll be done.", "Take on something big together, with you {sceneA} and {them} {sceneB}."],
+  animal: ["Some nights you're {sceneA}, some nights you join {them} {sceneB}, and your animals love both."],
+  family: ["Make a plan for the year that has room for you {sceneA} and {them} {sceneB}."],
+  element: ["Let the support run both ways, whether you're {sceneA} or {otherIs} {sceneB}."],
+  none: ["Build one habit that is only yours, somewhere between you {sceneA} and {them} {sceneB}."],
+};
+
+/** Extra ways to handle a rub, using both people's everyday moments. */
+export const HANDLE_SCENE: Record<keyof typeof HANDLE, string[]> = {
+  sun: ["When it grates, remember you'd be {sceneA} and {otherIs} {sceneB}, and that both are fine.", "Give each other one night a week to be {sceneA} or {sceneB} with no comments.", "Ask what {their} way gets right; even {sceneB} has its point."],
+  moon: ["When you're {sceneA} and {otherIs} {sceneB}, ask before you help: space, company or a cup of tea?", "Say how you cope out loud: you {sceneA}, {them} {sceneB}, and neither is wrong.", "Offer comfort {their} way, which might mean leaving {them} {sceneB} for a while."],
+  mercury: ["Before you reply, remember you're {sceneA} and {otherIs} {sceneB}: same words, different wiring.", "If a message lands badly, call instead; you're {sceneA}, {otherIs} {sceneB}, and tone gets lost.", "Say back what you heard before you answer, especially when {otherIs} {sceneB}."],
+  venus: ["Say what a gesture meant: to you, love is {sceneA}; to {them}, it's {sceneB}.", "Once a week, show care {their} way, which means {sceneB}.", "Notice the effort, even when it looks like {sceneB} rather than {sceneA}."],
+  mars: ["Agree who leads before you start: you're {sceneA}, {otherIs} {sceneB}, and both get there.", "Split the job so nobody has to watch the other: you {sceneA}, {them} {sceneB}.", "Agree a pause signal for when you're {sceneA} and {otherIs} {sceneB} and tempers rise."],
+  animal: ["It's fine for you to be {sceneA} while {otherIs} {sceneB}; say out loud that you're on the same side."],
+  family: ["Make room for both: some weekends for you {sceneA}, some for {them} {sceneB}."],
+  element: ["If one of you starts steering, stop and ask; you {sceneA}, {them} {sceneB}, and both ways are allowed."],
+  none: ["Keep doing the ordinary things together, from you {sceneA} to {them} {sceneB}."],
+};
+
+/** Both Moons with both people's bad-day moments: {uA} is yours, {uB} the other person's. */
+export const MOON_SCENE: string[] = [
+  "After a rough day you're {uA}, while {otherIs} {uB}; with Moons in {a} and {b}, knowing that is half the battle.",
+  "Your {a} Moon has you {uA} on a bad day, and {their} {b} Moon has {them} {uB}, so learn each other's way back.",
+];
+
+/** The animals, with a picture of each. {rel} is how they sit on the wheel. */
+export const ANIMAL_SCENE_CLICK: string[] = [
+  "Your {A1} is {imgA} and {their} {A2} is {imgB}, and as {rel} on the Chinese wheel you back each other.",
+];
+export const ANIMAL_SCENE_RUB: string[] = [
+  "Your {A1} is {imgA} and {their} {A2} is {imgB}, and from opposite sides of the Chinese wheel you see the world differently.",
+];
+
+/** Year elements with a picture of each: {imgE1} is the giver's. */
+export const ELEMENT_SCENE_FEED: string[] = [
+  "{Who1} {E1} year is {imgE1} and {who2} {E2} year is {imgE2}, and in the five elements one feeds the other, so support comes naturally.",
+];
+export const ELEMENT_SCENE_CHECK: string[] = [
+  "{Who1} {E1} year is {imgE1} and {who2} {E2} year is {imgE2}, and in the five elements one keeps the other in check, which can feel like being reined in.",
+];
+
+/** Life Paths with a picture of each. */
+export const FAMILY_SCENE_CLICK: string[] = [
+  "Life Path {n1} is {img1} and Life Path {n2} is {img2}, and as fellow {family} you want the same things from life.",
+];
+export const FAMILY_SCENE_RUB: string[] = [
+  "Life Path {n1} is {img1} while Life Path {n2} is {img2}, so you can want quite different things from the same weekend.",
+];
+
+/** A night in together, from both Suns' everyday moments. */
+export const EVENING: string[] = [
+  "Picture a night in: you're {sceneA} while {otherIs} {sceneB}.",
+  "On a free evening you might be {sceneA}, and {them} {sceneB}.",
+  "Left to yourselves, you'd be {sceneA} and {them} {sceneB}, and that tells you a lot about this bond.",
+  "A typical Friday: you {sceneA}, {them} {sceneB}, and both of you somehow happy.",
+];

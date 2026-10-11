@@ -63,7 +63,7 @@ test("the spotlight is about 550 words", () => {
     total += n;
     assert.ok(n >= 420 && n <= 680, `${n} words`);
   }
-  assert.ok(Math.abs(total / 300 - 520) < 50, `averages ${total / 300}`);
+  assert.ok(Math.abs(total / 300 - 550) < 40, `averages ${total / 300}`);
 });
 
 test("the same pair always reads the same", () => {
