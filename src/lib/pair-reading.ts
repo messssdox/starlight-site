@@ -4,7 +4,7 @@
 // pair always reads the same and different pairs rarely match.
 
 import { hash } from "./wording.ts";
-import { PLANET_IMAGE, SCENES } from "../data/images.ts";
+import { SIGN_SPOT } from "../data/spotlight.ts";
 import { PLANET_BY_ID, type Sign } from "../data/astrology.ts";
 import { PAIR_TITLES, PAIR_SHORT, type PairPlanet, type Tone } from "../data/synastry.ts";
 import { NUMBER_FAMILIES, NUMBER_MEANINGS } from "../data/numbers.ts";
@@ -64,7 +64,7 @@ const fill = (t: string, vars: Record<string, string>) => t.replace(/\{(\w+)\}/g
 const keyOf = (a: string, b: string) => [a, b].sort().join("|");
 
 /** The care links, as a verb from your Mars to the other's Moon. */
-const STOP_LINK: Partial<Record<PlanetPair["link"], string>> = { square: "squares", opposite: "sits opposite", quincunx: "has little in common with" };
+const STOP_LINK: Partial<Record<PlanetPair["link"], string>> = { square: "is at a tense angle to", opposite: "sits opposite", quincunx: "has little in common with" };
 
 const WHEEL: Record<Comparison["relation"], string> = {
   secret: "secret friends", friend: "in the same friend group", same: "the same animal", neutral: "neither friends nor rivals", clash: "opposite each other",
@@ -172,32 +172,41 @@ export function pairReading(input: PairInput): PairText {
   // {Your}/{your} name whose planets these are, so the other person's box says "Sam's Leo Moon"
   const startStop = (self: PersonalSigns, other: PersonalSigns, who: string, selfName: string, side: string): StartStop => {
     const theirP = poss(who), yourP = poss(selfName);
-    const isOf = (name: string) => (name === "you" ? "you're" : `${name} is`);
-    const vars = {
-      them: who, their: theirP, Their: cap(theirP), your: yourP, Your: cap(yourP),
-      selfIs: isOf(selfName), otherIs: isOf(who), otherIs2: who === "you" ? "you" : who,
+    const vars = { them: who, their: theirP, Their: cap(theirP), your: yourP, Your: cap(yourP) };
+    // the same salt on both sides, with the other person's list turned by one, so the two boxes never give the same reason
+    const turn = <T>(list: T[]) => (side === "them" ? [...list.slice(1), list[0]] : list);
+    // your own planet's way, as a full predicate, so the reason names what you actually do:
+    // what the Moon needs, or the style of Venus and Mercury from the sign's keywords
+    const own = (planet: "moon" | "venus" | "mercury", salt: string) => {
+      const sign = self.signs[planet];
+      // when you share the sign, the other person's box takes the other wording, so the two boxes differ
+      const shared = side === "them" && sign.id === other.signs[planet].id;
+      if (planet === "moon") return SIGN_SPOT[sign.id].need[(hash(`${seed}|me-own-moon`) + (shared ? 1 : 0)) % 2];
+      const [k1, k2] = sign.keywords.split(", ").slice(shared ? 1 : 0);
+      const a = /^[aeiou]/i.test(k1) ? "an" : "a";
+      // Venus and Mercury say it differently, so one sign behind both never reads twice
+      return planet === "venus" ? `loves in ${a} ${k1}, ${k2} way` : `has ${a} ${k1}, ${k2} way of talking`;
     };
-    const SCENE_OF = { moon: SCENES.upset, venus: SCENES.treat, mercury: SCENES.chat } as const;
     const fit = (planet: "moon" | "venus" | "mercury") => {
       const link = signLink(self.signs[planet], other.signs[planet]);
-      return fill(pick(START_FIT[LINK_FEEL[link]], `${side}-fit-${planet}`), {
-        ...vars, mine: self.signs[planet].name, theirs: other.signs[planet].name, planet: pName(planet),
-        scene: pick(SCENE_OF[planet][other.signs[planet].id], `${side}-scene-${planet}`),
-        own: pick(SCENE_OF[planet][self.signs[planet].id], `${side}-own-${planet}`),
+      return fill(pick(turn(START_FIT[LINK_FEEL[link]]), "fit"), {
+        ...vars, mine: self.signs[planet].name, theirs: other.signs[planet].name, planet: pName(planet), own: own(planet, `${side}-own-${planet}`),
       });
     };
     const marsMoon = signLink(self.signs.mars, other.signs.moon);
-    const why = fill(pick(STOP_FIT[LINK_FEEL[marsMoon]], `${side}-stopfit`), {
+    const why = fill(pick(turn(STOP_FIT[LINK_FEEL[marsMoon]]), "stopfit"), {
       ...vars, mars: self.signs.mars.name, moon: other.signs.moon.name, link: STOP_LINK[marsMoon] ?? "meets",
-      upset: pick(SCENES.upset[other.signs.moon.id], `${side}-upset`), marsImg: pick(PLANET_IMAGE.mars[self.signs.mars.id], `${side}-mars-img`),
     });
+    // the advice for a shared sign moves one along on the other person's side
+    const ask = (table: Record<string, string[]>, planet: "moon" | "venus" | "mercury") => {
+      const list = table[other.signs[planet].id];
+      const shared = self.signs[planet].id === other.signs[planet].id;
+      const at = hash(`${seed}|${shared ? "me" : side}-${planet}`) + (shared && side === "them" ? 1 : 0);
+      return `${fill(list[at % list.length], vars)} ${fit(planet)}`;
+    };
     return {
-      start: [
-        `${fill(pick(MOON_NEEDS[other.signs.moon.id], `${side}-moon`), vars)} ${fit("moon")}`,
-        `${fill(pick(VENUS_VALUES[other.signs.venus.id], `${side}-venus`), vars)} ${fit("venus")}`,
-        `${fill(pick(MERCURY_TALK[other.signs.mercury.id], `${side}-mercury`), vars)} ${fit("mercury")}`,
-      ],
-      stop: `${pick(MARS_TRAPS[self.signs.mars.id], `${side}-mars`).replace(/[.!]$/, "")}, because ${/^(Your|With) /.test(why) ? lcFirst(why) : why}`,
+      start: [ask(MOON_NEEDS, "moon"), ask(VENUS_VALUES, "venus"), ask(MERCURY_TALK, "mercury")],
+      stop: `${pick(turn(MARS_TRAPS[self.signs.mars.id]), "mars").replace(/[.!]$/, "")}, because ${why}`,
     };
   };
 
