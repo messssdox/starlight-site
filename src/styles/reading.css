@@ -141,3 +141,6 @@
 .reading .medallion .calc { text-align: left; }
 .reading .medallion .how-card, .reading .lp-box .how-card { padding: 12px 14px; }
 .reading .lp-box .calc { margin-top: 14px; }
+/* Library links on number names and keywords: quiet, underlined on hover */
+.reading a.lib { color: inherit; text-decoration: underline dotted rgba(212, 175, 90, 0.6); text-underline-offset: 3px; }
+.reading a.lib:hover { color: var(--gold); text-decoration-style: solid; }
