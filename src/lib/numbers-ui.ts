@@ -34,13 +34,6 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
   const year = Number(today.slice(0, 4));
   const hasName = /[a-z]/i.test(name);
 
-  // Library links: each number's name goes to its article, each keyword to that number's own article.
-  const link = (id: string, html: string) => (html && articles.has(id) ? `<a class="lib" href="/library/${id}">${html}</a>` : html);
-  const about = (id: string, label: string) => link(`numerology/${id}`, esc(label));
-  const numberLink = (v: number) => (html: string) => link(v >= 1 && v <= 9 ? `numerology/number-${v}` : `numerology/master-numbers`, html);
-  const tile = (label: string, id: string, r: { value: number; steps: string[] }, tag: string, how: string) =>
-    medallion(about(id, label), r, tier, tag, how, numberLink(r.value));
-
   // Start here: Life Path, Expression, Soul Urge
   const lp = lifePath(date);
   const m = NUMBER_MEANINGS[lp.value];
@@ -51,7 +44,7 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
     <div class="panel lp-box">
       <div class="lp-head">
         <span class="n">${lp.value}</span>
-        <div><span class="what">${about("life-path-number", "Life Path")}</span><span class="tag">${esc(NUMBER_TAGS.lifePath)}</span><span class="k">${numberLink(lp.value)(m?.keyword ?? "")}</span></div>
+        <div><span class="what">Life Path</span><span class="tag">${esc(NUMBER_TAGS.lifePath)}</span><span class="k">${m?.keyword ?? ""}</span></div>
       </div>
       <p>${esc(deep?.journey ?? m?.gentle ?? "")}</p>
       ${deep ? `
@@ -67,18 +60,18 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
     </div>`;
   const coreName = hasName
     ? `<div class="numbers">
-        ${tile("Expression", "your-name-numbers", expression(name), NUMBER_TAGS.expression, calc([nameBreakdown(name, "expression")], articles))}
-        ${tile("Soul Urge", "your-name-numbers", soulUrge(name), NUMBER_TAGS.soulUrge, calc([nameBreakdown(name, "soul")], articles))}
+        ${medallion("Expression", expression(name), tier, NUMBER_TAGS.expression, calc([nameBreakdown(name, "expression")], articles))}
+        ${medallion("Soul Urge", soulUrge(name), tier, NUMBER_TAGS.soulUrge, calc([nameBreakdown(name, "soul")], articles))}
       </div>`
     : `<p class="panel no-name">${noNameHint}</p>`;
 
   // Worth reading: Birthday, Personality, Personal Year
   const py = personalYear(date, year);
-  const pyTile = `<div class="medallion panel"><span class="what">${about("personal-year-number", `Personal Year ${year}`)}</span><span class="tag">${esc(NUMBER_TAGS.personalYear)}</span><span class="n">${py.value}</span><p class="muted">${esc(PERSONAL_YEAR_THEMES[py.value] ?? "")}</p>${calc([personalYearBreakdown(date, today)], articles)}</div>`;
+  const pyTile = `<div class="medallion panel"><span class="what">Personal Year ${year}</span><span class="tag">${esc(NUMBER_TAGS.personalYear)}</span><span class="n">${py.value}</span><p class="muted">${esc(PERSONAL_YEAR_THEMES[py.value] ?? "")}</p>${calc([personalYearBreakdown(date, today)], articles)}</div>`;
   const worth = `
     <div class="numbers">
-      ${tile("Birthday", "birthday-number", birthday(date), NUMBER_TAGS.birthday, calc([birthdayBreakdown(date)], articles))}
-      ${hasName ? tile("Personality", "your-name-numbers", personality(name), NUMBER_TAGS.personality, calc([nameBreakdown(name, "personality")], articles)) : ""}
+      ${medallion("Birthday", birthday(date), tier, NUMBER_TAGS.birthday, calc([birthdayBreakdown(date)], articles))}
+      ${hasName ? medallion("Personality", personality(name), tier, NUMBER_TAGS.personality, calc([nameBreakdown(name, "personality")], articles)) : ""}
       ${pyTile}
     </div>`;
 
@@ -98,13 +91,13 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
   const uy = universalYear(year);
   const uyMeaning = NUMBER_MEANINGS[uy.value];
   const extra = `
-    <h3>${about("challenge-numbers", "Challenges")}</h3>
+    <h3>Challenges</h3>
     <p class="tag">${esc(NUMBER_TAGS.challenges)}</p>
     <div class="numbers challenges">${challengeCards}</div>
     ${calc([challengesBreakdown(date)], articles)}
     <div class="numbers">
-      ${hasName ? tile("Maturity", "maturity-number", maturity(date, name), NUMBER_TAGS.maturity, calc([maturityBreakdown(date, name)], articles)) : ""}
-      <div class="medallion panel"><span class="what">${about("universal-year-number", `Universal Year ${year}`)}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${uy.value}</span><span class="k">${numberLink(uy.value)(uyMeaning?.keyword ?? "")}</span><p class="muted">${uyMeaning?.essence ?? ""}</p>${calc([universalYearBreakdown(year)], articles)}</div>
+      ${hasName ? medallion("Maturity", maturity(date, name), tier, NUMBER_TAGS.maturity, calc([maturityBreakdown(date, name)], articles)) : ""}
+      <div class="medallion panel"><span class="what">Universal Year ${year}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${uy.value}</span><span class="k">${uyMeaning?.keyword ?? ""}</span><p class="muted">${uyMeaning?.essence ?? ""}</p>${calc([universalYearBreakdown(year)], articles)}</div>
     </div>`;
 
   return `

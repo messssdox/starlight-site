@@ -188,7 +188,7 @@ export function birthdayBreakdown(date: string): Breakdown {
     steps: [{ text: `You were born on the ${d}${ordinal(d)}.`, why: "The day is the most personal part of your birth date, so it gets a number of its own." }, ...(d > 9 ? [day.step] : [])],
     result: `Your Birthday number is ${day.value}.`,
     meaning: numberMeaning(`The gift of a Birthday ${day.value}`, day.value),
-    articles: [{ id: "numerology/birthday-number", label: "Your Birthday number" }],
+    articles: [],
   };
 }
 
@@ -205,7 +205,7 @@ export function maturityBreakdown(date: string, name: string): Breakdown {
     steps: [{ text: `Add your Life Path and your Expression: ${lp} + ${ex} = ${total}.`, why: "It joins the road you walk with the talents you bring to it." }, ...finalSteps(total, true)],
     result: `Your Maturity number is ${value}.`,
     meaning: numberMeaning(`Growing into a ${value}`, value),
-    articles: [{ id: "numerology/maturity-number", label: "Your Maturity number" }],
+    articles: [],
   };
 }
 
@@ -218,7 +218,7 @@ export function universalYearBreakdown(year: number): Breakdown {
     intro: "The Universal Year is the calendar year's own number. It is the same for everyone, like the weather of the year.",
     steps: [{ text: `Add the digits of ${year}: ${r.steps.join(", then ")}.` }],
     result: `${year} is a Universal Year ${r.value}.`,
-    articles: [{ id: "numerology/universal-year-number", label: "The Universal Year" }],
+    articles: [],
   };
 }
 
