@@ -88,28 +88,25 @@ const numberMeaning = (title: string, v: number) => {
   return m ? { title, text: `${m.keyword}. ${m.gentle}` } : undefined;
 };
 
+/** Life Path, kept brief: one short paragraph on how the birth date becomes the number. */
 export function lifePathBreakdown(date: string): Breakdown {
   const [y, m, d] = date.split("-").map(Number);
-  const day = reduceStep("Day", d, true);
-  const month = reduceStep("Month", m, true);
-  const year = reduceStep("Year", y, true, "We reduce the year on its own too, so your day, month and year each get an equal say.");
-  const total = day.value + month.value + year.value;
+  const day = reduce(d).value;
+  const month = reduce(m).value;
+  const year = reduce(y).value;
+  const total = day + month + year;
   const value = reduce(total).value;
+  const end =
+    total === value
+      ? MASTER_NUMBERS.includes(value) ? `${total}, a master number, so it stays ${total}` : `${total}`
+      : MASTER_NUMBERS.includes(value) ? `${total}, which boils down to the master number ${value}` : `${total}, which boils down to ${value}`;
   return {
     id: "how-life-path",
     title: "Life Path",
-    intro: "Your Life Path is the most important number in numerology. It describes the road you walk through life, and it comes from your full birth date.",
-    steps: [
-      { text: `Start with your birth date: ${longDate(date)}.`, why: "Your birth date never changes, so numerology reads it as the blueprint you were born with." },
-      { text: "Reduce the day, the month and the year separately.", why: WHY_REDUCE },
-      day.step,
-      month.step,
-      year.step,
-      { text: `Add the three together: ${day.value} + ${month.value} + ${year.value} = ${total}.`, why: "This blends the energy of your day, month and year into one number." },
-      ...finalSteps(total, true),
-    ],
+    intro: "Your Life Path comes from your full birth date.",
+    summary: `The day, month and year of ${longDate(date)} are each boiled down to ${[day, month, year].some((v) => v > 9) ? "one digit or a master number" : "one digit"} (${day}, ${month} and ${year}), then added together: ${day} + ${month} + ${year} = ${end}.`,
+    steps: [],
     result: `Your Life Path is ${value}.`,
-    meaning: numberMeaning(`Life on the path of a ${value}`, value),
     articles: [
       { id: "numerology/life-path-number", label: "The Life Path number" },
       { id: "numerology/master-numbers", label: "Master numbers" },

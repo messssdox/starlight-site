@@ -38,28 +38,26 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
   const lp = lifePath(date);
   const m = NUMBER_MEANINGS[lp.value];
   const deep = LIFE_PATH_DEEP[lp.value];
+  // Everything about the Life Path in one box: the number, its meaning, then the detail under small headings.
+  const bit = (title: string, body: string) => `<div class="lp-bit"><p class="eyebrow">${esc(title)}</p>${body}</div>`;
   const lifePathBlock = `
-    <div class="panel lp-strip">
-      <span class="n">${lp.value}</span>
-      <div><span class="what">Life Path</span><span class="tag">${esc(NUMBER_TAGS.lifePath)}</span><span class="k">${m?.keyword ?? ""}</span><p class="muted">${m?.gentle ?? ""}</p></div>
+    <div class="panel lp-box">
+      <div class="lp-head">
+        <span class="n">${lp.value}</span>
+        <div><span class="what">Life Path</span><span class="tag">${esc(NUMBER_TAGS.lifePath)}</span><span class="k">${m?.keyword ?? ""}</span></div>
+      </div>
+      <p>${esc(deep?.journey ?? m?.gentle ?? "")}</p>
+      ${deep ? `
+      <div class="lp-bits">
+        ${bit("Your strengths", list(deep.strengths))}
+        ${bit("Watch out for", list(deep.watchOut))}
+        ${bit("In love", `<p>${esc(deep.love)}</p>`)}
+        ${bit("At work", `<p>${esc(deep.work)}</p>`)}
+        ${bit(`Where a ${lp.value} often thrives`, list(deep.thrivesIn))}
+        ${bit("A practice for your path", `<p>${esc(deep.growth)}</p>`)}
+      </div>` : ""}
     </div>
-    ${calc([lifePathBreakdown(date)], articles)}
-    ${deep ? `
-    <div class="lp-deep">
-      <p class="lede">${esc(deep.journey)}</p>
-      <div class="pair">
-        <div class="panel"><p class="eyebrow">Your strengths</p>${list(deep.strengths)}</div>
-        <div class="panel"><p class="eyebrow">Watch out for</p>${list(deep.watchOut)}</div>
-      </div>
-      <div class="pair">
-        <div class="panel"><p class="eyebrow">In love</p><p>${esc(deep.love)}</p></div>
-        <div class="panel"><p class="eyebrow">At work</p><p>${esc(deep.work)}</p></div>
-      </div>
-      <div class="pair">
-        <div class="panel"><p class="eyebrow">Where a ${lp.value} often thrives</p>${list(deep.thrivesIn)}</div>
-        <div class="panel growth"><p class="eyebrow">A practice for your path</p><p>${esc(deep.growth)}</p></div>
-      </div>
-    </div>` : ""}`;
+    ${calc([lifePathBreakdown(date)], articles)}`;
   const coreName = hasName
     ? `<div class="numbers">${medallion("Expression", expression(name), tier, NUMBER_TAGS.expression)}${medallion("Soul Urge", soulUrge(name), tier, NUMBER_TAGS.soulUrge)}</div>
        ${calc([nameBreakdown(name, "expression"), nameBreakdown(name, "soul")], articles)}`

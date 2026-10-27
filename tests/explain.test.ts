@@ -8,20 +8,18 @@ test("long dates read naturally", () => {
   assert.equal(longDate("1990-03-14"), "14 March 1990");
 });
 
-test("Life Path working uses the reader's own date", () => {
+test("Life Path working is one short paragraph", () => {
   const b = lifePathBreakdown("1990-03-14");
-  assert.ok(texts(b).includes("Day 14: 1 + 4 = 5."));
-  assert.ok(texts(b).includes("Month 3 stays 3."));
-  assert.ok(texts(b).includes("Add the three together: 5 + 3 + 1 = 9."));
+  assert.equal(b.steps.length, 0);
+  assert.equal(b.summary, "The day, month and year of 14 March 1990 are each boiled down to one digit (5, 3 and 1), then added together: 5 + 3 + 1 = 9.");
   assert.equal(b.result, "Your Life Path is 9.");
 });
 
-test("Life Path working explains master numbers", () => {
-  const b = lifePathBreakdown("1991-11-09");
-  assert.equal(b.result, "Your Life Path is 22.");
-  assert.ok(b.steps.some((s) => s.text === "22 is a master number, so it stays 22." && s.why?.startsWith("Master numbers are never reduced")));
-  assert.equal(b.meaning!.title, "Life on the path of a 22");
-  assert.ok(b.meaning!.text.startsWith("The Master Builder."));
+test("Life Path working explains master numbers and further reducing", () => {
+  assert.equal(lifePathBreakdown("1991-11-09").result, "Your Life Path is 22.");
+  assert.ok(lifePathBreakdown("1991-11-09").summary!.endsWith("= 22, a master number, so it stays 22."));
+  // 9 + 9 + 1 = 19 -> 1
+  assert.ok(lifePathBreakdown("1990-09-09").summary!.endsWith("= 19, which boils down to 1."));
 });
 
 test("name working is brief: which letters, lit up, no sums", () => {

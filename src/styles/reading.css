@@ -125,3 +125,15 @@
 .reading .lp-strip .tag { margin: 2px 0 0; }
 .reading .no-name { margin-top: 14px; }
 .reading .letters span.on { border-color: var(--gold); color: var(--gold); }
+/* The Life Path in one box */
+.reading .lp-box { padding: 18px 20px; }
+.reading .lp-head { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.reading .lp-head .n { font: 600 2.6rem var(--font-display); color: var(--gold); line-height: 1; text-shadow: 0 0 24px rgba(212, 175, 90, 0.35); }
+.reading .lp-head .what { display: block; font-size: 0.75rem; color: var(--mist); text-transform: uppercase; letter-spacing: 0.12em; }
+.reading .lp-head .tag { margin: 2px 0 0; }
+.reading .lp-head .k { font-family: var(--font-display); font-size: 1.15rem; }
+.reading .lp-bits { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 22px; border-top: 1px solid rgba(142, 107, 217, 0.25); margin-top: 12px; padding-top: 8px; }
+.reading .lp-bit .eyebrow { margin: 10px 0 2px; }
+.reading .lp-bit p, .reading .lp-bit ul { margin: 0; font-size: 0.93rem; }
+.reading .lp-bit ul { padding-left: 18px; }
+@media (max-width: 640px) { .reading .lp-bits { grid-template-columns: 1fr; } }
