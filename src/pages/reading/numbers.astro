@@ -23,10 +23,9 @@ const articles = (await getCollection("library")).map((a) => a.id);
 </Base>
 
 <script>
-  import { lifePath, expression, soulUrge, personality, personalYear, challenges } from "../../lib/numerology.ts";
-  import { CHALLENGE_MEANINGS, LIFE_PATH_DEEP, NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../../data/numbers.ts";
-  import { lifePathBreakdown, challengesBreakdown, nameBreakdown, personalYearBreakdown, todayIso, type Breakdown } from "../../lib/explain.ts";
-  import { esc, calc, medallion, soloQuery, type Tier } from "../../lib/reading-ui.ts";
+  import { numbersReading } from "../../lib/numbers-ui.ts";
+  import { todayIso } from "../../lib/explain.ts";
+  import { esc, soloQuery, type Tier } from "../../lib/reading-ui.ts";
 
   const q = new URLSearchParams(location.search);
   const tier = (q.get("tier") ?? "first") as Tier;
@@ -45,97 +44,13 @@ const articles = (await getCollection("library")).map((a) => a.id);
 
   function render() {
     const first = name.split(/\s+/)[0] || "friend";
-    const lp = lifePath(date);
-    const today = todayIso();
-    const year = Number(today.slice(0, 4));
-    const py = personalYear(date, year);
     const back = `<p class="back"><a href="/reading?${soloQuery(q)}">← Back to your reading</a></p>`;
-
-    // Life Path in depth
-    const deep = LIFE_PATH_DEEP[lp.value];
-    const m = NUMBER_MEANINGS[lp.value];
-    const list = (items: string[]) => `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
-    const lifePathSection = `
-      <section class="part">
-        <div class="panel lp-strip">
-          <span class="n">${lp.value}</span>
-          <div><span class="what">Your Life Path</span><span class="k">${m?.keyword ?? ""}</span><p class="muted">${m?.gentle ?? ""}</p></div>
-        </div>
-        ${calc([lifePathBreakdown(date)], articles)}
-        ${deep ? `
-        <div class="lp-deep">
-          <p class="lede">${esc(deep.journey)}</p>
-          <div class="pair">
-            <div class="panel"><p class="eyebrow">Your strengths</p>${list(deep.strengths)}</div>
-            <div class="panel"><p class="eyebrow">Watch out for</p>${list(deep.watchOut)}</div>
-          </div>
-          <div class="pair">
-            <div class="panel"><p class="eyebrow">In love</p><p>${esc(deep.love)}</p></div>
-            <div class="panel"><p class="eyebrow">At work</p><p>${esc(deep.work)}</p></div>
-          </div>
-          <div class="pair">
-            <div class="panel"><p class="eyebrow">Where a ${lp.value} often thrives</p>${list(deep.thrivesIn)}</div>
-            <div class="panel growth"><p class="eyebrow">A practice for your path</p><p>${esc(deep.growth)}</p></div>
-          </div>
-        </div>` : ""}
-      </section>`;
-
-    // Name numbers
-    let nameSection = "";
-    if (name) {
-      const cards = [medallion("Expression", expression(name), tier), medallion("Soul Urge", soulUrge(name), tier), medallion("Personality", personality(name), tier)];
-      const how: Breakdown[] = [nameBreakdown(name, "expression"), nameBreakdown(name, "soul"), nameBreakdown(name, "personality")];
-      nameSection = `
-        <section class="part">
-          <h2>Your name numbers</h2>
-          <p class="muted">Each letter of your birth name has a number. Your Expression uses every letter and shows your talents, your Soul Urge uses the vowels and shows what your heart wants, and your Personality uses the consonants and shows the side of you others meet first.</p>
-          <div class="numbers">${cards.join("")}</div>
-          ${calc(how, articles)}
-        </section>`;
-    }
-
-    // Personal Year
-    const yearSection = `
-      <section class="part">
-        <h2>Your Personal Year ${year}</h2>
-        <p class="muted">Numerology moves in nine-year cycles. Your Personal Year shows where you are in yours. Starlight counts it from 1 January.</p>
-        <div class="panel lp-strip">
-          <span class="n">${py.value}</span>
-          <div><span class="what">Personal Year</span><p>${PERSONAL_YEAR_THEMES[py.value]}</p></div>
-        </div>
-        ${calc([personalYearBreakdown(date, today)], articles)}
-      </section>`;
-
-    // Challenges
-    const ch = challenges(date);
-    const challengeCards = ([
-      ["First", "early life", ch.first],
-      ["Second", "middle years", ch.second],
-      ["Third", "your main challenge", ch.third],
-      ["Fourth", "later life", ch.fourth],
-    ] as const)
-      .map(([which, when, v]) => {
-        const c = CHALLENGE_MEANINGS[v];
-        return `<div class="medallion panel${which === "Third" ? " main" : ""}"><span class="what">${which} Challenge<br>${when}</span><span class="n">${v}</span><span class="k">${c.keyword}</span>${tier === "glance" ? "" : `<p class="muted">${c.text}</p>`}</div>`;
-      })
-      .join("");
-    const challengeSection = `
-      <section class="part">
-        <h2>Your challenges</h2>
-        <p class="muted">Where your Life Path shows the road you walk, your four Challenge Numbers show the lessons you meet along it. The third is your main challenge, with you all through life.</p>
-        <div class="numbers challenges">${challengeCards}</div>
-        ${calc([challengesBreakdown(date)], articles)}
-      </section>`;
-
+    const hint = `Your name numbers (Expression, Soul Urge, Personality and Maturity) need your full birth name. <a href="/numerology">Add it on the Numerology page</a> to see them.`;
     return `
       ${back}
       <p class="eyebrow">Numerology</p>
       <h1>${esc(first)}, your numbers in depth</h1>
-      <p class="muted">Numerology turns your birth date and name into a handful of meaningful numbers. Starlight uses the Pythagorean system, the most widely used in the West.</p>
-      ${lifePathSection}
-      ${nameSection}
-      ${yearSection}
-      ${challengeSection}
+      ${numbersReading({ date, name, tier, articles, today: todayIso(), noNameHint: hint })}
       ${back}`;
   }
 </script>

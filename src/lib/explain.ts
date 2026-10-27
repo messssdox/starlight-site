@@ -2,7 +2,7 @@
 // so each reading teaches how it was calculated as it goes. Every step says what we do
 // and, in plain words, why; each card ends with what the result means for the reader.
 
-import { reduce, letterValue, MASTER_NUMBERS, personalYear, challenges } from "./numerology.ts";
+import { reduce, letterValue, MASTER_NUMBERS, personalYear, challenges, lifePath, expression } from "./numerology.ts";
 import { chineseSign, friendsOf, secretFriendOf, clashOf } from "./chinese.ts";
 import { ANIMALS, GROUPS, ELEMENTS } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
@@ -22,8 +22,12 @@ export interface Breakdown {
   /** One sentence on what this result is. */
   intro: string;
   steps: Step[];
+  /** A short plain description shown instead of numbered steps (the name numbers use this). */
+  summary?: string;
   /** Letter chips for the name numbers: the letter, its value, and whether it counts here. */
   letters?: { letter: string; value: number; counted: boolean; wordStart: boolean }[];
+  /** Show the chips as letters only, without each letter's number. */
+  lettersOnly?: boolean;
   result: string;
   /** What the result means for the reader, under a warm, personal heading. */
   meaning?: { title: string; text: string };
@@ -115,10 +119,11 @@ export function lifePathBreakdown(date: string): Breakdown {
 
 type NameKind = "expression" | "soul" | "personality";
 const VOWELS = new Set(["A", "E", "I", "O", "U"]);
-const NAME_INFO: Record<NameKind, { title: string; intro: string; which: Step; counts: (l: string) => boolean; meaning: (v: number) => string }> = {
+const NAME_INFO: Record<NameKind, { title: string; intro: string; uses: string; which: Step; counts: (l: string) => boolean; meaning: (v: number) => string }> = {
   expression: {
     title: "Expression",
     intro: "Your Expression number shows your natural talents and the way you tend to go about things. It uses every letter of your full birth name.",
+    uses: "Every letter of your full birth name is used.",
     which: { text: "Every letter counts.", why: "Your whole name is everything you were given at birth, so all of it shapes your talents." },
     counts: () => true,
     meaning: (v) => `Your natural gifts as an Expression ${v}`,
@@ -126,6 +131,7 @@ const NAME_INFO: Record<NameKind, { title: string; intro: string; which: Step; c
   soul: {
     title: "Soul Urge",
     intro: "Your Soul Urge shows what your heart wants most. It uses only the vowels in your name.",
+    uses: "Only the vowels are used: A, E, I, O and U.",
     which: { text: "Only the vowels count: A, E, I, O and U. (Starlight treats Y as a consonant.)", why: "Vowels are the soft, open sounds that carry your voice, so numerology links them to your inner self and your heart's desires." },
     counts: (l) => VOWELS.has(l),
     meaning: (v) => `What your heart longs for as a Soul Urge ${v}`,
@@ -133,6 +139,7 @@ const NAME_INFO: Record<NameKind, { title: string; intro: string; which: Step; c
   personality: {
     title: "Personality",
     intro: "Your Personality number shows the side of you others meet first. It uses only the consonants in your name.",
+    uses: "Only the consonants are used: every letter that isn't a vowel.",
     which: { text: "Only the consonants count: every letter that is not A, E, I, O or U.", why: "Consonants are the firmer sounds that give a name its outline, so numerology links them to the face you show the world." },
     counts: (l) => !VOWELS.has(l),
     meaning: (v) => `How the world first sees you as a Personality ${v}`,
@@ -147,44 +154,78 @@ const wordsOf = (name: string) =>
     .split(/[^A-Z]+/)
     .filter(Boolean);
 
+/**
+ * The name numbers, kept brief: which letters are used, those letters lit up in the reader's
+ * own name, and the result. No sums, so the working never feels like a maths lesson.
+ */
 export function nameBreakdown(name: string, kind: NameKind): Breakdown {
   const info = NAME_INFO[kind];
   const words = wordsOf(name);
   const letters = words.flatMap((w) => w.split("").map((l, i) => ({ letter: l, value: letterValue(l), counted: info.counts(l), wordStart: i === 0 })));
-  const wordSteps: Step[] = [];
-  const wordTotals: number[] = [];
-  for (const w of words) {
-    const picked = w.split("").filter(info.counts);
-    if (picked.length === 0) continue;
-    const vals = picked.map(letterValue);
-    const sum = vals.reduce((s, v) => s + v, 0);
-    wordTotals.push(sum);
-    wordSteps.push({ text: `${w}: ${picked.map((l, i) => `${l} ${vals[i]}`).join(" + ")} = ${sum}.` });
-  }
-  if (wordSteps.length) wordSteps[0].why = "Swap each letter for its number and add them up, one word at a time, so it is easy to check.";
-  const total = wordTotals.reduce((s, v) => s + v, 0);
+  const picked = letters.filter((l) => l.counted);
+  const total = picked.reduce((s, l) => s + l.value, 0);
   const value = reduce(total).value;
-  const steps: Step[] = [
-    {
-      text: "Each letter has a number from 1 to 9: A, J and S are 1; B, K and T are 2; and so on around to I and R, which are 9.",
-      why: "Write the alphabet in rows of nine and each letter sits under a number from 1 to 9. This is the Pythagorean system, the one most used in the West.",
-    },
-    info.which,
-    ...wordSteps,
-  ];
-  if (wordTotals.length > 1) steps.push({ text: `Add the words together: ${wordTotals.join(" + ")} = ${total}.`, why: "Your names work together as one, so their totals are combined." });
-  steps.push(...finalSteps(total, true));
+  const none = picked.length === 0;
   return {
     id: `how-${kind}`,
     title: info.title,
     intro: info.intro,
-    steps: wordTotals.length ? steps : [info.which, { text: "Your name has no letters of this kind, so this number is 0." }],
+    summary: none ? `${info.uses} Your name has none, so this number is 0.` : `${info.uses} They are lit up in your name below.`,
+    steps: [],
     letters,
+    lettersOnly: true,
     result: `Your ${info.title} number is ${value}.`,
-    meaning: wordTotals.length ? numberMeaning(info.meaning(value), value) : undefined,
+    meaning: none ? undefined : numberMeaning(info.meaning(value), value),
     articles: [{ id: "numerology/your-name-numbers", label: "Your name numbers" }],
   };
 }
+
+/** Birthday number: simply the day of the month you were born. */
+export function birthdayBreakdown(date: string): Breakdown {
+  const d = Number(date.slice(8, 10));
+  const day = reduceStep("Day", d, true);
+  return {
+    id: "how-birthday",
+    title: "Birthday",
+    intro: "Your Birthday number comes only from the day of the month you were born. Numerologists read it as a special gift or talent you carry.",
+    steps: [{ text: `You were born on the ${d}${ordinal(d)}.`, why: "The day is the most personal part of your birth date, so it gets a number of its own." }, ...(d > 9 ? [day.step] : [])],
+    result: `Your Birthday number is ${day.value}.`,
+    meaning: numberMeaning(`The gift of a Birthday ${day.value}`, day.value),
+    articles: [],
+  };
+}
+
+/** Maturity: Life Path plus Expression, the person you grow into. */
+export function maturityBreakdown(date: string, name: string): Breakdown {
+  const lp = lifePath(date).value;
+  const ex = expression(name).value;
+  const total = lp + ex;
+  const value = reduce(total).value;
+  return {
+    id: "how-maturity",
+    title: "Maturity",
+    intro: "Your Maturity number shows who you grow into. It tends to come through more strongly from your late thirties onwards.",
+    steps: [{ text: `Add your Life Path and your Expression: ${lp} + ${ex} = ${total}.`, why: "It joins the road you walk with the talents you bring to it." }, ...finalSteps(total, true)],
+    result: `Your Maturity number is ${value}.`,
+    meaning: numberMeaning(`Growing into a ${value}`, value),
+    articles: [],
+  };
+}
+
+/** Universal Year: the calendar year's own number, the same for everyone. */
+export function universalYearBreakdown(year: number): Breakdown {
+  const r = reduce(year, false);
+  return {
+    id: "how-universal-year",
+    title: `Universal Year ${year}`,
+    intro: "The Universal Year is the calendar year's own number. It is the same for everyone, like the weather of the year.",
+    steps: [{ text: `Add the digits of ${year}: ${r.steps.join(", then ")}.` }],
+    result: `${year} is a Universal Year ${r.value}.`,
+    articles: [],
+  };
+}
+
+const ordinal = (n: number) => (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
 
 /** The four Challenge Numbers, worked out from the birth date by subtraction. */
 export function challengesBreakdown(date: string): Breakdown {

@@ -115,3 +115,13 @@
 .reading .full-breakdown { margin-top: 24px; }
 .reading .full-breakdown > summary { font-size: 0.95rem; padding: 6px 16px; }
 .reading .spotlight .ss { padding: 12px 14px; }
+
+/* Numerology groups: most important first, each number with a tiny tag saying what it is. */
+.reading .num-intro { margin-top: 8px; }
+.reading .num-group > h2 { margin-bottom: 4px; }
+.reading .num-group h3 { margin: 24px 0 0; }
+.reading .tag { display: block; font-size: 0.85rem; font-style: italic; color: var(--moonlight); margin: 2px 0 6px; }
+.reading .medallion .tag { text-align: center; }
+.reading .lp-strip .tag { margin: 2px 0 0; }
+.reading .no-name { margin-top: 14px; }
+.reading .letters span.on { border-color: var(--gold); color: var(--gold); }

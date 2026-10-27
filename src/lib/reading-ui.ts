@@ -12,7 +12,7 @@ export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt
 export function howCard(b: Breakdown, articles: Set<string>) {
   const letters = b.letters
     ? `<div class="letters" aria-hidden="true">${b.letters
-        .map((l, i) => `${i > 0 && l.wordStart ? `<span class="gap"></span>` : ""}<span class="${l.counted ? "" : "off"}">${l.letter}<small>${l.value}</small></span>`)
+        .map((l, i) => `${i > 0 && l.wordStart ? `<span class="gap"></span>` : ""}<span class="${l.counted ? "on" : "off"}">${l.letter}${b.lettersOnly ? "" : `<small>${l.value}</small>`}</span>`)
         .join("")}</div>`
     : "";
   const links = b.articles.filter((a) => articles.has(a.id));
@@ -20,8 +20,9 @@ export function howCard(b: Breakdown, articles: Set<string>) {
     <div class="panel how-card" id="${b.id}">
       <h3>${esc(b.title)}</h3>
       <p class="muted">${esc(b.intro)}</p>
+      ${b.summary ? `<p>${esc(b.summary)}</p>` : ""}
       ${letters}
-      <ol>${b.steps.map((s) => `<li>${esc(s.text)}${s.why ? `<span class="why">${esc(s.why)}</span>` : ""}</li>`).join("")}</ol>
+      ${b.steps.length ? `<ol>${b.steps.map((s) => `<li>${esc(s.text)}${s.why ? `<span class="why">${esc(s.why)}</span>` : ""}</li>`).join("")}</ol>` : ""}
       <p class="result">${esc(b.result)}</p>
       ${b.meaning ? `<div class="meaning"><h4>${esc(b.meaning.title)}</h4><p>${esc(b.meaning.text)}</p></div>` : ""}
       ${b.note ? `<p class="note muted">${esc(b.note)}</p>` : ""}
@@ -34,22 +35,27 @@ export function calc(cards: Breakdown[], articles: Set<string>, label = "How it'
   return `<details class="calc"><summary>${esc(label)}</summary>${cards.map((b) => howCard(b, articles)).join("")}</details>`;
 }
 
-export function medallion(what: string, r: Result, tier: Tier) {
+export function medallion(what: string, r: Result, tier: Tier, tag?: string) {
   const m = NUMBER_MEANINGS[r.value];
   const body = tier === "glance" ? `<p class="muted">${m?.essence ?? ""}</p>` : `<p class="muted">${m?.gentle ?? ""}</p>`;
-  return `<div class="medallion panel"><span class="what">${what}</span><span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}</div>`;
+  return `<div class="medallion panel"><span class="what">${what}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}<span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}</div>`;
+}
+
+/** Count a reading made on the page itself (the Numerology calculator), once per set of details. */
+export function countReadingOf(details: string) {
+  const key = `counted:${details}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  } catch {}
+  fetch("/api/counter", { method: "POST" }).catch(() => {});
 }
 
 /** Count every reading: each new set of details counts once, so only a refresh of the same page doesn't. */
 export function countReading() {
   const params = new URLSearchParams(location.search);
   params.sort();
-  const key = `counted:${params.toString()}`;
-  try {
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-  } catch {}
-  fetch("/api/counter", { method: "POST" }).catch(() => {});
+  countReadingOf(params.toString());
 }
 
 /** The same details as the current link, without the second person: someone's own reading. */

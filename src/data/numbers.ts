@@ -180,3 +180,28 @@ export const LIFE_PATH_DEEP: Record<number, LifePathDeep> = {
     growth: "Before you give today, ask what you need. Caring for yourself is part of caring for the world.",
   },
 };
+
+/**
+ * How much each number shapes a reading, so readers short on time know what to read first.
+ * Each number has a tiny tag, and the numbers are shown in three groups, most important first.
+ */
+export const NUMBER_TAGS = {
+  lifePath: "Your main road in life",
+  expression: "Your natural talents",
+  soulUrge: "What your heart really wants",
+  birthday: "A gift you were born with",
+  personality: "How others see you at first",
+  personalYear: "What this year is about for you",
+  challenges: "Lessons you meet along the way",
+  maturity: "Who you grow into",
+  universalYear: "The year's mood for everyone",
+} as const;
+
+export const NUMBER_GROUPS = {
+  core: "Start here: the core of you",
+  worth: "Worth reading: more about you",
+  extra: "Extra detail: if you want more",
+} as const;
+
+/** The one-line explainer above the groups. */
+export const NUMBER_GROUPS_INTRO = "Your numbers are grouped by how much they shape you, most important first. Short on time? Just read “Start here”.";

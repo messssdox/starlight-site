@@ -24,10 +24,12 @@ test("Life Path working explains master numbers", () => {
   assert.ok(b.meaning!.text.startsWith("The Master Builder."));
 });
 
-test("name working adds word by word", () => {
+test("name working is brief: which letters, lit up, no sums", () => {
   const b = nameBreakdown("Grace Ellen Hart", "expression");
-  assert.ok(texts(b).includes("GRACE: G 7 + R 9 + A 1 + C 3 + E 5 = 25."));
-  assert.ok(texts(b).includes("Add the words together: 25 + 21 + 20 = 66."));
+  assert.equal(b.steps.length, 0);
+  assert.ok(b.lettersOnly);
+  assert.ok(b.summary!.startsWith("Every letter of your full birth name is used."));
+  assert.ok(!/=/.test(b.summary!));
   assert.equal(b.result, "Your Expression number is 3.");
   const soul = nameBreakdown("John", "soul");
   assert.equal(soul.result, "Your Soul Urge number is 6.");
@@ -65,4 +67,26 @@ test("Challenge Numbers subtract the reduced day, month and year", async () => {
   const b = challengesBreakdown("1990-03-14");
   assert.ok(texts(b).some((s) => s.startsWith("Second Challenge") && s.endsWith("5 − 1 = 4.")));
   assert.equal(b.result, "Your challenges are 2, 4, 2 and 2. Your main challenge is 2.");
+});
+
+test("Birthday, Maturity and Universal Year working", async () => {
+  const { birthdayBreakdown, maturityBreakdown, universalYearBreakdown } = await import("../src/lib/explain.ts");
+  assert.equal(birthdayBreakdown("1990-03-14").result, "Your Birthday number is 5.");
+  assert.ok(texts(birthdayBreakdown("1990-03-14")).includes("You were born on the 14th."));
+  assert.equal(birthdayBreakdown("1990-03-22").result, "Your Birthday number is 22.");
+  assert.ok(texts(birthdayBreakdown("1990-03-01")).includes("You were born on the 1st."));
+  // Life Path 9 + Expression 3 = 12 -> 3
+  assert.equal(maturityBreakdown("1990-03-14", "Grace Ellen Hart").result, "Your Maturity number is 3.");
+  assert.equal(universalYearBreakdown(2026).result, "2026 is a Universal Year 1.");
+});
+
+test("the full numerology reading is grouped, most important first", async () => {
+  const { numbersReading } = await import("../src/lib/numbers-ui.ts");
+  const html = numbersReading({ date: "1990-03-14", name: "Grace Ellen Hart", tier: "first", articles: new Set(), today: "2026-10-27", noNameHint: "HINT" });
+  const at = (s: string) => html.indexOf(s);
+  for (const s of ["Start here", "Worth reading", "Extra detail", "Life Path", "Expression", "Soul Urge", "Birthday", "Personality", "Personal Year 2026", "Challenges", "Maturity", "Universal Year 2026", "Your main road in life"]) assert.ok(at(s) >= 0, s);
+  assert.ok(at("Start here") < at("Soul Urge") && at("Soul Urge") < at("Worth reading") && at("Worth reading") < at(">Birthday<") && at("Personal Year 2026") < at("Extra detail"));
+  assert.ok(!html.includes("HINT"));
+  const noName = numbersReading({ date: "1990-03-14", name: "", tier: "first", articles: new Set(), today: "2026-10-27", noNameHint: "HINT" });
+  assert.ok(noName.includes("HINT") && noName.includes(">Birthday<") && noName.includes("Challenges") && !noName.includes(">Soul Urge<"));
 });
