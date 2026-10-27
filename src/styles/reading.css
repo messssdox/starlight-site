@@ -137,3 +137,7 @@
 .reading .lp-bit p, .reading .lp-bit ul { margin: 0; font-size: 0.93rem; }
 .reading .lp-bit ul { padding-left: 18px; }
 @media (max-width: 640px) { .reading .lp-bits { grid-template-columns: 1fr; } }
+/* Each number carries its own "How it's calculated" */
+.reading .medallion .calc { text-align: left; }
+.reading .medallion .how-card, .reading .lp-box .how-card { padding: 12px 14px; }
+.reading .lp-box .calc { margin-top: 14px; }

@@ -56,23 +56,24 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
         ${bit(`Where a ${lp.value} often thrives`, list(deep.thrivesIn))}
         ${bit("A practice for your path", `<p>${esc(deep.growth)}</p>`)}
       </div>` : ""}
-    </div>
-    ${calc([lifePathBreakdown(date)], articles)}`;
+      ${calc([lifePathBreakdown(date)], articles)}
+    </div>`;
   const coreName = hasName
-    ? `<div class="numbers">${medallion("Expression", expression(name), tier, NUMBER_TAGS.expression)}${medallion("Soul Urge", soulUrge(name), tier, NUMBER_TAGS.soulUrge)}</div>
-       ${calc([nameBreakdown(name, "expression"), nameBreakdown(name, "soul")], articles)}`
+    ? `<div class="numbers">
+        ${medallion("Expression", expression(name), tier, NUMBER_TAGS.expression, calc([nameBreakdown(name, "expression")], articles))}
+        ${medallion("Soul Urge", soulUrge(name), tier, NUMBER_TAGS.soulUrge, calc([nameBreakdown(name, "soul")], articles))}
+      </div>`
     : `<p class="panel no-name">${noNameHint}</p>`;
 
   // Worth reading: Birthday, Personality, Personal Year
   const py = personalYear(date, year);
-  const pyTile = `<div class="medallion panel"><span class="what">Personal Year ${year}</span><span class="tag">${esc(NUMBER_TAGS.personalYear)}</span><span class="n">${py.value}</span><p class="muted">${esc(PERSONAL_YEAR_THEMES[py.value] ?? "")}</p></div>`;
+  const pyTile = `<div class="medallion panel"><span class="what">Personal Year ${year}</span><span class="tag">${esc(NUMBER_TAGS.personalYear)}</span><span class="n">${py.value}</span><p class="muted">${esc(PERSONAL_YEAR_THEMES[py.value] ?? "")}</p>${calc([personalYearBreakdown(date, today)], articles)}</div>`;
   const worth = `
     <div class="numbers">
-      ${medallion("Birthday", birthday(date), tier, NUMBER_TAGS.birthday)}
-      ${hasName ? medallion("Personality", personality(name), tier, NUMBER_TAGS.personality) : ""}
+      ${medallion("Birthday", birthday(date), tier, NUMBER_TAGS.birthday, calc([birthdayBreakdown(date)], articles))}
+      ${hasName ? medallion("Personality", personality(name), tier, NUMBER_TAGS.personality, calc([nameBreakdown(name, "personality")], articles)) : ""}
       ${pyTile}
-    </div>
-    ${calc([birthdayBreakdown(date), ...(hasName ? [nameBreakdown(name, "personality")] : []), personalYearBreakdown(date, today)], articles)}`;
+    </div>`;
 
   // Extra detail: Challenges, Maturity, Universal Year
   const ch = challenges(date);
@@ -95,10 +96,9 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
     <div class="numbers challenges">${challengeCards}</div>
     ${calc([challengesBreakdown(date)], articles)}
     <div class="numbers">
-      ${hasName ? medallion("Maturity", maturity(date, name), tier, NUMBER_TAGS.maturity) : ""}
-      <div class="medallion panel"><span class="what">Universal Year ${year}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${uy.value}</span><span class="k">${uyMeaning?.keyword ?? ""}</span><p class="muted">${uyMeaning?.essence ?? ""}</p></div>
-    </div>
-    ${calc([...(hasName ? [maturityBreakdown(date, name)] : []), universalYearBreakdown(year)], articles)}`;
+      ${hasName ? medallion("Maturity", maturity(date, name), tier, NUMBER_TAGS.maturity, calc([maturityBreakdown(date, name)], articles)) : ""}
+      <div class="medallion panel"><span class="what">Universal Year ${year}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${uy.value}</span><span class="k">${uyMeaning?.keyword ?? ""}</span><p class="muted">${uyMeaning?.essence ?? ""}</p>${calc([universalYearBreakdown(year)], articles)}</div>
+    </div>`;
 
   return `
     <p class="muted num-intro">${esc(NUMBER_GROUPS_INTRO)}</p>

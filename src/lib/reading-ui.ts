@@ -35,10 +35,10 @@ export function calc(cards: Breakdown[], articles: Set<string>, label = "How it'
   return `<details class="calc"><summary>${esc(label)}</summary>${cards.map((b) => howCard(b, articles)).join("")}</details>`;
 }
 
-export function medallion(what: string, r: Result, tier: Tier, tag?: string) {
+export function medallion(what: string, r: Result, tier: Tier, tag?: string, extra = "") {
   const m = NUMBER_MEANINGS[r.value];
   const body = tier === "glance" ? `<p class="muted">${m?.essence ?? ""}</p>` : `<p class="muted">${m?.gentle ?? ""}</p>`;
-  return `<div class="medallion panel"><span class="what">${what}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}<span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}</div>`;
+  return `<div class="medallion panel"><span class="what">${what}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}<span class="n">${r.value}</span><span class="k">${m?.keyword ?? ""}</span>${body}${extra}</div>`;
 }
 
 /** Count a reading made on the page itself (the Numerology calculator), once per set of details. */
