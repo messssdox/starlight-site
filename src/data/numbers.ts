@@ -20,7 +20,7 @@ export const NUMBER_MEANINGS: Record<number, NumberMeaning> = {
   9: { keyword: "The Humanitarian", essence: "Compassionate, wise and generous.", gentle: "Nine is the number of completion. You see the bigger picture and want to make the world kinder. Your lesson is to let go gracefully and give without losing yourself." },
   11: { keyword: "The Intuitive", essence: "Inspired, sensitive and visionary.", gentle: "Eleven is a master number: a heightened Two. You have strong intuition and can inspire others simply by being yourself. Your lesson is to trust your sensitivity rather than fear it." },
   22: { keyword: "The Master Builder", essence: "Visionary, practical and powerful.", gentle: "Twenty-two is a master number: a heightened Four. You can turn big dreams into real, lasting things that help many people. Your lesson is to believe the vision is possible." },
-  33: { keyword: "The Master Teacher", essence: "Loving, healing and selfless.", gentle: "Thirty-three is a master number: a heightened Six. Your path is about compassion, healing and guiding others. Your lesson is to serve without carrying everyone's burdens alone." },
+  33: { keyword: "The Master Teacher", essence: "Loving, guiding and selfless.", gentle: "Thirty-three is a master number: a heightened Six. Your path is about compassion, teaching and guiding others. Your lesson is to serve without carrying everyone's burdens alone." },
 };
 
 /** Life Path numbers that traditionally flow together: 1-5-7 (independent minds), 2-4-8 (builders), 3-6-9 (creative hearts). */
