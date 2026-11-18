@@ -176,7 +176,7 @@ export const LIFE_PATH_DEEP: Record<number, LifePathDeep> = {
     watchOut: ["Carrying everyone's burdens", "Martyrdom", "Neglecting yourself"],
     love: "You love with your whole heart and need a partner who cares for you in return. Let yourself receive.",
     work: "You thrive in teaching, guiding and mentoring work, and anywhere compassion is needed.",
-    thrivesIn: ["Teaching", "Healthcare and therapy", "Charity work", "Spiritual leadership"],
+    thrivesIn: ["Teaching", "Mentoring and coaching", "Charity work", "Spiritual leadership"],
     growth: "Before you give today, ask what you need. Caring for yourself is part of caring for the world.",
   },
 };
