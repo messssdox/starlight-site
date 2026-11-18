@@ -209,7 +209,7 @@ export const UNIVERSAL_DAY: Record<number, string> = {
   9: "a day for endings, letting go and kindness",
   11: "a master day of intuition, inspiration and spiritual insight",
   22: "a master day for turning big dreams into something real",
-  33: "a master day of compassion, healing and service",
+  33: "a master day of compassion, guidance and service",
 };
 
 /**

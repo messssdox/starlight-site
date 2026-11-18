@@ -24,7 +24,7 @@ Twenty-two is a heightened [4](/library/numerology/number-4). Twenty-twos combin
 
 ## 33: The Master Teacher
 
-Thirty-three is a heightened [6](/library/numerology/number-6), and the rarest of the three. Its path is about compassion, healing and guiding others. The lesson for 33 is to serve without carrying everyone's burdens alone.
+Thirty-three is a heightened [6](/library/numerology/number-6), and the rarest of the three. Its path is about compassion, teaching and guiding others. The lesson for 33 is to serve without carrying everyone's burdens alone.
 
 ## Living with a master number
 
