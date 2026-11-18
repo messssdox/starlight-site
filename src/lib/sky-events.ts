@@ -314,7 +314,7 @@ function numberDates(start: Date, end: Date): SkyEvent[] {
         const master = universalYearMaster(y);
         ev.title = `1/1 · Universal Year ${universalYearShown(y)} begins`;
         ev.note = master
-          ? `${y} adds up to ${master}, a master number, which reduces to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`
+          ? `${y} adds up to ${master}, a master number: ${NUMBER_MEANINGS[master].keyword}, which reduces to ${uy.value}, ${NUMBER_MEANINGS[uy.value].keyword.replace(/^The /, "the ")}.`
           : `${y} adds up to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`;
         ev.detail = [{ p: `${y} is a Universal Year ${universalYearShown(y)} (${uy.steps.join(", then ")}). ${PERSONAL_YEAR_THEMES[uy.value]}` }, ...ev.detail];
       }

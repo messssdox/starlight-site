@@ -2,7 +2,7 @@
 // Numbers are shown in three groups, most important first, each with a tiny tag saying what it is,
 // so someone short on time can read "Start here" and stop.
 
-import { lifePath, expression, soulUrge, personality, birthday, personalYear, maturity, universalYear, universalYearShown, challenges, show } from "./numerology.ts";
+import { lifePath, expression, soulUrge, personality, birthday, personalYear, maturity, universalYear, universalYearShown, universalYearMaster, challenges, show } from "./numerology.ts";
 import { CHALLENGE_MEANINGS, LIFE_PATH_DEEP, NUMBER_MEANINGS, PERSONAL_YEAR_THEMES, NUMBER_TAGS, NUMBER_GROUPS, NUMBER_GROUPS_INTRO } from "../data/numbers.ts";
 import {
   lifePathBreakdown,
@@ -96,7 +96,10 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
     })
     .join("");
   const uy = universalYear(year);
-  const uyMeaning = NUMBER_MEANINGS[uy.value];
+  // A master year (2027 = 11/2) reads as the master, with a line on the core number it reduces to.
+  const uyMaster = universalYearMaster(year);
+  const uyMeaning = NUMBER_MEANINGS[uyMaster ?? uy.value];
+  const uyReduces = uyMaster ? ` A master ${uyMaster}, which reduces to ${uy.value}, ${(NUMBER_MEANINGS[uy.value]?.keyword ?? "").replace(/^The /, "the ")}.` : "";
   const extra = `
     <h3>${about("challenge-numbers", "Challenges")}</h3>
     <p class="tag">${esc(NUMBER_TAGS.challenges)}</p>
@@ -104,7 +107,7 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
     ${calc([challengesBreakdown(date)], articles)}
     <div class="numbers">
       ${hasName ? tile("Maturity", "maturity-number", maturity(date, name), NUMBER_TAGS.maturity, calc([maturityBreakdown(date, name)], articles)) : ""}
-      <div class="medallion panel"><span class="what">${about("universal-year-number", `Universal Year ${year}`)}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${universalYearShown(year)}</span><span class="k">${numberLink(uy.value)(uyMeaning?.keyword ?? "")}</span><p class="muted">${uyMeaning?.essence ?? ""}</p>${calc([universalYearBreakdown(year)], articles)}</div>
+      <div class="medallion panel"><span class="what">${about("universal-year-number", `Universal Year ${year}`)}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${universalYearShown(year)}</span><span class="k">${numberLink(uyMaster ?? uy.value)(uyMeaning?.keyword ?? "")}</span><p class="muted">${uyMeaning?.essence ?? ""}${uyReduces}</p>${calc([universalYearBreakdown(year)], articles)}</div>
     </div>`;
 
   return `

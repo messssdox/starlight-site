@@ -191,11 +191,13 @@ const FILTERS = [
     const y = start.getFullYear(), mo = start.getMonth() + 1;
     const uy = universalYear(y).value, um = universalMonth(y, mo).value, ud = dayNumber(start);
     const uyShown = universalYearShown(y), uyMaster = universalYearMaster(y);
+    // a master year (2027 = 11/2) reads as the master; the theme and the monthly sums use the core number
+    const uyM = NUMBER_MEANINGS[uyMaster ?? uy], uyBase = NUMBER_MEANINGS[uy].keyword.replace(/^The /, "the ");
     const firstSentence = (t: string) => t.split(/(?<=\.) /)[0];
     now.querySelector("[data-numbers]")!.innerHTML =
       `<span aria-hidden="true">✧</span> Numbers now: ` +
-      item(`Universal Year <strong>${uyShown}</strong> (${NUMBER_MEANINGS[uy].keyword})`,
-        `<p>The Universal Year is the number of the whole calendar year, the same for everyone: the digits of ${y} add up to ${uyMaster ? `${uyMaster}, a master number, which reduces to ${uy}` : uy}. ${NUMBER_MEANINGS[uy].keyword}: ${NUMBER_MEANINGS[uy].essence}</p><p>${PERSONAL_YEAR_THEMES[uy]}</p>`) + " · " +
+      item(`Universal Year <strong>${uyShown}</strong> (${uyM.keyword})`,
+        `<p>The Universal Year is the number of the whole calendar year, the same for everyone: the digits of ${y} add up to ${uyMaster ? `${uyMaster}, a master number, which reduces to ${uy}, ${uyBase}` : uy}. ${uyM.keyword}: ${uyM.essence}</p><p>${PERSONAL_YEAR_THEMES[uy]}</p>`) + " · " +
       item(`Universal Month <strong>${show(um)}</strong>`,
         `<p>The Universal Month is this month's number for everyone: the month (${mo}) added to the Universal Year (${uy}). ${NUMBER_MEANINGS[um].keyword}: ${NUMBER_MEANINGS[um].essence}</p><p>${firstSentence(NUMBER_MEANINGS[um].gentle)}</p>`) +
       ` · today is a ` +
