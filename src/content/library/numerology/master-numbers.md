@@ -6,11 +6,13 @@ tags: [numerology, master-numbers, life-path]
 sources:
   - title: "Hans Decoz, Numerology: Key to Your Inner Self"
   - title: "Ruth Drayer, Numerology: The Power in Numbers"
-updated: 2026-10-10
+updated: 2026-11-18
 ---
 ## Why they are special
 
 When you add up a birth date or name and reach 11, 22 or 33, numerologists stop there instead of reducing further. These double digits are thought to carry extra potential, like a stronger, louder version of the number underneath them.
+
+On Starlight, a master number is written with the number it reduces to beside it: 11/2, 22/4 and 33/6. That way you can see both at once: the master number, and the core number underneath it.
 
 ## 11: The Intuitive
 
@@ -30,4 +32,4 @@ Many numerologists say master numbers take time to grow into, so people often li
 
 ## Where traditions differ
 
-Some numerologists also count 44 and higher as master numbers; most, including Starlight, stop at 33. Some never keep master numbers in a Personal Year, which is what Starlight does too.
+Some numerologists also count 44 and higher as master numbers; most, including Starlight, stop at 33. Some never keep master numbers in a Personal Year, which is what Starlight does too. When a calendar year adds up to a master number, Starlight shows both: 2027 adds up to 11, so it is a Universal Year 11/2, and it counts as 2 when each month's number is worked out.

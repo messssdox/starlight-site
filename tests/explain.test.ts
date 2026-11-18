@@ -16,8 +16,8 @@ test("Life Path working is one short paragraph", () => {
 });
 
 test("Life Path working explains master numbers and further reducing", () => {
-  assert.equal(lifePathBreakdown("1991-11-09").result, "Your Life Path is 22.");
-  assert.ok(lifePathBreakdown("1991-11-09").summary!.endsWith("= 22, a master number, so it stays 22."));
+  assert.equal(lifePathBreakdown("1991-11-09").result, "Your Life Path is 22/4.");
+  assert.ok(lifePathBreakdown("1991-11-09").summary!.endsWith("= 22, a master number, so it is kept as 22/4."));
   // 9 + 9 + 1 = 19 -> 1
   assert.ok(lifePathBreakdown("1990-09-09").summary!.endsWith("= 19, which boils down to 1."));
 });
@@ -71,11 +71,13 @@ test("Birthday, Maturity and Universal Year working", async () => {
   const { birthdayBreakdown, maturityBreakdown, universalYearBreakdown } = await import("../src/lib/explain.ts");
   assert.equal(birthdayBreakdown("1990-03-14").result, "Your Birthday number is 5.");
   assert.ok(texts(birthdayBreakdown("1990-03-14")).includes("You were born on the 14th."));
-  assert.equal(birthdayBreakdown("1990-03-22").result, "Your Birthday number is 22.");
+  assert.equal(birthdayBreakdown("1990-03-22").result, "Your Birthday number is 22/4.");
   assert.ok(texts(birthdayBreakdown("1990-03-01")).includes("You were born on the 1st."));
   // Life Path 9 + Expression 3 = 12 -> 3
   assert.equal(maturityBreakdown("1990-03-14", "Grace Ellen Hart").result, "Your Maturity number is 3.");
   assert.equal(universalYearBreakdown(2026).result, "2026 is a Universal Year 1.");
+  // 2027: 2 + 0 + 2 + 7 = 11, shown as 11/2 (it still counts as 2 for the months)
+  assert.equal(universalYearBreakdown(2027).result, "2027 is a Universal Year 11/2.");
 });
 
 test("the full numerology reading is grouped, most important first", async () => {

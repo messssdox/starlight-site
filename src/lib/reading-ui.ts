@@ -1,7 +1,7 @@
 // Small HTML helpers shared by the reading page and the numerology deep dive.
 
 import { NUMBER_MEANINGS } from "../data/numbers.ts";
-import type { Result } from "./numerology.ts";
+import { show, type Result } from "./numerology.ts";
 import type { Breakdown } from "./explain.ts";
 
 export type Tier = "glance" | "first" | "deep";
@@ -38,7 +38,7 @@ export function calc(cards: Breakdown[], articles: Set<string>, label = "How it'
 export function medallion(what: string, r: Result, tier: Tier, tag?: string, extra = "", linkKeyword: (html: string) => string = (h) => h) {
   const m = NUMBER_MEANINGS[r.value];
   const body = tier === "glance" ? `<p class="muted">${m?.essence ?? ""}</p>` : `<p class="muted">${m?.gentle ?? ""}</p>`;
-  return `<div class="medallion panel"><span class="what">${what}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}<span class="n">${r.value}</span><span class="k">${linkKeyword(m?.keyword ?? "")}</span>${body}${extra}</div>`;
+  return `<div class="medallion panel"><span class="what">${what}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}<span class="n">${show(r.value)}</span><span class="k">${linkKeyword(m?.keyword ?? "")}</span>${body}${extra}</div>`;
 }
 
 /** Count a reading made on the page itself (the Numerology calculator), once per set of details. */

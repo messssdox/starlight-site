@@ -15,7 +15,7 @@ import {
 import { pairUp, signLink, type PersonalSigns, type PlanetPair } from "./synastry.ts";
 import { LINK_FEEL } from "../data/synastry.ts";
 import type { Comparison } from "./compat.ts";
-import { birthday } from "./numerology.ts";
+import { birthday, show } from "./numerology.ts";
 import { elementLine, lifePathPairLine, yearTogetherLine } from "./compat.ts";
 import type { Kind } from "../data/relationships.ts";
 
@@ -108,8 +108,8 @@ export function pairReading(input: PairInput): PairText {
     hardest ? `Your biggest lesson is <strong>${lcFirst(title(hardest.planet))}</strong>: ${linkLine(hardest)}.` : "",
     count,
     pick([
-      `On the Chinese side, your ${A1} and ${their} ${A2} are ${WHEEL[c.relation]}, and your Life Paths ${c.me.lifePath} and ${c.them.lifePath} ${c.sameFamily ? "share a family" : "come from different families"}.`,
-      `Your ${A1} and ${their} ${A2} are ${WHEEL[c.relation]} on the wheel, and Life Paths ${c.me.lifePath} and ${c.them.lifePath} ${c.sameFamily ? "share a family" : "come from different families"}.`,
+      `On the Chinese side, your ${A1} and ${their} ${A2} are ${WHEEL[c.relation]}, and your Life Paths ${show(c.me.lifePath)} and ${show(c.them.lifePath)} ${c.sameFamily ? "share a family" : "come from different families"}.`,
+      `Your ${A1} and ${their} ${A2} are ${WHEEL[c.relation]} on the wheel, and Life Paths ${show(c.me.lifePath)} and ${show(c.them.lifePath)} ${c.sameFamily ? "share a family" : "come from different families"}.`,
     ], "wheel"),
   ].filter(Boolean).join(" ");
 
@@ -147,14 +147,14 @@ export function pairReading(input: PairInput): PairText {
     lifePathPairLine(lpMine, lpTheirs, them),
     c.sameFamily ? kind.numbers.same : kind.numbers.different,
     lpMine === lpTheirs
-      ? `You both bring the ${brings(lpMine)} energy of the ${lpMine}.`
-      : `Your ${lpMine} brings something ${brings(lpMine)}, and ${their} ${lpTheirs} brings something ${brings(lpTheirs)}.`,
+      ? `You both bring the ${brings(lpMine)} energy of the ${show(lpMine)}.`
+      : `Your ${show(lpMine)} brings something ${brings(lpMine)}, and ${their} ${show(lpTheirs)} brings something ${brings(lpTheirs)}.`,
     pick(FAMILY_MIX[keyOf(famOf(lpMine).name, famOf(lpTheirs).name)], "family"),
     fill(pick([
       "Day to day, your birthday number {b1}, {k1}, meets {their} {b2}, {k2}.",
       "Your birthday numbers add a little more: your {b1} is {k1} and {their} {b2} is {k2}.",
-    ], "birthday"), { b1: String(bd1), b2: String(bd2), k1: kw(bd1), k2: kw(bd2), their }),
-    masters.length ? `${masters.length === 2 ? "Both Life Paths are master numbers" : `Life Path ${masters[0]} is a master number`}, so this bond can carry a sense of bigger purpose. Keep it grounded in everyday kindness.` : "",
+    ], "birthday"), { b1: show(bd1), b2: show(bd2), k1: kw(bd1), k2: kw(bd2), their }),
+    masters.length ? `${masters.length === 2 ? "Both Life Paths are master numbers" : `Life Path ${show(masters[0])} is a master number`}, so this bond can carry a sense of bigger purpose. Keep it grounded in everyday kindness.` : "",
   ].filter(Boolean).join(" ");
 
   // this year: whether both years point outward or inward, and where you sit in the cycle

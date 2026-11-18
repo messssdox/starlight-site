@@ -19,7 +19,7 @@ import {
   ELEMENT_LEADS, ELEMENT_MISSING, MODALITY_LEADS, STELLIUM, VENUS_MARS, MERCURY_SUN, PY_SHORT, SUN_MOON_MODE, MOON_COPE,
   MIND_WAY, VENUS_WAY, MARS_WAY, LIFE_PATH_WAY, ANIMAL_WAY,
 } from "../data/spotlight.ts";
-import { lifePath, birthday, personalYear } from "./numerology.ts";
+import { lifePath, birthday, personalYear, show } from "./numerology.ts";
 import { chineseSign, secretFriendOf } from "./chinese.ts";
 import { signLink, PAIR_PLANETS, type PersonalSigns } from "./synastry.ts";
 import { picker, cap, lcFirst, an, fill, listOf } from "./wording.ts";
@@ -122,7 +122,7 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
     "Your Life Path, worked out from your full date of birth, is {n}, {Keyword}, and it brings {flavour}: {call}.",
     "Then there is your Life Path, the number from adding up your birth date, which is {n}, with {flavour}: {call}.",
     "In numerology, the digits of your birth date add up to Life Path {n}, which brings {flavour}, because {call}.",
-  ], "lp-open"), { n: String(lp), Keyword: NUMBER_MEANINGS[lp].keyword.replace(/^The /, "the "), flavour: L.flavour[idx("flavour")], call: L.call[idx("call")] });
+  ], "lp-open"), { n: show(lp), Keyword: NUMBER_MEANINGS[lp].keyword.replace(/^The /, "the "), flavour: L.flavour[idx("flavour")], call: L.call[idx("call")] });
   const masterLine = lp > 9 ? fill(pick([
     "{n} is a master number, one that numerology leaves unreduced, which strengthens {flavour}.",
     "As a master number, which numerology does not reduce to a single digit, {n} also brings {flavour}.",
@@ -135,7 +135,7 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
     `${sun.glyph} ${sun.name} Sun`,
     `${PLANET_BY_ID.moon.glyph} ${moon.name} Moon${signs.unsure.moon ? "?" : ""}`,
     ...(signs.rising ? [`AC ${signs.rising.name} Rising`] : []),
-    `Life Path ${lp}`,
+    `Life Path ${show(lp)}`,
     `${El} ${Animal}`,
   ];
 
@@ -149,7 +149,7 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
       "Where you shine is {gift}, while your Life Path {n} asks you to work on {edge}.",
       "At your best you are {gift}; the harder lesson of Life Path {n} is {edge}.",
       "{Sun} gives you a talent for {gift}, and Life Path {n} adds a challenge: {edge}.",
-    ], "gift-edge"), { gift: sunGift, edge: lpEdge, Sun: sun.name, n: String(lp) });
+    ], "gift-edge"), { gift: sunGift, edge: lpEdge, Sun: sun.name, n: show(lp) });
     return { title, facts, gifts: [], edges: [], closing: "", sections: [{ text: [coreLine, moonLine, focus || moonCope, lpLine, animalLine, giftEdge].filter(Boolean).join(" ") }] };
   }
 
@@ -220,17 +220,17 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
   const path = [
     lpLine,
     masterLine,
-    deep ? fill(pick(["In daily life, you {x}.", "As a Life Path {n}, you {x}.", "Practically, this means you {x}."], "lp-way"), { n: String(lp), x: pick(LIFE_PATH_WAY[lp], "lp-way-x") }) : "",
+    deep ? fill(pick(["In daily life, you {x}.", "As a Life Path {n}, you {x}.", "Practically, this means you {x}."], "lp-way"), { n: show(lp), x: pick(LIFE_PATH_WAY[lp], "lp-way-x") }) : "",
     deep ? fill(pick([
       "Your {Sun} Sun and Life Path {n} {clause}, and your greatest strength on this path is {strength}.",
       "Together, your {El} Sun and your {n} {clause}, and they point to your main strength: {strength}.",
       "Put your {Sun} Sun beside Life Path {n} and they {clause}; the strength in that is {strength}.",
-    ], "family"), { Sun: sun.name, El: sun.element, n: String(lp), clause: SUN_FAMILY[`${sun.element}|${family.name}`], strength: L.strength }) : "",
+    ], "family"), { Sun: sun.name, El: sun.element, n: show(lp), clause: SUN_FAMILY[`${sun.element}|${family.name}`], strength: L.strength }) : "",
     deep ? fill(pick([
       "Your birthday number, from the day of the month you were born, is {b} (the {day}), {kw}, which adds {flav}.",
       "Being born on the {day} gives you birthday number {b}, {kw}, and with it {flav}.",
       "Numerology also reads the day of the month: the {day} makes birthday number {b}, {kw}, adding {flav}.",
-    ], "bday"), { day: ordinal(day), b: String(bd.value), kw: NUMBER_MEANINGS[bd.value].keyword.replace(/^The /, "the "), flav: bdSpot.flavour[bd.value === lp ? 1 - idx("flavour") : idx("bday-flav")] }) : "",
+    ], "bday"), { day: ordinal(day), b: show(bd.value), kw: NUMBER_MEANINGS[bd.value].keyword.replace(/^The /, "the "), flav: bdSpot.flavour[bd.value === lp ? 1 - idx("flavour") : idx("bday-flav")] }) : "",
     fill(pick([
       "Numerology gives each year of your life its own number, and {year} is your Personal Year {py}: a year of {short}.",
       "Your Personal Year number, which changes every 1 January, is {py} for {year}, so expect {short}.",
@@ -286,8 +286,8 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
           "At work, your {M} Mars wants a place where you can {drive}, and your {Animal} enjoys {aw}.",
           "Work suits your Life Path {n} and {M} Mars when you can {drive}, ideally {aw}.",
           "Give your {M} Mars room to {drive}, and your {Animal} side {aw}, and work feels right.",
-        ], "work"), { n: String(lp), M: mars.name, Animal, aw: ANIMAL_PARTS[cn.animal.id].work, drive: SIGN_SPOT[mars.id].drive[1 - idx("drive")] }),
-        fill(pick(["Paths that suit both your {n} and your {Animal} include {fields}, or roles such as {roles}.", "Both your {n} and your {Animal} would enjoy {fields}, or work as {roles}."], "paths"), { n: String(lp), Animal, fields: fields.join(", "), roles: roles.map(an).join(" or ") }),
+        ], "work"), { n: show(lp), M: mars.name, Animal, aw: ANIMAL_PARTS[cn.animal.id].work, drive: SIGN_SPOT[mars.id].drive[1 - idx("drive")] }),
+        fill(pick(["Paths that suit both your {n} and your {Animal} include {fields}, or roles such as {roles}.", "Both your {n} and your {Animal} would enjoy {fields}, or work as {roles}."], "paths"), { n: show(lp), Animal, fields: fields.join(", "), roles: roles.map(an).join(" or ") }),
       ].join(" "),
     });
     // looking after yourself: the animal's wellbeing with what recharges the Moon, and the Life Path's practice beside Mars
@@ -302,7 +302,7 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
         fill(pick([
           "With Mars in {M}, watch out for {trap}, and as practice for your {n} path, {growth}.",
           "Try this for your Life Path {n}: {growth}, and with your {M} Mars, watch out for {trap}.",
-        ], "growth"), { n: String(lp), growth: lcFirst(noStop(firstSentence(deepLp.growth))), M: mars.name, trap: SIGN_SPOT[mars.id].trap }),
+        ], "growth"), { n: show(lp), growth: lcFirst(noStop(firstSentence(deepLp.growth))), M: mars.name, trap: SIGN_SPOT[mars.id].trap }),
       ].join(" "),
     });
   }
@@ -315,7 +315,7 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
     "In short, you are {aAdj} {Sun} with {aHeart} {Moon} Moon, {aEl} {Animal} by birth year and a Life Path {n}, the {lpWord}.",
     "Taken together: {aAdj} {Sun} Sun, {aHeart} {Moon} Moon, the instincts of {aEl} {Animal} and the path of the {lpWord}.",
     "Altogether, that makes you {aAdj} {Sun} with {aHeart} {Moon} Moon, born in {aEl} {Animal} year, walking Life Path {n}.",
-  ], "closing"), { aAdj: an(adj), aEl: an(El), Animal, aHeart: an(heart), Moon: moon.name, Sun: sun.name, lpWord, n: String(lp) });
+  ], "closing"), { aAdj: an(adj), aEl: an(El), Animal, aHeart: an(heart), Moon: moon.name, Sun: sun.name, lpWord, n: show(lp) });
 
   if (!deep) {
     sections.push({
@@ -330,7 +330,7 @@ export function spotlight({ date, signs, tier, year }: SpotlightInput): Spotligh
           "The challenges are {e1}, which your {Moon} Moon finds hard, and {e2}, which Life Path {n} asks of you.",
           "Where you will grow most: {e1} for your {Moon} Moon, and {e2} on your {n} path.",
           "Your {Moon} Moon is working on {e1}, and your {n} path on {e2}.",
-        ], "edges"), { e1: moonEdge, e2: lpEdge, Moon: moon.name, n: String(lp) }),
+        ], "edges"), { e1: moonEdge, e2: lpEdge, Moon: moon.name, n: show(lp) }),
       ].join(" "),
     });
     return { title, facts, sections, gifts: [], edges: [], closing };

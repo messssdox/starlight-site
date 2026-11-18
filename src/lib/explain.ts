@@ -2,7 +2,7 @@
 // so each reading teaches how it was calculated as it goes. Every step says what we do
 // and, in plain words, why; each card ends with what the result means for the reader.
 
-import { reduce, letterValue, MASTER_NUMBERS, personalYear, challenges, lifePath, expression } from "./numerology.ts";
+import { reduce, letterValue, MASTER_NUMBERS, personalYear, challenges, lifePath, expression, show, universalYearMaster, universalYearShown } from "./numerology.ts";
 import { chineseSign, friendsOf, secretFriendOf, clashOf } from "./chinese.ts";
 import { ANIMALS, GROUPS, ELEMENTS } from "../data/zodiac.ts";
 import { LUNAR_NEW_YEAR } from "../data/lunar-new-year.ts";
@@ -46,7 +46,7 @@ export function longDate(iso: string): string {
 }
 
 const WHY_REDUCE = "Adding a number's digits together is called reducing. Numerology works with the core numbers 1 to 9, and reducing boils a bigger number down to its core while keeping a trace of every digit in it.";
-const WHY_MASTER = "11, 22 and 33 are master numbers. Numerologists see them as stronger, more intense versions of 2, 4 and 6, so they are kept whole instead of being reduced.";
+const WHY_MASTER = "11, 22 and 33 are master numbers. Numerologists see them as stronger, more intense versions of 2, 4 and 6, so they are kept whole instead of being reduced. Starlight writes them with that core number beside them: 11/2, 22/4 and 33/6.";
 const WHY_ALREADY = "It is already one of the core numbers from 1 to 9, so there is nothing to reduce.";
 
 /** One reduction as a step: "Day 14: 1 + 4 = 5." */
@@ -67,7 +67,7 @@ function reduceStep(label: string, n: number, keepMasters: boolean, why?: string
 function finalSteps(total: number, keepMasters: boolean): Step[] {
   const r = reduce(total, keepMasters);
   if (r.steps.length === 0) {
-    if (total > 9) return [{ text: `${total} is a master number, so it stays ${total}.`, why: `Master numbers are never reduced, so ${total} is your final number. It carries a stronger, more intense form of the energy of ${total === 11 ? 2 : total === 22 ? 4 : 6}.` }];
+    if (total > 9) return [{ text: `${total} is a master number, so it stays ${total}.`, why: `Master numbers are never reduced, so ${total} is your final number, written ${show(total)}. It carries a stronger, more intense form of the energy of ${total === 11 ? 2 : total === 22 ? 4 : 6}.` }];
     return [];
   }
   return r.steps.map((s, i) => {
@@ -98,15 +98,15 @@ export function lifePathBreakdown(date: string): Breakdown {
   const value = reduce(total).value;
   const end =
     total === value
-      ? MASTER_NUMBERS.includes(value) ? `${total}, a master number, so it stays ${total}` : `${total}`
-      : MASTER_NUMBERS.includes(value) ? `${total}, which boils down to the master number ${value}` : `${total}, which boils down to ${value}`;
+      ? MASTER_NUMBERS.includes(value) ? `${total}, a master number, so it is kept as ${show(total)}` : `${total}`
+      : MASTER_NUMBERS.includes(value) ? `${total}, which boils down to the master number ${show(value)}` : `${total}, which boils down to ${value}`;
   return {
     id: "how-life-path",
     title: "Life Path",
     intro: "Your Life Path comes from your full birth date.",
     summary: `The day, month and year of ${longDate(date)} are each boiled down to ${[day, month, year].some((v) => v > 9) ? "one digit or a master number" : "one digit"} (${day}, ${month} and ${year}), then added together: ${day} + ${month} + ${year} = ${end}.`,
     steps: [],
-    result: `Your Life Path is ${value}.`,
+    result: `Your Life Path is ${show(value)}.`,
     articles: [
       { id: "numerology/life-path-number", label: "The Life Path number" },
       { id: "numerology/master-numbers", label: "Master numbers" },
@@ -123,7 +123,7 @@ const NAME_INFO: Record<NameKind, { title: string; intro: string; uses: string; 
     uses: "Every letter of your full birth name is used.",
     which: { text: "Every letter counts.", why: "Your whole name is everything you were given at birth, so all of it shapes your talents." },
     counts: () => true,
-    meaning: (v) => `Your natural gifts as an Expression ${v}`,
+    meaning: (v) => `Your natural gifts as an Expression ${show(v)}`,
   },
   soul: {
     title: "Soul Urge",
@@ -131,7 +131,7 @@ const NAME_INFO: Record<NameKind, { title: string; intro: string; uses: string; 
     uses: "Only the vowels are used: A, E, I, O and U.",
     which: { text: "Only the vowels count: A, E, I, O and U. (Starlight treats Y as a consonant.)", why: "Vowels are the soft, open sounds that carry your voice, so numerology links them to your inner self and your heart's desires." },
     counts: (l) => VOWELS.has(l),
-    meaning: (v) => `What your heart longs for as a Soul Urge ${v}`,
+    meaning: (v) => `What your heart longs for as a Soul Urge ${show(v)}`,
   },
   personality: {
     title: "Personality",
@@ -139,7 +139,7 @@ const NAME_INFO: Record<NameKind, { title: string; intro: string; uses: string; 
     uses: "Only the consonants are used: every letter that isn't a vowel.",
     which: { text: "Only the consonants count: every letter that is not A, E, I, O or U.", why: "Consonants are the firmer sounds that give a name its outline, so numerology links them to the face you show the world." },
     counts: (l) => !VOWELS.has(l),
-    meaning: (v) => `How the world first sees you as a Personality ${v}`,
+    meaning: (v) => `How the world first sees you as a Personality ${show(v)}`,
   },
 };
 
@@ -171,7 +171,7 @@ export function nameBreakdown(name: string, kind: NameKind): Breakdown {
     steps: [],
     letters,
     lettersOnly: true,
-    result: `Your ${info.title} number is ${value}.`,
+    result: `Your ${info.title} number is ${show(value)}.`,
     meaning: none ? undefined : numberMeaning(info.meaning(value), value),
     articles: [{ id: "numerology/your-name-numbers", label: "Your name numbers" }],
   };
@@ -186,8 +186,8 @@ export function birthdayBreakdown(date: string): Breakdown {
     title: "Birthday",
     intro: "Your Birthday number comes only from the day of the month you were born. Numerologists read it as a special gift or talent you carry.",
     steps: [{ text: `You were born on the ${d}${ordinal(d)}.`, why: "The day is the most personal part of your birth date, so it gets a number of its own." }, ...(d > 9 ? [day.step] : [])],
-    result: `Your Birthday number is ${day.value}.`,
-    meaning: numberMeaning(`The gift of a Birthday ${day.value}`, day.value),
+    result: `Your Birthday number is ${show(day.value)}.`,
+    meaning: numberMeaning(`The gift of a Birthday ${show(day.value)}`, day.value),
     articles: [{ id: "numerology/birthday-number", label: "Your Birthday number" }],
   };
 }
@@ -203,8 +203,8 @@ export function maturityBreakdown(date: string, name: string): Breakdown {
     title: "Maturity",
     intro: "Your Maturity number shows who you grow into. It tends to come through more strongly from your late thirties onwards.",
     steps: [{ text: `Add your Life Path and your Expression: ${lp} + ${ex} = ${total}.`, why: "It joins the road you walk with the talents you bring to it." }, ...finalSteps(total, true)],
-    result: `Your Maturity number is ${value}.`,
-    meaning: numberMeaning(`Growing into a ${value}`, value),
+    result: `Your Maturity number is ${show(value)}.`,
+    meaning: numberMeaning(`Growing into ${value === 8 || value === 11 ? "an" : "a"} ${show(value)}`, value),
     articles: [{ id: "numerology/maturity-number", label: "Your Maturity number" }],
   };
 }
@@ -212,12 +212,13 @@ export function maturityBreakdown(date: string, name: string): Breakdown {
 /** Universal Year: the calendar year's own number, the same for everyone. */
 export function universalYearBreakdown(year: number): Breakdown {
   const r = reduce(year, false);
+  const master = universalYearMaster(year);
   return {
     id: "how-universal-year",
     title: `Universal Year ${year}`,
     intro: "The Universal Year is the calendar year's own number. It is the same for everyone, like the weather of the year.",
-    steps: [{ text: `Add the digits of ${year}: ${r.steps.join(", then ")}.` }],
-    result: `${year} is a Universal Year ${r.value}.`,
+    steps: [{ text: `Add the digits of ${year}: ${r.steps.join(", then ")}.`, ...(master ? { why: `${master} is a master number, so ${year} is written ${show(master)}. When the Universal Month is worked out, the year counts as ${r.value}.` } : {}) }],
+    result: `${year} is a Universal Year ${universalYearShown(year)}.`,
     articles: [{ id: "numerology/universal-year-number", label: "The Universal Year" }],
   };
 }

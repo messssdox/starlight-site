@@ -31,7 +31,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
 </Base>
 
 <script>
-  import { lifePath } from "../lib/numerology.ts";
+  import { lifePath, show } from "../lib/numerology.ts";
   import { chineseSign, secretFriendOf, clashOf, friendsOf } from "../lib/chinese.ts";
   import { GROUPS, ELEMENTS, PROFILES, seasonOf } from "../data/zodiac.ts";
   import { PLANET_BY_ID } from "../data/astrology.ts";
@@ -123,8 +123,8 @@ const articles = (await getCollection("library")).map((a) => a.id);
     const m = NUMBER_MEANINGS[lp.value];
     return `
       <section class="part">
-        <div class="panel lp-strip"${share(`Life Path ${lp.value}${m?.keyword ? `, ${m.keyword}` : ""}`, m?.essence ?? "")}>
-          <span class="n">${lp.value}</span>
+        <div class="panel lp-strip"${share(`Life Path ${show(lp.value)}${m?.keyword ? `, ${m.keyword}` : ""}`, m?.essence ?? "")}>
+          <span class="n">${show(lp.value)}</span>
           <div>
             <span class="what">Your Life Path</span>
             <span class="k">${m?.keyword ?? ""}</span>
@@ -280,7 +280,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
         <img src="/animals/${p.sign.animal.id}.png" alt="" width="64" height="64">
         <div>
           <p class="eyebrow">${who}</p>
-          <p><strong>${signs.signs.sun.glyph} ${signs.signs.sun.name} Sun · ${p.sign.element} ${p.sign.animal.name}</strong><br>Moon in ${signs.signs.moon.name}${signs.unsure.moon ? " (best guess)" : ""}${signs.rising ? ` · ${signs.rising.name} Rising` : ""} · Life Path ${p.lifePath}, ${NUMBER_MEANINGS[p.lifePath]?.keyword ?? ""}<br>Personal Year ${p.personalYear}</p>
+          <p><strong>${signs.signs.sun.glyph} ${signs.signs.sun.name} Sun · ${p.sign.element} ${p.sign.animal.name}</strong><br>Moon in ${signs.signs.moon.name}${signs.unsure.moon ? " (best guess)" : ""}${signs.rising ? ` · ${signs.rising.name} Rising` : ""} · Life Path ${show(p.lifePath)}, ${NUMBER_MEANINGS[p.lifePath]?.keyword ?? ""}<br>Personal Year ${p.personalYear}</p>
         </div>
       </div>`;
 
@@ -390,7 +390,7 @@ const articles = (await getCollection("library")).map((a) => a.id);
         <section class="part">
           <h2>Your numbers</h2>
           <div class="panel says">
-            <div class="say"${share(`Life Path ${c.me.lifePath} and Life Path ${c.them.lifePath}`, plain(pr.numbers))}><h3>Life Path ${c.me.lifePath} and Life Path ${c.them.lifePath}</h3>
+            <div class="say"${share(`Life Path ${show(c.me.lifePath)} and Life Path ${show(c.them.lifePath)}`, plain(pr.numbers))}><h3>Life Path ${show(c.me.lifePath)} and Life Path ${show(c.them.lifePath)}</h3>
               <p>${pr.numbers}</p></div>
             <div class="say"><h3>This year together</h3>
               <p>${pr.year}</p></div>

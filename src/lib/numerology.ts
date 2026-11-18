@@ -128,6 +128,29 @@ export function universalYear(year: number): Result {
   return reduce(year, false);
 }
 
+/**
+ * How a number is written on the page. Master numbers carry the core number they reduce to
+ * beside them (11 → "11/2", 22 → "22/4", 33 → "33/6"); every other number is shown as it is.
+ * Display only: the maths always uses the number itself.
+ */
+export function show(n: number): string {
+  return MASTER_NUMBERS.includes(n) ? `${n}/${reduce(n, false).value}` : String(n);
+}
+
+/**
+ * The Universal Year as written on the page. When the year's digits add up to a master number,
+ * that master is shown with its core number (2027 → 2 + 0 + 2 + 7 = 11 → "11/2"). The value used in
+ * sums, such as the Universal Month, stays the single digit from universalYear().
+ */
+export function universalYearMaster(year: number): number | null {
+  const kept = reduce(year).value;
+  return MASTER_NUMBERS.includes(kept) ? kept : null;
+}
+export function universalYearShown(year: number): string {
+  const master = universalYearMaster(year);
+  return master ? show(master) : String(universalYear(year).value);
+}
+
 /** Universal Month: the month's number added to the Universal Year, keeping master numbers (October 2026 → 10 + 1 = 11). */
 export function universalMonth(year: number, month: number): Result {
   const uy = universalYear(year).value;

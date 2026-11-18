@@ -1,7 +1,7 @@
 // Compatibility between two people: the zodiac wheel, the five elements, Life Path
 // families and this year's Personal Years, plus a simple harmony score with its working.
 
-import { lifePath, personalYear } from "./numerology.ts";
+import { lifePath, personalYear, show } from "./numerology.ts";
 import { chineseSign, relationBetween, type Relation, type ChineseSign } from "./chinese.ts";
 import { ELEMENTS, type Element } from "../data/zodiac.ts";
 import { NUMBER_FAMILIES, NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
@@ -117,7 +117,7 @@ export function comparisonBreakdown(c: Comparison, them: string): Breakdown {
         why: "The five elements feed each other in one cycle (Wood, Fire, Earth, Metal, Water) and keep each other in check in another. Feeding brings support; checking brings challenge and structure.",
       },
       {
-        text: `Compare your Life Paths: your ${c.me.lifePath} is one of the ${famMe?.name ?? "numbers"}, and their ${c.them.lifePath} is one of the ${famThem?.name ?? "numbers"}. ${c.sameFamily ? "That is the same family." : "Those are different families."}`,
+        text: `Compare your Life Paths: your ${show(c.me.lifePath)} is one of the ${famMe?.name ?? "numbers"}, and their ${show(c.them.lifePath)} is one of the ${famThem?.name ?? "numbers"}. ${c.sameFamily ? "That is the same family." : "Those are different families."}`,
         why: "Numerologists group Life Paths into three families that share a rhythm: 1, 5 and 7 are independent minds; 2, 4, 8, 11 and 22 are steady builders; 3, 6, 9 and 33 are creative hearts.",
       },
       {
@@ -139,8 +139,8 @@ export function comparisonBreakdown(c: Comparison, them: string): Breakdown {
 export function lifePathPairLine(mine: number, theirs: number, them: string): string {
   const a = NUMBER_MEANINGS[mine]?.keyword ?? String(mine);
   const b = NUMBER_MEANINGS[theirs]?.keyword ?? String(theirs);
-  if (mine === theirs) return `You are both Life Path ${mine}, ${a}, so you recognise each other's drive and dreams, and also each other's habits.`;
-  return `Your Life Path ${mine}, ${a}, meets ${them}'s Life Path ${theirs}, ${b}.`;
+  if (mine === theirs) return `You are both Life Path ${show(mine)}, ${a}, so you recognise each other's drive and dreams, and also each other's habits.`;
+  return `Your Life Path ${show(mine)}, ${a}, meets ${them}'s Life Path ${show(theirs)}, ${b}.`;
 }
 
 /** This year for the two of you, from both Personal Years. */

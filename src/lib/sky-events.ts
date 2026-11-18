@@ -11,7 +11,7 @@ import {
 import { longitudeOf, signOf } from "./astrology.ts";
 import { SIGNS, type Sign, type PlanetId } from "../data/astrology.ts";
 import { NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
-import { universalYear } from "./numerology.ts";
+import { universalYear, universalYearMaster, universalYearShown } from "./numerology.ts";
 import {
   PLANET_THEMES, SIGN_STAY, SIGN_STYLE, SIGN_AREA, NEW_MOON_IDEAS, RETRO, RETRO_INTRO, STATION_NOTE,
   NEW_MOON_INTRO, NUMBER_DATES, PORTAL_WHY, PLANET_SHORT, STARLIGHT_BIRTHDAY, FULL_MOON_INTRO, SOLAR_ECLIPSE_INTRO, LUNAR_ECLIPSE_INTRO, ECLIPSE_KIND, SEASON_DETAIL,
@@ -311,9 +311,12 @@ function numberDates(start: Date, end: Date): SkyEvent[] {
       };
       if (key === "1/1") {
         const uy = universalYear(y);
-        ev.title = `1/1 · Universal Year ${uy.value} begins`;
-        ev.note = `${y} adds up to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`;
-        ev.detail = [{ p: `${y} is a Universal Year ${uy.value} (${uy.steps.join(", then ")}). ${PERSONAL_YEAR_THEMES[uy.value]}` }, ...ev.detail];
+        const master = universalYearMaster(y);
+        ev.title = `1/1 · Universal Year ${universalYearShown(y)} begins`;
+        ev.note = master
+          ? `${y} adds up to ${master}, a master number, which reduces to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`
+          : `${y} adds up to ${uy.value}: ${NUMBER_MEANINGS[uy.value].keyword}.`;
+        ev.detail = [{ p: `${y} is a Universal Year ${universalYearShown(y)} (${uy.steps.join(", then ")}). ${PERSONAL_YEAR_THEMES[uy.value]}` }, ...ev.detail];
       }
       if (key === "8/8") { ev.until = new Date(y, 7, 12); ev.untilLabel = "The Lion's Gate stays open until"; }
       if (key === "10/10" && y > LAUNCH_YEAR) {

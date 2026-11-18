@@ -2,7 +2,7 @@
 // Numbers are shown in three groups, most important first, each with a tiny tag saying what it is,
 // so someone short on time can read "Start here" and stop.
 
-import { lifePath, expression, soulUrge, personality, birthday, personalYear, maturity, universalYear, challenges } from "./numerology.ts";
+import { lifePath, expression, soulUrge, personality, birthday, personalYear, maturity, universalYear, universalYearShown, challenges, show } from "./numerology.ts";
 import { CHALLENGE_MEANINGS, LIFE_PATH_DEEP, NUMBER_MEANINGS, PERSONAL_YEAR_THEMES, NUMBER_TAGS, NUMBER_GROUPS, NUMBER_GROUPS_INTRO } from "../data/numbers.ts";
 import {
   lifePathBreakdown,
@@ -50,7 +50,7 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
   const lifePathBlock = `
     <div class="panel lp-box">
       <div class="lp-head">
-        <span class="n">${lp.value}</span>
+        <span class="n">${show(lp.value)}</span>
         <div><span class="what">${about("life-path-number", "Life Path")}</span><span class="tag">${esc(NUMBER_TAGS.lifePath)}</span><span class="k">${numberLink(lp.value)(m?.keyword ?? "")}</span></div>
       </div>
       <p>${esc(deep?.journey ?? m?.gentle ?? "")}</p>
@@ -60,7 +60,7 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
         ${bit("Watch out for", list(deep.watchOut))}
         ${bit("In love", `<p>${esc(deep.love)}</p>`)}
         ${bit("At work", `<p>${esc(deep.work)}</p>`)}
-        ${bit(`Where a ${lp.value} often thrives`, list(deep.thrivesIn))}
+        ${bit(`Where ${lp.value === 8 || lp.value === 11 ? "an" : "a"} ${show(lp.value)} often thrives`, list(deep.thrivesIn))}
         ${bit("A practice for your path", `<p>${esc(deep.growth)}</p>`)}
       </div>` : ""}
       ${calc([lifePathBreakdown(date)], articles)}
@@ -104,7 +104,7 @@ export function numbersReading({ date, name, tier, articles, today, noNameHint }
     ${calc([challengesBreakdown(date)], articles)}
     <div class="numbers">
       ${hasName ? tile("Maturity", "maturity-number", maturity(date, name), NUMBER_TAGS.maturity, calc([maturityBreakdown(date, name)], articles)) : ""}
-      <div class="medallion panel"><span class="what">${about("universal-year-number", `Universal Year ${year}`)}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${uy.value}</span><span class="k">${numberLink(uy.value)(uyMeaning?.keyword ?? "")}</span><p class="muted">${uyMeaning?.essence ?? ""}</p>${calc([universalYearBreakdown(year)], articles)}</div>
+      <div class="medallion panel"><span class="what">${about("universal-year-number", `Universal Year ${year}`)}</span><span class="tag">${esc(NUMBER_TAGS.universalYear)}</span><span class="n">${universalYearShown(year)}</span><span class="k">${numberLink(uy.value)(uyMeaning?.keyword ?? "")}</span><p class="muted">${uyMeaning?.essence ?? ""}</p>${calc([universalYearBreakdown(year)], articles)}</div>
     </div>`;
 
   return `

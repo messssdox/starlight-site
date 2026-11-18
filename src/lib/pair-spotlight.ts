@@ -18,6 +18,7 @@ import {
 } from "../data/pair-spotlight.ts";
 import { PY_SHORT } from "../data/spotlight.ts";
 import { picker, cap, an, fill, lcFirst, listOf } from "./wording.ts";
+import { show } from "./numerology.ts";
 import { pairUp, signLink, type PersonalSigns, type PlanetPair } from "./synastry.ts";
 import type { Comparison } from "./compat.ts";
 import type { StartStop } from "./pair-reading.ts";
@@ -95,7 +96,7 @@ export function pairSpotlight({ seed, tone, mine, theirs, c, them, startStop }: 
   const facts = [
     S1.id === S2.id ? `${S1.glyph} Both ${S1.name} Suns` : `${S1.glyph}${S2.glyph} ${S1.name} and ${S2.name} Suns`,
     M1.id === M2.id ? `Both ${M1.name} Moons` : `${M1.name} and ${M2.name} Moons`,
-    n1 === n2 ? `Both Life Path ${n1}` : `Life Paths ${n1} and ${n2}`,
+    n1 === n2 ? `Both Life Path ${show(n1)}` : `Life Paths ${show(n1)} and ${show(n2)}`,
   ];
 
   // what you bring each other: each Sun and Life Path as a gift to the other, both Moons, both animals and both Venuses
@@ -115,11 +116,11 @@ export function pairSpotlight({ seed, tone, mine, theirs, c, them, startStop }: 
     fill(pick([
       "Your {S} Sun brings {them} {gives}, and your Life Path {n}, the number from your birth date, adds {flavour}.",
       "From your {S} Sun, {them} gets {gives}, along with {flavour} from your Life Path {n}, the number numerology takes from a birth date.",
-    ], "bring-me"), { them, gives: SUN_GIVES[S1.id][givesMe], S: S1.name, flavour: L1.flavour[flMe], n: String(n1) }),
+    ], "bring-me"), { them, gives: SUN_GIVES[S1.id][givesMe], S: S1.name, flavour: L1.flavour[flMe], n: show(n1) }),
     fill(pick([
       "{Them} brings you {gives}, from {anS} Sun, plus {flavour} from Life Path {n}.",
       "In return, {their} {S} Sun gives you {gives}, and Life Path {n} adds {flavour}.",
-    ], "bring-them"), { Them, their, anS: an(S2.name), gives: SUN_GIVES[S2.id][givesThem], S: S2.name, flavour: L2.flavour[flThem], n: String(n2) }),
+    ], "bring-them"), { Them, their, anS: an(S2.name), gives: SUN_GIVES[S2.id][givesThem], S: S2.name, flavour: L2.flavour[flThem], n: show(n2) }),
     fill(pick(M1.id === M2.id ? [
       "You both have the Moon, which governs feelings, in {M1}, so each of you offers the other {g1}.",
       "Emotionally, your Moons are both in {M1}, so {g1} flows both ways.",
@@ -181,7 +182,7 @@ export function pairSpotlight({ seed, tone, mine, theirs, c, them, startStop }: 
   const elAll = { ...elVars, t1: ELEMENT_TRAIT[elVars.E1], t2: ELEMENT_TRAIT[elVars.E2] };
   const sameFamily = famOf(n1) === famOf(n2);
   // the click and rub lines take the other wording of each flavour, and the tips each Life Path's strength, so nothing repeats the opening
-  const lpVars = { n1: String(n1), n2: String(n2), f1: L1.flavour[1 - flMe], f2: L2.flavour[1 - flThem], s1: L1.strength, kw1: kw(n1), kw2: kw(n2) };
+  const lpVars = { n1: show(n1), n2: show(n2), f1: L1.flavour[1 - flMe], f2: L2.flavour[1 - flThem], s1: L1.strength, kw1: kw(n1), kw2: kw(n2) };
   const lpTip = { f1: L1.strength, f2: L2.strength };
 
   const clicks: [string, keyof typeof CLICK_USE][] = [];
@@ -198,7 +199,7 @@ export function pairSpotlight({ seed, tone, mine, theirs, c, them, startStop }: 
     const none = fill(pick(only === "animal" ? NO_CLICK.lifePaths : only === "family" ? NO_CLICK.animals : [...NO_CLICK.lifePaths, ...NO_CLICK.animals], "no-click"), {
       // name the planets that did not click: the Suns, unless the one click is the Suns
       pairOf: clicks[0]?.[1] === "sun" ? `your ${M1.name} and ${M2.name} Moons` : `your ${S1.name} and ${S2.name} Suns`,
-      n1: String(n1), n2: String(n2), kw1: kw(n1), kw2: kw(n2), A1: A1.name, A2: A2.name, their, qA: animalVars.qA, qB: animalVars.qB,
+      n1: show(n1), n2: show(n2), kw1: kw(n1), kw2: kw(n2), A1: A1.name, A2: A2.name, their, qA: animalVars.qA, qB: animalVars.qB,
     });
     click.push(click.length ? none : none.replace(/^Beyond that, your/, "Your"));
   }
@@ -228,7 +229,7 @@ export function pairSpotlight({ seed, tone, mine, theirs, c, them, startStop }: 
   const handle = fill(pick(HANDLE[handleKey], "handle"), tipVars(handleKey, handleKey === hard?.planet ? hard : undefined));
   const rubText = rub.length
     ? [...rub.map(([t]) => t), `${pick(["To handle it,", "To ease it,", "In practice,"], "handle-open")} ${lcFirst(handle)}`]
-    : [fill(pick(NO_RUB, "no-rub"), { S1: S1.name, S2: S2.name, M1: M1.name, M2: M2.name, n1: String(n1), n2: String(n2), A1: A1.name, A2: A2.name }), handle];
+    : [fill(pick(NO_RUB, "no-rub"), { S1: S1.name, S2: S2.name, M1: M1.name, M2: M2.name, n1: show(n1), n2: show(n2), A1: A1.name, A2: A2.name }), handle];
 
   // your story together: both Suns, both animals, both Life Paths, where the title comes from and the year
   const sp1 = SIGN_SPOT[S1.id], sp2 = SIGN_SPOT[S2.id];
@@ -236,12 +237,12 @@ export function pairSpotlight({ seed, tone, mine, theirs, c, them, startStop }: 
   const story = [
     fill(pick(STORY, "story"), {
       heart1, heart2, aHeart1: an(heart1), aHeart2: an(heart2), S1: S1.name, S2: S2.name, their,
-      El1, El2, aEl1: an(El1), aEl2: an(El2), A1: A1.name, A2: A2.name, n1: String(n1), n2: String(n2), kw1: kw(n1), kw2: kw(n2),
+      El1, El2, aEl1: an(El1), aEl2: an(El2), A1: A1.name, A2: A2.name, n1: show(n1), n2: show(n2), kw1: kw(n1), kw2: kw(n2),
     }),
     fill(pick(TITLE_LINE, "title-line"), {
       title, Title: cap(title), Noun: noun, Adj: adj,
       els: S1.element === S2.element ? `${S1.element} for both Suns` : `${S1.element} and ${S2.element}`,
-      lps: n1 === n2 ? `a shared Life Path ${n1}` : `Life Paths ${n1} and ${n2}`,
+      lps: n1 === n2 ? `a shared Life Path ${show(n1)}` : `Life Paths ${show(n1)} and ${show(n2)}`,
     }),
     fill(pick(YEAR_STORY[YEAR_PACE[c.me.personalYear] === YEAR_PACE[c.them.personalYear] ? YEAR_PACE[c.me.personalYear] : "mixed"], "year"), {
       py1: String(c.me.personalYear), py2: String(c.them.personalYear), them, their,

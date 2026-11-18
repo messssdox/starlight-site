@@ -135,7 +135,7 @@ const FILTERS = [
 
 <script>
   import { skyEvents, addMonths, retrogradeNow, type SkyEvent } from "../lib/sky-events.ts";
-  import { universalDay, universalMonth, universalYear, personalDay, MASTER_NUMBERS } from "../lib/numerology.ts";
+  import { universalDay, universalMonth, universalYear, universalYearMaster, universalYearShown, personalDay, show, MASTER_NUMBERS } from "../lib/numerology.ts";
   import { UNIVERSAL_DAY, NUMBER_ECHOES, NUMEROLOGY_INTRO, PLANET_SHORT, PLANET_THEMES, RETRO } from "../data/sky-meanings.ts";
   import { NUMBER_MEANINGS, PERSONAL_YEAR_THEMES } from "../data/numbers.ts";
   import type { PlanetId } from "../data/astrology.ts";
@@ -190,15 +190,16 @@ const FILTERS = [
     // Today's numbers, worked out from the visitor's own date.
     const y = start.getFullYear(), mo = start.getMonth() + 1;
     const uy = universalYear(y).value, um = universalMonth(y, mo).value, ud = dayNumber(start);
+    const uyShown = universalYearShown(y), uyMaster = universalYearMaster(y);
     const firstSentence = (t: string) => t.split(/(?<=\.) /)[0];
     now.querySelector("[data-numbers]")!.innerHTML =
       `<span aria-hidden="true">✧</span> Numbers now: ` +
-      item(`Universal Year <strong>${uy}</strong> (${NUMBER_MEANINGS[uy].keyword})`,
-        `<p>The Universal Year is the number of the whole calendar year, the same for everyone: the digits of ${y} add up to ${uy}. ${NUMBER_MEANINGS[uy].keyword}: ${NUMBER_MEANINGS[uy].essence}</p><p>${PERSONAL_YEAR_THEMES[uy]}</p>`) + " · " +
-      item(`Universal Month <strong>${um}</strong>`,
+      item(`Universal Year <strong>${uyShown}</strong> (${NUMBER_MEANINGS[uy].keyword})`,
+        `<p>The Universal Year is the number of the whole calendar year, the same for everyone: the digits of ${y} add up to ${uyMaster ? `${uyMaster}, a master number, which reduces to ${uy}` : uy}. ${NUMBER_MEANINGS[uy].keyword}: ${NUMBER_MEANINGS[uy].essence}</p><p>${PERSONAL_YEAR_THEMES[uy]}</p>`) + " · " +
+      item(`Universal Month <strong>${show(um)}</strong>`,
         `<p>The Universal Month is this month's number for everyone: the month (${mo}) added to the Universal Year (${uy}). ${NUMBER_MEANINGS[um].keyword}: ${NUMBER_MEANINGS[um].essence}</p><p>${firstSentence(NUMBER_MEANINGS[um].gentle)}</p>`) +
       ` · today is a ` +
-      item(`Universal Day <strong>${ud.value}</strong>`,
+      item(`Universal Day <strong>${show(ud.value)}</strong>`,
         `<p>The Universal Day is today's number for everyone, from adding up every digit of the date (${ud.steps.join(", then ")}). ${NUMBER_MEANINGS[ud.value].keyword}: ${NUMBER_MEANINGS[ud.value].essence}</p><p>${firstSentence(NUMBER_MEANINGS[ud.value].gentle)}</p>`) +
       `, ${UNIVERSAL_DAY[ud.value]}.`;
     // One explainer box per line, shown under the line; tapping the same item again closes it.
@@ -217,7 +218,7 @@ const FILTERS = [
       });
     }
     now.querySelector("[data-num-intro]")!.textContent =
-      `${NUMEROLOGY_INTRO} The Universal Month is the month's number added to the Universal Year's, and the Universal Year is the year's digits added up (${y} makes ${uy}). Your Personal Day is personal to you: your birth day and month plus the date, added up the same way.`;
+      `${NUMEROLOGY_INTRO} The Universal Month is the month's number added to the Universal Year's, and the Universal Year is the year's digits added up (${y} makes ${uyShown}). Your Personal Day is personal to you: your birth day and month plus the date, added up the same way.`;
     now.hidden = false;
 
     // Group into months, starting with the current one.
@@ -244,10 +245,10 @@ const FILTERS = [
       const echo = NUMBER_ECHOES.find((x) => x.test(e.title) && x.numbers.includes(n.value));
       const master = MASTER_NUMBERS.includes(n.value) && e.kind !== "number"; // numerology dates already say so
       return { n, html: `
-        ${echo || master ? `<p class="e-num">${master ? `<span class="master">Master day ${n.value}</span> ` : ""}${echo ? `<span class="master" title="The day's number matches this event">✧ Numbers match</span>` : ""}</p>` : ""}
+        ${echo || master ? `<p class="e-num">${master ? `<span class="master">Master day ${show(n.value)}</span> ` : ""}${echo ? `<span class="master" title="The day's number matches this event">✧ Numbers match</span>` : ""}</p>` : ""}
         <p class="e-pers" data-pers hidden></p>`,
         detail: [
-          { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${n.value} (${n.steps.join(", then ")})${MASTER_NUMBERS.includes(n.value) ? ", a master number" : ""}. ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : ""}` },
+          { h: "Numerology", p: `${day.format(e.at)} is a Universal Day ${show(n.value)} (${n.steps.join(", then ")})${MASTER_NUMBERS.includes(n.value) ? ", a master number" : ""}. ${NUMBER_MEANINGS[n.value].keyword}: ${UNIVERSAL_DAY[n.value]}.${echo ? ` The two line up: ${echo.why}.` : ""}` },
         ] };
     }
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -269,7 +270,7 @@ const FILTERS = [
 
     months.innerHTML = groups.map((g, i) => `
       <details class="panel"${shown < 12 ? " open" : ""}>
-        <summary><span class="m-name">${g.label}</span><span class="m-num">Universal Month ${g.num}</span><span class="m-sum" data-sum></span></summary>
+        <summary><span class="m-name">${g.label}</span><span class="m-num">Universal Month ${show(g.num)}</span><span class="m-sum" data-sum></span></summary>
         <ol>${g.events.map(row).join("")}</ol>
       </details>`).join("");
 

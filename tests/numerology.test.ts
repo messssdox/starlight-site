@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { lifePath, expression, soulUrge, personality, personalYear, reduce, letterValue, universalYear, universalMonth, universalDay, personalDay } from "../src/lib/numerology.ts";
+import { lifePath, expression, soulUrge, personality, personalYear, reduce, letterValue, universalYear, universalMonth, universalDay, personalDay, show, universalYearShown } from "../src/lib/numerology.ts";
 
 test("letters use Pythagorean values", () => {
   assert.equal(letterValue("A"), 1);
@@ -43,6 +43,17 @@ test("Personal Year and Universal Year", () => {
   // 14 March in 2026: 5 + 3 + 1 = 9
   assert.equal(personalYear("1990-03-14", 2026).value, 9);
   assert.equal(universalYear(2026).value, 1);
+});
+
+test("master numbers are shown with their core number, the maths unchanged", () => {
+  assert.equal(show(11), "11/2");
+  assert.equal(show(22), "22/4");
+  assert.equal(show(33), "33/6");
+  assert.equal(show(7), "7");
+  assert.equal(universalYearShown(2026), "1");
+  assert.equal(universalYearShown(2027), "11/2");
+  assert.equal(universalYear(2027).value, 2); // still 2 in the sums
+  assert.equal(universalMonth(2027, 9).value, 11); // 9 + 2
 });
 
 test("Universal Month and Day add up the calendar date, keeping master days", () => {
